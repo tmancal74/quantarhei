@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy
 
 from ..core.managers import UnitsManaged, energy_units
+from ..exceptions import QuantarheiError
 from ..utils.types import Integer
 
 if TYPE_CHECKING:
@@ -57,7 +58,7 @@ class ElectronicState(UnitsManaged):
         if Nsig == nmono:
             self.nmono = nmono
         else:
-            raise Exception("Incompatible length of elsignature")
+            raise QuantarheiError("Incompatible length of elsignature")
 
         self.elsignature = elsignature
         self.aggregate = aggregate
@@ -128,7 +129,7 @@ class ElectronicState(UnitsManaged):
 
         if vsig is not None:
             if not (len(vsig) == self.vsiglength):
-                raise Exception()
+                raise QuantarheiError()
             k = 0
             for nn in self.vibmodes:
                 en += float(vsig[k] * self.convert_energy_2_current_u(nn.omega))
@@ -151,7 +152,7 @@ class ElectronicState(UnitsManaged):
 
         if vsig is not None:
             if not (len(vsig) == self.vsiglength):
-                raise Exception()
+                raise QuantarheiError()
             k = 0
             for nn in self.vibmodes:
                 en += vsig[k] * nn.omega
@@ -170,7 +171,7 @@ class ElectronicState(UnitsManaged):
 
         if vsig is not None:
             if not (len(vsig) == self.vsiglength):
-                raise Exception()
+                raise QuantarheiError()
 
             k = 0
             for nn in self.vibmodes:
@@ -245,7 +246,7 @@ class ElectronicState(UnitsManaged):
     ) -> object:
         """Generates vibrational signature in N Particle Approximation (NPA)"""
         if N is None:
-            raise Exception("Number of states to be used must be defined")
+            raise QuantarheiError("Number of states to be used must be defined")
 
         two = numpy.zeros(len(tup), dtype=int)
         two[:] = N + 1
@@ -268,7 +269,7 @@ class ElectronicState(UnitsManaged):
     ) -> object:
         """Generates vibrational signatures in NP per mode Aproximation (NPPMA)"""
         if N is None:
-            raise Exception("Number of states to be used must be defined")
+            raise QuantarheiError("Number of states to be used must be defined")
 
         if ecut is not None:
             vec = self.convert_energy_2_internal_u(ecut)
@@ -346,7 +347,7 @@ class ElectronicState(UnitsManaged):
             return self._npa_ndindex(tuple(vibmax), N=N, ecut=vibenergy_cutoff)
         if approx == "NPPMA":
             return self._nppma_ndindex(tuple(vibmax), N=N, ecut=vibenergy_cutoff)
-        raise Exception("Unknown vibrational state generation approximation")
+        raise QuantarheiError("Unknown vibrational state generation approximation")
 
     def number_of_states(self) -> int:
         """Number of vibrational sub-states in the electronic state"""
@@ -432,7 +433,7 @@ class VibronicState(UnitsManaged):
 
         if self.vsig is not None:
             if not (len(self.vsig) == self.elstate.vsiglength):
-                raise Exception()
+                raise QuantarheiError()
 
             k = 0
             for nn in self.elstate.vibmodes:
@@ -489,10 +490,10 @@ class Coherence:
             system1 = state1.system
             system2 = state2.system
         except AttributeError:
-            raise Exception("At least one of the states does not know its system")
+            raise QuantarheiError("At least one of the states does not know its system")
 
         if system1 != system2:
-            raise Exception("States do not come from the same system")
+            raise QuantarheiError("States do not come from the same system")
 
         self.system = system1
 

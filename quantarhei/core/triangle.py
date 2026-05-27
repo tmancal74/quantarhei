@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..exceptions import QuantarheiError
 from .saveable import Saveable
 
 
@@ -22,7 +23,7 @@ class triangle(Saveable):
     ) -> Any:
 
         if ((i >= self.N) or (j >= self.N)) or ((i < 0) or (j < 0)):
-            raise Exception("Index out of range")
+            raise QuantarheiError("Index out of range")
 
         trans = False
         if j > i:
@@ -32,7 +33,7 @@ class triangle(Saveable):
                 i = j
                 j = pom
             else:
-                raise Exception("Index out of range (transposed is in range)")
+                raise QuantarheiError("Index out of range (transposed is in range)")
 
         I = 0
         for m in range(1, i + 1):

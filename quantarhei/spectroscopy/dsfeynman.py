@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..exceptions import QuantarheiError
+
 
 def _require_symbolic() -> None:
     try:
@@ -44,7 +46,7 @@ class DSFeynmanDiagram:
         if ptype in ptype_simple + ptype_relax:
             self.type = ptype
         else:
-            raise Exception("Unknown diagram type.")
+            raise QuantarheiError("Unknown diagram type.")
 
         self.states[self.pointer] = ["g", "g"]
         self.add_states_line()
@@ -114,7 +116,7 @@ class DSFeynmanDiagram:
     def _check_finished(self) -> None:
         """Checkes if the diagram is finished"""
         if not self.finished:
-            raise Exception(
+            raise QuantarheiError(
                 "An unfinisged diagram: finish() method has to be called first"
             )
 
@@ -201,7 +203,7 @@ class DSFeynmanDiagram:
                     symbols.add(tms)
 
                 else:
-                    raise Exception("Unknown time for evolution operator")
+                    raise QuantarheiError("Unknown time for evolution operator")
 
                 if rightstate == "g":
                     Uops += "Ugd(t" + str(kk) + ")"
@@ -237,7 +239,7 @@ class DSFeynmanDiagram:
                     symbols.add(tms)
 
                 else:
-                    raise Exception("Unknown time for evolution operator")
+                    raise QuantarheiError("Unknown time for evolution operator")
 
                 if leftstate == "g":
                     rUop = "Ug(t" + str(kk) + ")" + rUop

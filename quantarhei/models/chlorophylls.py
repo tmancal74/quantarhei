@@ -5,13 +5,15 @@
 
 from __future__ import annotations
 
-# -*- coding: utf-8 -*-
 from typing import Any
 
 import numpy
 
 from ..builders import pdb
 from ..core.units import cm2int
+
+# -*- coding: utf-8 -*-
+from ..exceptions import QuantarheiError
 from ..utils.vectors import normalize2
 from .molecularmodel import MolecularModel
 
@@ -53,9 +55,11 @@ class ChlorophyllA(MolecularModel):
                 d = normalize2(d, norm=self.default_dipole_lengths[0, 1])
             else:
                 # print(k1,k2)
-                raise Exception("No unique direction of a molecule's dipole found")
+                raise QuantarheiError(
+                    "No unique direction of a molecule's dipole found"
+                )
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
         return d
 
@@ -87,9 +91,9 @@ class ChlorophyllA(MolecularModel):
                 pos = (xyz1 + xyz2 + xyz3 + xyz4) / 4.0
             else:
                 # print(k1, k2, k3, k4)
-                raise Exception("No unique possition of a molecule found")
+                raise QuantarheiError("No unique possition of a molecule found")
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
         return pos
 
@@ -116,13 +120,13 @@ class ChlorophyllA(MolecularModel):
             pass
 
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
     def _check_data_type(self, data_type: str | None) -> str:
         """If non data_type is specified, the default is taken (if known)"""
         if data_type is None:
             if self.model_type is None:
-                raise Exception()
+                raise QuantarheiError()
             else:
                 return self.model_type
         else:
@@ -165,9 +169,11 @@ class ChlorophyllB(MolecularModel):
                 d = normalize2(d, norm=self.default_dipole_lengths[0, 1])
             else:
                 # print(k1,k2)
-                raise Exception("No unique direction of a molecule's dipole found")
+                raise QuantarheiError(
+                    "No unique direction of a molecule's dipole found"
+                )
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
         return d
 
@@ -199,9 +205,9 @@ class ChlorophyllB(MolecularModel):
                 pos = (xyz1 + xyz2 + xyz3 + xyz4) / 4.0
             else:
                 # print(k1, k2, k3, k4)
-                raise Exception("No unique possition of a molecule found")
+                raise QuantarheiError("No unique possition of a molecule found")
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
         return pos
 
@@ -228,13 +234,13 @@ class ChlorophyllB(MolecularModel):
             pass
 
         else:
-            raise Exception("Unknown data type")
+            raise QuantarheiError("Unknown data type")
 
     def _check_data_type(self, data_type: str | None) -> str:
         """If non data_type is specified, the default is taken (if known)"""
         if data_type is None:
             if self.model_type is None:
-                raise Exception()
+                raise QuantarheiError()
             else:
                 return self.model_type
         else:

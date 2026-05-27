@@ -8,6 +8,7 @@ import numpy
 
 from ... import COMPLEX, REAL
 from ...core.units import kB_int
+from ...exceptions import ImplementationError, QuantarheiError
 from ..corfunctions.correlationfunctions import CorrelationFunction
 from ..hilbertspace.operators import ReducedDensityMatrix, UnityOperator
 from ..propagators.dmevolution import DensityMatrixEvolution
@@ -129,7 +130,7 @@ class KTHierarchy:
             ]:
                 pass
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Spectral density/Correlation function type:"
                     + prms["ftype"]
                     + "\nHEOM is not implemented for this function"
@@ -221,9 +222,11 @@ class KTHierarchy:
     def _generate_indices_2_0to4(self, N: int = 2, level: int = 0) -> list:
         """Generation of hierarchy indices for a give problem"""
         if N != 2:
-            raise Exception("Experimental code, N different from 2 not implemented")
+            raise ImplementationError(
+                "Experimental code, N different from 2 not implemented"
+            )
         if level > 4:
-            raise Exception("Experimental code, level > 4 not implemented")
+            raise ImplementationError("Experimental code, level > 4 not implemented")
 
         lret = []
 
@@ -491,7 +494,7 @@ class KTHierarchyPropagator:
             self.HOmega = HOmega
 
         else:
-            raise Exception("Hamiltonian does not have RWA.")
+            raise QuantarheiError("Hamiltonian does not have RWA.")
 
     def propagate(
         self,

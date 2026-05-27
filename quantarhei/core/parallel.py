@@ -10,6 +10,7 @@ from typing import Any
 import numpy
 
 from .. import COMPLEX
+from ..exceptions import QuantarheiError
 
 
 def call_finish() -> None:
@@ -117,7 +118,7 @@ class DistributedConfiguration:
                 self.parallel_level -= 1
 
         if self.parallel_level < 0:
-            raise Exception()
+            raise QuantarheiError()
 
         self.parallel_region -= 1
 
@@ -147,7 +148,9 @@ class DistributedConfiguration:
 
         """
         if self.parallel_region < 1:
-            raise Exception("This code has to be run from a declared parallel_region")
+            raise QuantarheiError(
+                "This code has to be run from a declared parallel_region"
+            )
 
         # only in parallel_level == 1 we share the work
         if self.parallel_level != 1:
@@ -160,7 +163,7 @@ class DistributedConfiguration:
             self.comm.Reduce(A, B, op=MPI.SUM)
             return B
 
-        raise Exception("Unknown reduction operation")
+        raise QuantarheiError("Unknown reduction operation")
 
     def allreduce(self, A: numpy.ndarray, operation: str = "sum") -> None:
         """Performs a reduction operation on an array
@@ -171,7 +174,9 @@ class DistributedConfiguration:
 
         """
         if self.parallel_region < 1:
-            raise Exception("This code has to be run from a declared parallel_region")
+            raise QuantarheiError(
+                "This code has to be run from a declared parallel_region"
+            )
 
         # only in parallel_level == 1 we share the work
         if self.parallel_level != 1:
@@ -185,13 +190,15 @@ class DistributedConfiguration:
             A[:, :] = B
 
         else:
-            raise Exception("Unknown reduction operation")
+            raise QuantarheiError("Unknown reduction operation")
 
     def bcast(self, value: Any, root: int = 0) -> Any:
         # if self.parallel_level != 1:
         #    return value
         if self.parallel_region < 1:
-            raise Exception("This code has to be run from a declared parallel_region")
+            raise QuantarheiError(
+                "This code has to be run from a declared parallel_region"
+            )
 
         return self.comm.bcast(value, root=root)
 
@@ -265,7 +272,7 @@ def block_distributed_range(start: int, stop: int) -> range:
     config = Manager().get_DistributedConfiguration()
 
     if config.parallel_region < 1:
-        raise Exception("This code has to be run from a declared parallel_region")
+        raise QuantarheiError("This code has to be run from a declared parallel_region")
 
     if config.parallel_level == 1:
         config.inparallel_entered = True
@@ -300,7 +307,7 @@ def block_distributed_list(dlist: list[Any], return_index: bool = False) -> list
     config = Manager().get_DistributedConfiguration()
 
     if config.parallel_region < 1:
-        raise Exception("This code has to be run from a declared parallel_region")
+        raise QuantarheiError("This code has to be run from a declared parallel_region")
 
     if config.parallel_level == 1:
         config.inparallel_entered = True
@@ -350,7 +357,7 @@ def block_distributed_array(array: numpy.ndarray, return_index: bool = False) ->
     config = Manager().get_DistributedConfiguration()
 
     if config.parallel_region < 1:
-        raise Exception("This code has to be run from a declared parallel_region")
+        raise QuantarheiError("This code has to be run from a declared parallel_region")
 
     if config.parallel_level == 1:
         config.inparallel_entered = True
@@ -414,7 +421,7 @@ def collect_block_distributed_data(
     config = Manager().get_DistributedConfiguration()
 
     if config.parallel_region < 1:
-        raise Exception("This code has to be run from a declared parallel_region")
+        raise QuantarheiError("This code has to be run from a declared parallel_region")
 
     if config.parallel_level == 1:
         if config.rank == 0:
@@ -686,7 +693,7 @@ def asynchronous_range(start: int, stop: int) -> Generator[int, None, None]:
     config = Manager().get_DistributedConfiguration()
 
     if config.parallel_region < 1:
-        raise Exception("This code has to be run from a declared parallel_region")
+        raise QuantarheiError("This code has to be run from a declared parallel_region")
 
     if config.parallel_level == 1:
         from queue import Queue
@@ -820,7 +827,9 @@ class parallel_function:
         manager = Manager()
         self.dc = manager.get_DistributedConfiguration()
         if self.dc.parallel_region < 1:
-            raise Exception("This code has to be run from a declared parallel_region")
+            raise QuantarheiError(
+                "This code has to be run from a declared parallel_region"
+            )
 
     def __enter__(self) -> tuple[Any, bool]:
         """All except of the leader are put on hold

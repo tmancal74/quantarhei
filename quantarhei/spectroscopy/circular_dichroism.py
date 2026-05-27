@@ -23,6 +23,7 @@ from ..core.managers import EnergyUnitsManaged, energy_units
 from ..core.saveable import Saveable
 from ..core.time import TimeAxis, TimeDependent
 from ..core.units import cm2int
+from ..exceptions import ImplementationError, QuantarheiError
 
 # from scipy.optimize import minimize, leastsq, curve_fit
 from ..utils import derived_type
@@ -135,7 +136,7 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
         if not numpy.allclose(spect.axis.data, self.axis.data):
             numpy.savetxt("spect_data_wrong.dat", spect.axis.data)
             numpy.savetxt("self_data_wrong.dat", self.axis.data)
-            raise Exception("Incompatible axis")
+            raise QuantarheiError("Incompatible axis")
 
         if self.data is None:
             self.data = numpy.zeros(len(spect.data), dtype=spect.axis.data.dtype)
@@ -239,7 +240,7 @@ class CircDichSpectrumBase(DFunction, EnergyUnitsManaged):
         y = self.data
 
         if guess is None:
-            raise Exception("Guess is required at this time")
+            raise QuantarheiError("Guess is required at this time")
             # FIXME: create a reasonable guess
             guess = [1.0, 11000.0, 300.0, 0.2, 11800, 400, 0.2, 12500, 300]
 
@@ -385,7 +386,7 @@ def _n_gaussians(x: Any, N: int, *params: float) -> Any:
         res += params[n - 1]  # last parameter is an offset
         return res
 
-    raise Exception("Inconsistend number of parameters")
+    raise QuantarheiError("Inconsistend number of parameters")
 
 
 class CircDichSpectrum(CircDichSpectrumBase):
@@ -502,7 +503,7 @@ class CircDichSpectrumContainer(Saveable):
             self.spectra[tag1] = spect
             self.count += 1
         else:
-            raise Exception("Incompatible time axis (equal axis required)")
+            raise QuantarheiError("Incompatible time axis (equal axis required)")
 
     def get_spectrum(self, tag: Any) -> Any:
         """Return the spectrum identified by tag.
@@ -528,7 +529,7 @@ class CircDichSpectrumContainer(Saveable):
 
         if tag in self.spectra.keys():
             return self.spectra[tag]
-        raise Exception("Unknown spectrum")
+        raise QuantarheiError("Unknown spectrum")
 
     def get_spectra(self) -> list[Any]:
         """Return all stored spectra sorted by their string tags.
@@ -603,7 +604,7 @@ class CircDichSpectrumContainer(Saveable):
 #                    self.set_spectrum(aaa,tag=tag)
 #
 #            if self.count != expected_count:
-#                raise Exception("Incorrect number of spectra read")
+#                raise QuantarheiError("Incorrect number of spectra read")
 
 
 class CircDichSpectrumCalculator(EnergyUnitsManaged):
@@ -682,14 +683,14 @@ class CircDichSpectrumCalculator(EnergyUnitsManaged):
                         relaxation_hamiltonian=self._relaxation_hamiltonian,
                     )
             else:
-                raise Exception("System to calculate spectrum for not defined")
+                raise QuantarheiError("System to calculate spectrum for not defined")
 
         return spect
 
     def _calculateMolecule(self, rwa: float) -> None:
 
         if self.system._has_system_bath_coupling:
-            raise Exception("Not yet implemented")
+            raise ImplementationError("Not yet implemented")
         else:
             # calculating stick spectra
 
@@ -815,7 +816,7 @@ class CircDichSpectrumCalculator(EnergyUnitsManaged):
 
     def _calculate_monomer(self) -> Any:
         """Calculates the circular dichroism spectrum of a monomer"""
-        raise Exception(
+        raise QuantarheiError(
             "Not yet implemented. Usually, CD is calculated\
                         for aggregates"
         )

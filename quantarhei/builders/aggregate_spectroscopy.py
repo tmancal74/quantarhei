@@ -14,6 +14,7 @@ from typing import Any
 import numpy
 
 from ..core.managers import eigenbasis_of
+from ..exceptions import ImplementationError, QuantarheiError
 from ..qm.liouvillespace.supopunity import SOpUnity
 from ..spectroscopy import diagramatics as diag
 from .aggregate_base import AggregateBase
@@ -47,562 +48,6 @@ class AggregateSpectroscopy(AggregateBase):
             eUt=SOpUnity(dim=ham.dim),
             verbose=verbose,
         )
-        #
-        # Rest is ignored for now (may be valuabel in the future)
-        #
-
-        pop_tol = ptol
-        dip_tol = numpy.sqrt(self.D2_max) * dtol
-
-        # Check if the ptype is a tuple
-        ptype_tuple: Any
-        if not isinstance(ptype, (tuple, list)):
-            ptype_tuple = (ptype,)
-        else:
-            ptype_tuple = ptype
-        lst: list[Any] = []
-
-        for ptp in ptype_tuple:
-            if ptp == "R3g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3g in ngs:
-                                if self.D2[i3g, i2e] < dip_tol:
-                                    break
-
-                                for i4e in nes:
-                                    if (self.D2[i4e, i1g] < dip_tol) and (
-                                        self.D2[i3g, i4e] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R3g
-                                    #
-                                    #
-                                    #      |g_i3> <g_i3|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i3|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i3|
-                                    #      |-----------|---->
-                                    #      |g_i1> <e_i2|
-                                    #      |-----------|<----
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "R", i1g, aggregate=self, order=3, pname=ptp
-                                        )
-                                        # |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), -1)
-                                        # |g_i1> <e_i2|
-                                        lp.add_transition((i3g, i2e), -1)
-                                        # |g_i1> <g_i3|
-                                        lp.add_transition((i4e, i1g), +1)
-                                        # |e_i5> <g_i3|
-                                        lp.add_transition((i3g, i4e), +1)
-                                        # |g_i3> <g_i3|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R2g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                for i4g in ngs:
-                                    if (self.D2[i4g, i2e] < dip_tol) or (
-                                        self.D2[i4g, i3e] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R2g
-                                    #
-                                    #
-                                    #      |g_i4> <g_i4|
-                                    # <----|-----------|
-                                    #      |e_i3> <g_i4|
-                                    #      |-----------|---->
-                                    #      |e_i3> <e_i2|
-                                    # ---->|-----------|
-                                    #      |g_i1> <e_i2|
-                                    #      |-----------|<----
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "R",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname=ptp,
-                                            popt_band=1,
-                                        )
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), -1)
-                                        #      |g_i1> <e_i2|
-                                        lp.add_transition((i3e, i1g), +1)
-                                        #      |e_i3> <e_i2|
-                                        lp.add_transition((i4g, i2e), -1)
-                                        #      |e_i3> <g_i4|
-                                        lp.add_transition((i4g, i3e), +1)
-                                        #      |g_i4> <g_i4|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R1g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                for i4g in ngs:
-                                    if (self.D2[i4g, i3e] < dip_tol) or (
-                                        self.D2[i4g, i2e] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R1g
-                                    #
-                                    #
-                                    #      |g_i4> <g_i4|
-                                    # <----|-----------|
-                                    #      |e_i2> <g_i4|
-                                    #      |-----------|---->
-                                    #      |e_i2> <e_i3|
-                                    #      |-----------|<----
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "NR",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname=ptp,
-                                            popt_band=1,
-                                        )
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), +1)
-                                        #      |e_i2> <g_i1|
-                                        lp.add_transition((i3e, i1g), -1)
-                                        #      |e_i2> <e_i3|
-                                        lp.add_transition((i4g, i3e), -1)
-                                        #      |e_i2> <g_i4|
-                                        lp.add_transition((i4g, i2e), +1)
-                                        #      |g_i4> <g_i4|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R4g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3g in ngs:
-                                if self.D2[i3g, i2e] < dip_tol:
-                                    break
-
-                                for i4e in nes:
-                                    if (self.D2[i4e, i3g] < dip_tol) or (
-                                        self.D2[i1g, i4e] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R4g
-                                    #
-                                    #
-                                    #      |g_i1> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i4> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i3> <g_i1|
-                                    # <----|-----------|
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "NR",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname=ptp,
-                                        )
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), +1)
-                                        #      |e_i2> <g_i1|
-                                        lp.add_transition((i3g, i2e), +1)
-                                        #      |g_i3> <g_i1|
-                                        lp.add_transition((i4e, i3g), +1)
-                                        #      |e_i4> <g_i1|
-                                        lp.add_transition((i1g, i4e), +1)
-                                        #      |g_i1> <g_i1|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R1f*":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-                try:
-                    nfs = self.get_excitonic_band(band=2)
-                except Exception:
-                    break
-
-                #                print(ngs)
-                #                print(nes)
-                #                print(nfs)
-                #                for a in nes:
-                #                    for b in nfs:
-                #                        print(a,b," : ",self.D2[a,b],self.D2[b,a])
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                for i4f in nfs:
-                                    if (self.D2[i4f, i3e] < dip_tol) or (
-                                        self.D2[i2e, i4f] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R4g
-                                    #
-                                    #
-                                    #      |e_i2> <e_i2|
-                                    # <----|-----------|
-                                    #      |f_i4> <e_i2|
-                                    # ---->|-----------|
-                                    #      |e_i3> <e_i2|
-                                    # ---->|-----------|
-                                    #      |g_i1> <e_i2|
-                                    #      |-----------|<----
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "R",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname=ptp,
-                                            popt_band=1,
-                                        )
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), -1)
-                                        #      |g_i1> <e_i2|
-                                        lp.add_transition((i3e, i1g), +1)
-                                        #      |e_i3> <e_i2|
-                                        lp.add_transition((i4f, i3e), +1)
-                                        #      |f_i4> <e_i2|
-                                        lp.add_transition((i2e, i4f), +1)
-                                        #      |e_i2> <e_i2|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R2f*":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                try:
-                    nfs = self.get_excitonic_band(band=2)
-                except Exception:
-                    break
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                for i4f in nfs:
-                                    if (self.D2[i4f, i2e] < dip_tol) or (
-                                        self.D2[i3e, i4f] < dip_tol
-                                    ):
-                                        break
-
-                                    l += 1
-
-                                    #      Diagram R4g
-                                    #
-                                    #
-                                    #      |e_i3> <e_i3|
-                                    # <----|-----------|
-                                    #      |f_i4> <e_i3|
-                                    # ---->|-----------|
-                                    #      |e_i2> <e_i3|
-                                    #      |-----------|<----
-                                    #      |e_i2> <g_i1|
-                                    # ---->|-----------|
-                                    #      |g_i1> <g_i1|
-
-                                    try:
-                                        lp = diag.liouville_pathway(
-                                            "NR",
-                                            i1g,
-                                            aggregate=self,
-                                            order=3,
-                                            pname=ptp,
-                                            popt_band=1,
-                                        )
-                                        #      |g_i1> <g_i1|
-                                        lp.add_transition((i2e, i1g), +1)
-                                        #      |e_i2> <g_i1|
-                                        lp.add_transition((i3e, i1g), -1)
-                                        #      |e_i2> <e_i3|
-                                        lp.add_transition((i4f, i2e), +1)
-                                        #      |f_i4> <e_i3|
-                                        lp.add_transition((i3e, i4f), +1)
-                                        #      |e_i3> <e_i3|
-
-                                    except Exception:
-                                        break
-
-                                    lp.build()
-                                    lst.append(lp)
-                                    k += 1
-
-            if ptp == "R2g->3g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                # relaxation
-                                for i4g in ngs:
-                                    for i5g in ngs:
-                                        for i6e in nes:
-                                            if (self.D2[i6e, i4g] < dip_tol) or (
-                                                self.D2[i5g, i6e] < dip_tol
-                                            ):
-                                                break
-
-                                            l += 1
-
-                                            #      Diagram R2g_ETICS
-                                            #      (Compensates R3g)
-                                            #
-                                            #
-                                            #      |g_i5> <g_i5|
-                                            # <----|-----------|
-                                            #      |e_i6> <g_i5|
-                                            # ---->|-----------|
-                                            #      |g_i4> <g_i5|
-                                            #      |***********|
-                                            #      |e_i3> <e_i2|
-                                            # ---->|-----------|
-                                            #      |g_i1> <e_i2|
-                                            #      |-----------|<----
-                                            #      |g_i1> <g_i1|
-
-                                            lp = diag.liouville_pathway(
-                                                "R_E",
-                                                i1g,
-                                                aggregate=self,
-                                                order=3,
-                                                relax_order=1,
-                                                pname=ptp,
-                                            )
-                                            #      |g_i1> <g_i1|
-                                            lp.add_transition((i2e, i1g), -1)
-                                            #      |g_i1> <e_i2|
-                                            lp.add_transition((i3e, i1g), +1)
-                                            #      |e_i3> <e_i2|
-                                            lp.add_transfer((i4g, i5g), (i3e, i2e))
-                                            #      |g_i4> <g_i5|
-                                            lp.add_transition((i6e, i4g), +1)
-                                            #      |e_i6> <g_i5|
-                                            lp.add_transition((i5g, i6e), +1)
-                                            #      |g_i5> <g_i5|
-
-                                            lp.build()
-                                            lst.append(lp)
-                                            k += 1
-
-            if ptp == "R1g->4g":
-                ngs = self.get_electronic_groundstate()
-                nes = self.get_excitonic_band(band=1)
-
-                k = 0
-                l = 0
-                for i1g in ngs:
-                    # Only thermally allowed starting states are considered
-                    if self.rho0[i1g, i1g] > pop_tol:
-                        for i2e in nes:
-                            if self.D2[i2e, i1g] < dip_tol:
-                                break
-
-                            for i3e in nes:
-                                if self.D2[i3e, i1g] < dip_tol:
-                                    break
-
-                                # relaxation
-                                for i4g in ngs:
-                                    for i5g in ngs:
-                                        for i6e in nes:
-                                            if (self.D2[i6e, i4g] < dip_tol) or (
-                                                self.D2[i5g, i6e] < dip_tol
-                                            ):
-                                                break
-
-                                            l += 1
-
-                                            #      Diagram R2g_ETICS
-                                            #      (Compensates R3g)
-                                            #
-                                            #
-                                            #      |g_i5> <g_i5|
-                                            # <----|-----------|
-                                            #      |e_i6> <g_i5|
-                                            # ---->|-----------|
-                                            #      |g_i4> <g_i5|
-                                            #      |***********|
-                                            #      |e_i2> <e_i3|
-                                            #      |-----------|<----
-                                            #      |e_i2> <g_i1|
-                                            # ---->|-----------|
-                                            #      |g_i1> <g_i1|
-
-                                            # if True:
-                                            try:
-                                                lp = diag.liouville_pathway(
-                                                    "NR_E",
-                                                    i1g,
-                                                    aggregate=self,
-                                                    order=3,
-                                                    relax_order=1,
-                                                    pname=ptp,
-                                                )
-                                                #      |g_i1> <g_i1|
-                                                lp.add_transition((i2e, i1g), +1)
-                                                #      |e_i2> <g_i1|
-                                                lp.add_transition((i3e, i1g), -1)
-                                                #      |e_i2> <e_i3|
-                                                lp.add_transfer((i4g, i5g), (i2e, i3e))
-                                                #      |g_i4> <g_i5|
-                                                lp.add_transition((i6e, i4g), +1)
-                                                #      |e_i6> <g_i5|
-                                                lp.add_transition((i5g, i6e), +1)
-                                                #      |g_i5> <g_i5|
-
-                                            except Exception:
-                                                break
-
-                                            lp.build()
-                                            lst.append(lp)
-                                            k += 1
-
-        if lab is not None:
-            for l in lst:
-                l.orientational_averaging(lab)
-
-        return lst
 
     def liouville_pathways_3T(
         self,
@@ -735,7 +180,7 @@ class AggregateSpectroscopy(AggregateBase):
                 generate_R2fE(self, lst, eUt2_dat, pop_tol, dip_tol, evf_tol, verbose)
 
             else:
-                raise Exception("Unknown pythway type: " + str(ptp))
+                raise QuantarheiError("Unknown pythway type: " + str(ptp))
 
         if lab is not None:
             for l in lst:
@@ -805,14 +250,14 @@ class AggregateSpectroscopy(AggregateBase):
             sec = True
 
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         lst: list[Any] = []
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         if lab is not None:
             for l in lst:
@@ -940,7 +385,7 @@ def _generate_R1g(
         #      |g_i4> <g_i4|
 
     except Exception:
-        raise Exception("Pathway generation failed")
+        raise QuantarheiError("Pathway generation failed")
 
     return lp
 
@@ -1074,7 +519,7 @@ def generate_R1gE(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1206,7 +651,7 @@ def generate_R2g(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1347,7 +792,7 @@ def generate_R2gE(
                                                     #      |g_i4> <g_i4|
 
                                                 except Exception:
-                                                    raise Exception()
+                                                    raise QuantarheiError()
                                                     break
 
                                                 lp.build()
@@ -1456,7 +901,9 @@ def generate_R3g(
                                         lp.set_evolution_factor(evf)
 
                                     except Exception:
-                                        raise Exception("Generation of pathway failed")
+                                        raise QuantarheiError(
+                                            "Generation of pathway failed"
+                                        )
 
                                     lp.build()
                                     lst.append(lp)
@@ -1588,7 +1035,9 @@ def generate_R1f(
     try:
         nfs = self.get_excitonic_band(band=2)
     except Exception:
-        raise Exception("Excited states not available for R1f* pathway generation")
+        raise QuantarheiError(
+            "Excited states not available for R1f* pathway generation"
+        )
 
     if verbose > 0:
         print("Liouville pathway R1f*")
@@ -1702,7 +1151,7 @@ def generate_R1f(
                                                     #      |d_i2> <d_i2|
 
                                                 except Exception:
-                                                    raise Exception(
+                                                    raise QuantarheiError(
                                                         "Construction"
                                                         "relaxation pathway failed"
                                                     )
@@ -1728,7 +1177,9 @@ def generate_R2f(
     try:
         nfs = self.get_excitonic_band(band=2)
     except Exception:
-        raise Exception("Excited states not available for R2f* pathway generation")
+        raise QuantarheiError(
+            "Excited states not available for R2f* pathway generation"
+        )
 
     if verbose > 0:
         print("Liouville pathway R2f*")
@@ -1976,7 +1427,7 @@ def generate_R1fE(
                                                     #      |g_i2> <g_i2|
 
                                                 except Exception:
-                                                    raise Exception(
+                                                    raise QuantarheiError(
                                                         "Construction"
                                                         "relaxation pathway failed"
                                                     )
