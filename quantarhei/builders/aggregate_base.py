@@ -2693,7 +2693,24 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return nop, n_indices, evolution, whole
 
-    def _fc_basis_transform(self, nop: Any, operator: Any, n_components: int) -> None:
+    def _fc_basis_transform(
+        self,
+        nop: (
+            ReducedDensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+        ),
+        operator: (
+            ReducedDensityMatrix
+            | DensityMatrix
+            | Hamiltonian
+            | TransitionDipoleMoment
+            | ReducedDensityMatrixEvolution
+            | DensityMatrixEvolution
+        ),
+        n_components: int,
+    ) -> None:
         for a in range(n_components):
             for n in range(self.Nel):
                 i_ng = -1
