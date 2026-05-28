@@ -1418,15 +1418,6 @@ class PumpProbeSpectrumCalculator:
                 gt3[m, n] += gt3[n, m]
                 gt3tau[m, n] += gt3tau[n, m]
 
-        if 0:
-            # check if gts correctly defined
-            for ii in range(AG.Nb[0], AG.Ntot):
-                for jj in range(AG.Nb[0], AG.Ntot):
-                    goft = DFunction(cfm.timeAxis, self._c2g(cfm.timeAxis, ct[ii, jj]))
-                    if not numpy.isclose(gt3[ii, jj], goft.at(self.t3axis.data)).all():
-                        print(ii, jj, False)
-                        print(gt3[ii, jj] - goft.at(self.t3axis.data))
-
         return gt3, gt3tau
 
     def _SE_excitonic_gofts(

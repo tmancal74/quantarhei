@@ -222,15 +222,11 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
     def gaussian_fit(
         self, N: int = 1, guess: Any = None, plot: bool = False, Nsvf: int = 251
     ) -> Any:
-        from scipy.interpolate import UnivariateSpline
-        from scipy.signal import savgol_filter
-
         """Performs a Gaussian fit of the spectrum based on an initial guess
 
 
         Parameters
         ----------
-
         Nsvf : int
             Length of the Savitzky-Golay filter window (odd integer)
 
@@ -241,35 +237,6 @@ class LinDichSpectrumBase(DFunction, EnergyUnitsManaged):
 
         if guess is None:
             raise QuantarheiError("Guess is required at this time")
-            # FIXME: create a reasonable guess
-            guess = [1.0, 11000.0, 300.0, 0.2, 11800, 400, 0.2, 12500, 300]
-
-            #
-            # Find local maxima and guess their parameters
-            #
-
-            # Fit with a given number of Gaussian functions
-
-            if not self._splines_initialized:
-                self._set_splines()
-
-            # get first derivative and smooth it
-            der = self._spline_r.derivative()
-            y1 = der(x)
-            y1sm = savgol_filter(y1, Nsvf, polyorder=3)
-
-            # get second derivative and smooth it
-            y1sm_spl_der = UnivariateSpline(x, y1sm, s=0).derivative()(x)
-            y2sm = savgol_filter(y1sm_spl_der, Nsvf, polyorder=3)
-
-            # find positions of optima by looking for zeros of y1sm
-
-            # isolate maxima by looking at the value of y2sm
-
-            # plt.plot(x, der(x))
-            # plt.plot(x, y1sm)
-            plt.plot(x, y2sm)
-            plt.show()
 
         def funcf(x: Any, *p: Any) -> Any:
             return _n_gaussians(x, N, *p)
