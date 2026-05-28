@@ -5,7 +5,11 @@ import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
-from quantarhei.spectroscopy.responses import NonLinearResponse
+from quantarhei.spectroscopy.response_implementations import (
+    _truncate_single_jump_times,
+    get_implementation,
+)
+from quantarhei.spectroscopy.responses import RESPONSE_DIAGRAMS, NonLinearResponse
 from quantarhei.symbolic.cumulant import GFInitiator
 from quantarhei.utils.vectors import X
 
@@ -94,6 +98,46 @@ class TestResponses(unittest.TestCase):
 
     def setUp(self, verbose=False):
         pass
+
+    def test_response_diagram_mapping(self):
+        """Testing explicit response diagram metadata"""
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g"]["process"], "SE")
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g"]["signal"], qr.signal_NONR)
+        self.assertEqual(RESPONSE_DIAGRAMS["R2g"]["process"], "SE")
+        self.assertEqual(RESPONSE_DIAGRAMS["R2g"]["signal"], qr.signal_REPH)
+
+        self.assertEqual(RESPONSE_DIAGRAMS["R3g"]["process"], "GSB")
+        self.assertEqual(RESPONSE_DIAGRAMS["R3g"]["signal"], qr.signal_REPH)
+        self.assertEqual(RESPONSE_DIAGRAMS["R4g"]["process"], "GSB")
+        self.assertEqual(RESPONSE_DIAGRAMS["R4g"]["signal"], qr.signal_NONR)
+
+        self.assertEqual(RESPONSE_DIAGRAMS["R1f"]["process"], "ESA")
+        self.assertEqual(RESPONSE_DIAGRAMS["R1f"]["signal"], qr.signal_NONR)
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f"]["process"], "ESA")
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f"]["signal"], qr.signal_REPH)
+
+        self.assertTrue(RESPONSE_DIAGRAMS["R1g_scM0g"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM0g"]["process"], "SE")
+        self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM0e"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM0e"]["process"], "ESA")
+        self.assertTrue(RESPONSE_DIAGRAMS["R1g_scM1g"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R1g_scM1g"]["process"], "SE")
+        self.assertTrue(RESPONSE_DIAGRAMS["R2f_scM1e"]["transfer"])
+        self.assertEqual(RESPONSE_DIAGRAMS["R2f_scM1e"]["process"], "ESA")
+
+    def test_single_jump_kernel_truncation(self):
+        """Testing s2 integration truncation by one-jump kernel norm"""
+        s2s = numpy.arange(0.0, 10.0)
+        norms = [0.0, 0.001, 0.2, 1.0, 0.3, 0.01, 0.0001, 0.0, 0.0, 0.0]
+        transfers = [numpy.array([[norm]]) for norm in norms]
+        evol = (None, None, None, None, {"jump_kernel_cutoff": 1.0e-2})
+
+        truncated_s2s, truncated_transfers = _truncate_single_jump_times(
+            9.0, s2s, transfers, evol
+        )
+
+        npt.assert_allclose(truncated_s2s, numpy.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]))
+        self.assertEqual(len(truncated_transfers), 6)
 
     def test_Responses(self):
         """Testing basic functions of the TwoDSpectrumBase class"""
@@ -200,8 +244,15 @@ class TestResponses(unittest.TestCase):
         else:
             print("Calculating", Nt2, "spectra")
             tcont = calc.calculate()
-            tcont = tcont.get_TwoDSpectrumContainer()
-            twod = tcont.get_spectrum(T2)
+            pp_from_response = tcont.get_PumpProbeSpectrumContainer()
+            scont = tcont.get_TwoDSpectrumContainer()
+            pp_from_spectrum = scont.get_PumpProbeSpectrumContainer()
+            for t2 in t2_axis.data:
+                npt.assert_allclose(
+                    pp_from_response.spectra[t2].data,
+                    pp_from_spectrum.spectra[t2].data,
+                )
+            twod = scont.get_spectrum(T2)
 
         file_path_1 = TEST_DIR / "responses_test_twod_0.dat"
         save_data = False
@@ -216,7 +267,11 @@ class TestResponses(unittest.TestCase):
         twod0.set_axis_1(t1_axis)
         twod0.set_axis_3(t3_axis)
 
-        npt.assert_allclose(twod0.data, twod.data)
+        # The stored reference was generated before 2D FFTs carried explicit
+        # integral factors.  Keep this compatibility scaling until the
+        # reference data are regenerated; then remove this factor.
+        fft_integral_scale = Nt1 * dt1 * dt3
+        npt.assert_allclose(twod0.data * fft_integral_scale, twod.data)
 
     def test_LouvillePathway(self):
         """Testing basic functions of the TwoDSpectrumCalculator class"""
@@ -252,3 +307,326 @@ class TestResponses(unittest.TestCase):
         self.assertEqual(response.Uee.shape, (2, 2, t2.length))
         self.assertEqual(response.U1_t2.shape, (2, 2, t2.length))
         npt.assert_allclose(response.U1_t2[:, :, 0], numpy.eye(2))
+        npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+
+    def test_zero_jump_dephasing_factors(self):
+        """Testing half-rate damping factors on all response time axes"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        response = NonLinearResponse(None, System(), "R1g", t1, t2, t3)
+
+        KK = numpy.zeros((2, 2), dtype=numpy.float64)
+        KK[0, 0] = -0.002
+        KK[1, 1] = -0.004
+
+        response.set_rate_matrix(KK)
+
+        npt.assert_allclose(response.U0_t1[0], numpy.exp(0.5 * KK[0, 0] * t1.data))
+        npt.assert_allclose(response.U0_t2[1], numpy.exp(0.5 * KK[1, 1] * t2.data))
+        npt.assert_allclose(response.U0_t3[0], numpy.exp(0.5 * KK[0, 0] * t3.data))
+        npt.assert_allclose(response.U1_t2[0, 0], numpy.exp(KK[0, 0] * t2.data))
+        npt.assert_allclose(response.Uremainder_t2, response.Uee - response.U1_t2)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+
+    def test_external_population_propagator_full_conditional(self):
+        """Testing endpoint classification of an external population propagator"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        Uee = numpy.zeros((2, 2, t2.length), dtype=numpy.float64)
+        for ii, time in enumerate(t2.data):
+            transfer = 0.1 * (1.0 - numpy.exp(-0.01 * time))
+            Uee[:, :, ii] = numpy.array(
+                [[1.0 - transfer, 0.5 * transfer], [transfer, 1.0 - 0.5 * transfer]]
+            )
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            population_propagator=Uee,
+            population_dynamics_mode="full_conditional",
+        )
+
+        expected_diag = numpy.zeros_like(Uee)
+        for ii in range(t2.length):
+            expected_diag[:, :, ii] = numpy.diag(numpy.diag(Uee[:, :, ii]))
+
+        npt.assert_allclose(response.Uee, Uee)
+        npt.assert_allclose(response.U1_t2, expected_diag)
+        npt.assert_allclose(response.Uremainder_t2, Uee - expected_diag)
+        npt.assert_allclose(response.Utransfer_t2, response.Uremainder_t2)
+        npt.assert_allclose(response.U0_t1, numpy.ones_like(response.U0_t1))
+        npt.assert_allclose(response.U0_t3, numpy.ones_like(response.U0_t3))
+        npt.assert_allclose(response.U0_t2**2, numpy.diagonal(Uee).T)
+
+        response_time_first = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            population_propagator=numpy.transpose(Uee, (2, 0, 1)),
+        )
+        npt.assert_allclose(response_time_first.Uee, Uee)
+
+    def test_external_density_matrix_propagator_full_conditional(self):
+        """Testing endpoint classification of an external RDM superoperator"""
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        Ueeee = numpy.zeros((2, 2, 2, 2, t2.length), dtype=numpy.complex128)
+        for ii, time in enumerate(t2.data):
+            Ueeee[0, 0, 0, 0, ii] = 1.0 - 0.01 * time
+            Ueeee[1, 1, 1, 1, ii] = 1.0 - 0.02 * time
+            Ueeee[0, 1, 0, 1, ii] = numpy.exp(-0.01 * time)
+            Ueeee[1, 0, 1, 0, ii] = numpy.exp(-0.015 * time)
+            Ueeee[1, 0, 0, 1, ii] = 0.2j * (1.0 - numpy.exp(-0.01 * time))
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+        )
+
+        npt.assert_allclose(response.Udm_zero_t2[0, 1], Ueeee[0, 1, 0, 1])
+        npt.assert_allclose(response.Uremainder_t2[1, 0], Ueeee[1, 0, 0, 1])
+        npt.assert_allclose(response.Uremainder_t2[0, 1], numpy.zeros(t2.length))
+
+        response_no_nonsec = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+            include_nonsecular_remainder=False,
+        )
+        npt.assert_allclose(
+            response_no_nonsec.Uremainder_t2,
+            numpy.zeros_like(response_no_nonsec.Uremainder_t2),
+        )
+
+        response_time_first = NonLinearResponse(
+            None,
+            System(),
+            "R1g_scM0g",
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=numpy.transpose(Ueeee, (4, 0, 1, 2, 3)),
+        )
+        npt.assert_allclose(response_time_first.Udm_zero_t2, response.Udm_zero_t2)
+
+    def test_density_matrix_trajectory_endpoint_weights(self):
+        """Testing RDM trajectory normalization by transition dipole lengths"""
+
+        class System:
+            Nb = [1, 2, 0]
+            Ntot = 3
+            mult = 1
+            DD = numpy.zeros((3, 3, 3), dtype=numpy.float64)
+
+            def __init__(self):
+                self.DD[1, 0, 0] = 2.0
+                self.DD[2, 0, 1] = 4.0
+
+            def diagonalize(self):
+                pass
+
+            def get_band(self, band):
+                if band == 0:
+                    return (0,)
+                if band == 1:
+                    return (1, 2)
+                return ()
+
+        t1 = qr.TimeAxis(0.0, 1, 1.0)
+        t2 = qr.TimeAxis(0.0, 4, 2.0)
+        t3 = qr.TimeAxis(0.0, 5, 1.0)
+
+        rho = numpy.zeros((2, 2, t2.length), dtype=numpy.complex128)
+        rho[0, 0, :] = 4.0
+        rho[1, 1, :] = 16.0
+        rho[0, 1, :] = 8.0j
+
+        response = NonLinearResponse(
+            None,
+            System(),
+            "R1g",
+            t1,
+            t2,
+            t3,
+            density_matrix_trajectory=rho,
+        )
+
+        npt.assert_allclose(response.Udm_zero_t2[0, 0], numpy.ones(t2.length))
+        npt.assert_allclose(response.Udm_zero_t2[1, 1], numpy.ones(t2.length))
+        npt.assert_allclose(response.Udm_zero_t2[0, 1], 1.0j * numpy.ones(t2.length))
+        npt.assert_allclose(response.Uremainder_t2, numpy.zeros_like(response.Uee))
+
+        with self.assertRaisesRegex(ValueError, "t1 = 0"):
+            NonLinearResponse(
+                None,
+                System(),
+                "R1g",
+                qr.TimeAxis(0.0, 2, 1.0),
+                t2,
+                t3,
+                density_matrix_trajectory=rho,
+            )
+
+        class ZeroDipoleSystem(System):
+            def __init__(self):
+                super().__init__()
+                self.DD[2, 0, :] = 0.0
+
+        with self.assertRaisesRegex(ValueError, "zero transition dipole"):
+            NonLinearResponse(
+                None,
+                ZeroDipoleSystem(),
+                "R1g",
+                t1,
+                t2,
+                t3,
+                density_matrix_trajectory=rho,
+            )
+
+    def test_single_jump_transfer_channel(self):
+        """Testing one-jump transfer channel and remainder bookkeeping"""
+
+        class LineshapeStorage:
+            time_mapping = {"t1": 0, "t2": 1, "s2": 2}
+
+        class System:
+            Nb = [0, 2, 0]
+            Ntot = 2
+            mult = 1
+
+            def get_lineshape_functions(self):
+                return LineshapeStorage()
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 6, 2.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+
+        response0 = NonLinearResponse(None, System(), "R1g_scM0g", t1, t2, t3)
+        response1 = NonLinearResponse(None, System(), "R1g_scM1g", t1, t2, t3)
+
+        KK = numpy.array([[-0.002, 0.003], [0.002, -0.003]], dtype=numpy.float64)
+        response0.set_rate_matrix(KK)
+        response1.set_rate_matrix(KK)
+
+        self.assertEqual(len(response0.Ujump_t2), 2)
+        npt.assert_allclose(
+            response0.Uremainder_t2,
+            response0.Uee - response0.U1_t2 - response0.Usingle_t2,
+        )
+        npt.assert_allclose(
+            response0._get_transfer_matrix(1), response0.Uremainder_t2[:, :, 1]
+        )
+        npt.assert_allclose(
+            response1._get_transfer_matrix(1), response1.Usingle_t2[:, :, 1]
+        )
+
+    def test_single_jump_response_requires_storage_labels(self):
+        """Testing storage validation for single-jump response functions"""
+
+        class LineshapeStorage:
+            time_mapping = {"t1": 0, "t2": 1, "t3": 2}
+
+        class System:
+            def get_lineshape_functions(self):
+                return LineshapeStorage()
+
+        response = get_implementation("R1g_scM1g")
+        with self.assertRaisesRegex(Exception, "FunctionStorage\\(config=1\\)"):
+            response(0.0, numpy.zeros(1), numpy.zeros(1), None, System(), None, None)
+
+    def test_response_rate_matrix_relaxation_theory(self):
+        """Testing response setup from OpenSystem rate matrix theory names"""
+
+        class RateMatrix:
+            data = numpy.array(
+                [
+                    [0.0, 0.0, 0.0],
+                    [0.0, -0.002, 0.001],
+                    [0.0, 0.002, -0.001],
+                ],
+                dtype=numpy.float64,
+            )
+
+        class System:
+            Nb = [1, 2, 0]
+            Ntot = 3
+            mult = 1
+            requested_theory = None
+
+            def get_band(self, band):
+                if band == 1:
+                    return (1, 2)
+                return (0,)
+
+            def get_RateMatrix(
+                self,
+                relaxation_theory=None,
+                time_dependent=False,
+                relaxation_cutoff_time=None,
+            ):
+                self.requested_theory = relaxation_theory
+                self.requested_time_dependent = time_dependent
+                self.requested_cutoff_time = relaxation_cutoff_time
+                return RateMatrix()
+
+        t1 = qr.TimeAxis(0.0, 10, 1.0)
+        t2 = qr.TimeAxis(0.0, 11, 1.0)
+        t3 = qr.TimeAxis(0.0, 10, 1.0)
+        system = System()
+
+        response = NonLinearResponse(
+            None,
+            system,
+            "R1g",
+            t1,
+            t2,
+            t3,
+            relaxation_theory="standard_Foerster",
+            relaxation_cutoff_time=100.0,
+        )
+
+        self.assertEqual(system.requested_theory, "standard_Foerster")
+        self.assertFalse(system.requested_time_dependent)
+        self.assertEqual(system.requested_cutoff_time, 100.0)
+        npt.assert_allclose(response.KK, RateMatrix.data[1:3, 1:3])

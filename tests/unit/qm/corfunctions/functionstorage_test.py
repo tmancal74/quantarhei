@@ -206,3 +206,132 @@ class TestFunctionStorage(unittest.TestCase):
                 rtol=1.0e-6,
             )
             print("OK")
+
+    def test_function_storage_integral_time_labels(self):
+        """Testing FunctionStorage labels for one-jump response storage"""
+        t1 = TimeAxis(0.0, 4, 1.0)
+        t3 = TimeAxis(0.0, 5, 2.0)
+
+        config = {
+            "response_times": {
+                "t1": {"reset": False, "integral": None, "axis": 0},
+                "t2": {"reset": True, "integral": {"s2"}},
+                "t3": {"reset": False, "integral": None, "axis": 1},
+            }
+        }
+
+        gg = FunctionStorage(1, (t1, t3), show_config=False, config=config)
+
+        expected = [
+            "t1",
+            "t2",
+            "s2",
+            "t2-s2",
+            "t3",
+            "t1+t2",
+            "t1+s2",
+            "t1+t2-s2",
+            "t1+t3",
+            "t2+t3",
+            "s2+t3",
+            "t2-s2+t3",
+            "t1+t2+t3",
+            "t1+s2+t3",
+            "t1+t2-s2+t3",
+        ]
+
+        for label in expected:
+            self.assertIn(label, gg.time_mapping)
+
+        self.assertEqual(len(gg.time_mapping), len(expected))
+
+    def test_function_storage_integral_time_data(self):
+        """Testing FunctionStorage data for one-jump response storage"""
+        t1 = TimeAxis(0.0, 4, 1.0)
+        t3 = TimeAxis(0.0, 5, 2.0)
+
+        config = {
+            "response_times": {
+                "t1": {"reset": False, "integral": None, "axis": 0},
+                "t2": {"reset": True, "integral": {"s2"}},
+                "t3": {"reset": False, "integral": None, "axis": 1},
+            }
+        }
+
+        def goft(t):
+            return t + 1.0j * t * t
+
+        gg = FunctionStorage(1, (t1, t3), show_config=False, config=config)
+        gg.set_goft(0, func=goft)
+        gg.create_data(reset=dict(t2=10.0, s2=4.0))
+
+        npt.assert_allclose(gg[0, "s2"], goft(4.0))
+        npt.assert_allclose(gg[0, "t2-s2"], goft(6.0))
+        npt.assert_allclose(gg[0, "t1+s2"], goft(t1.data + 4.0))
+        npt.assert_allclose(gg[0, "t1+t2-s2"], goft(t1.data + 6.0))
+        npt.assert_allclose(gg[0, "s2+t3"], goft(4.0 + t3.data))
+        npt.assert_allclose(gg[0, "t2-s2+t3"], goft(6.0 + t3.data))
+        npt.assert_allclose(
+            gg[0, "t1+s2+t3"],
+            goft(t1.data[:, None] + 4.0 + t3.data[None, :]),
+        )
+        npt.assert_allclose(
+            gg[0, "t1+t2-s2+t3"],
+            goft(t1.data[:, None] + 6.0 + t3.data[None, :]),
+        )
+
+    def test_function_storage_one_jump_preset(self):
+        """Testing FunctionStorage one-jump preset"""
+        t1 = TimeAxis(0.0, 4, 1.0)
+        t3 = TimeAxis(0.0, 5, 2.0)
+
+        def goft(t):
+            return t + 1.0j * t
+
+        gg0 = FunctionStorage(1, (t1, t3), show_config=False, config=0)
+        self.assertNotIn("s2", gg0.time_mapping)
+
+        gg1 = FunctionStorage(1, (t1, t3), show_config=False, config=1)
+        self.assertIn("s2", gg1.time_mapping)
+        self.assertIn("t2-s2+t3", gg1.time_mapping)
+
+        gg1.set_goft(0, func=goft)
+        gg1.create_data(reset=dict(t2=8.0))
+
+        npt.assert_allclose(gg1[0, "s2"], goft(4.0))
+        npt.assert_allclose(gg1[0, "t2-s2"], goft(4.0))
+        npt.assert_allclose(gg1[0, "t1+t2"], goft(t1.data + 8.0))
+        npt.assert_allclose(
+            gg1[0, "t1+t2+t3"],
+            goft(t1.data[:, None] + 8.0 + t3.data[None, :]),
+        )
+
+    def test_function_storage_partial_reset_update(self):
+        """Testing FunctionStorage only updates labels affected by reset changes"""
+        t1 = TimeAxis(0.0, 4, 1.0)
+        t3 = TimeAxis(0.0, 5, 2.0)
+        calls = []
+
+        def goft(t):
+            calls.append(1)
+            return t + 1.0j * t
+
+        gg = FunctionStorage(1, (t1, t3), show_config=False, config=1)
+        gg.set_goft(0, func=goft)
+
+        gg.create_data(reset=dict(t2=8.0, s2=2.0))
+        self.assertEqual(len(calls), len(gg.time_mapping))
+
+        calls.clear()
+        gg.create_data(reset=dict(t2=8.0, s2=3.0))
+        s2_labels = [
+            label for label in gg.time_mapping if "s2" in gg.time_dependencies[label]
+        ]
+        self.assertEqual(len(calls), len(s2_labels))
+
+        npt.assert_allclose(gg[0, "t1+t2"], goft(t1.data + 8.0))
+        npt.assert_allclose(gg[0, "t1+s2"], goft(t1.data + 3.0))
+
+        calls.clear()
+        gg.create_data(reset=dict(t2=8.0, s2=3.0))
+        self.assertEqual(len(calls), 0)

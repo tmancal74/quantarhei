@@ -1,5 +1,7 @@
 import unittest
 
+import numpy
+
 """
 *******************************************************************************
 
@@ -19,6 +21,11 @@ from quantarhei import (
     TimeAxis,
     eigenbasis_of,
     energy_units,
+)
+from quantarhei.qm import (
+    ModifiedRedfieldRateMatrix,
+    ModRedfieldRelaxationTensor,
+    TDModRedfieldRelaxationTensor,
 )
 from quantarhei.qm.corfunctions import SpectralDensity
 
@@ -64,38 +71,36 @@ class TestModRedfield(unittest.TestCase):
         self.c_omega_p = sd.at(de, approx="spline")  # interp_data(de)
         self.c_omega_m = sd.at(-de, approx="spline")  # interp_data(-de)
 
-    # def test_comparison_of_rates(self):
-    #     """(REDFIELD) Testing that Redfield tensor and rate matrix are compatible
+    def test_comparison_of_rates(self):
+        """Testing that modified Redfield tensor and rate matrix agree"""
+        dim = self.H1.dim
+        KT = numpy.zeros((dim, dim), dtype=numpy.float64)
 
-    #     """
-    #     tensor = True
-    #     matrix = True
+        RT = ModRedfieldRelaxationTensor(self.H1, self.sbi1)
+        RR = ModifiedRedfieldRateMatrix(self.H1, self.sbi1)
 
-    #     dim = self.H1.dim
-    #     KT = numpy.zeros((dim,dim), dtype=REAL)
-    #     KM = numpy.zeros((dim,dim), dtype=REAL)
+        with eigenbasis_of(self.H1):
+            for n in range(dim):
+                for m in range(dim):
+                    KT[n, m] = numpy.real(RT.data[n, n, m, m])
 
-    #     if tensor:
+        numpy.testing.assert_allclose(KT, RR.data, rtol=1.0e-10, atol=1.0e-12)
 
-    #         RT = ModRedfieldRelaxationTensor(self.H1,self.sbi1)
+    def test_calculation_is_forbidden_in_basis_context(self):
+        """Testing that modified Redfield tensor is not created in basis context"""
+        with self.assertRaises(Exception) as context:
+            with eigenbasis_of(self.H1):
+                ModRedfieldRelaxationTensor(self.H1, self.sbi1)
 
-    #         # rates have to be compared in eigenbasis of the Hamiltonian
-    #         with eigenbasis_of(self.H1):
-    #             for n in range(dim):
-    #                 for m in range(dim):
-    #                     #print(n,m,numpy.real(RT.data[n,n,m,m]))
-    #                     KT[n,m] = numpy.real(RT.data[n,n,m,m])
+        self.assertTrue("MUST NOT be called" in str(context.exception))
 
-    #     if matrix:
+    def test_td_calculation_is_forbidden_in_basis_context(self):
+        """Testing that TD modified Redfield tensor is not created in basis context"""
+        with self.assertRaises(Exception) as context:
+            with eigenbasis_of(self.H1):
+                TDModRedfieldRelaxationTensor(self.H1, self.sbi1, initialize=False)
 
-    #         RR = ModifiedRedfieldRateMatrix(self.H1,self.sbi1) #,self.time)
-
-    #         for n in range(dim):
-    #             for m in range(dim):
-    #                 #print(n,m,numpy.real(RR.data[n,m]))
-    #                 KM[n,m] = numpy.real(RR.data[n,m])
-
-    #     numpy.testing.assert_allclose(KT,KM, rtol=1.0e-10)
+        self.assertTrue("MUST NOT be called" in str(context.exception))
 
     # def test_propagation_in_different_basis(self):
     #     """(REDFIELD) Testing comparison of propagations in different bases

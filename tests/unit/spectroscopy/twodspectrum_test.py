@@ -295,6 +295,31 @@ class TestTwoDSpectrum(unittest.TestCase):
         # print("Calculating", Nt2,"spectra")
         # t1 = time.time()
         tcont = calc.calculate()
+        resp0 = tcont.get_response(0.0)
+        self.assertEqual(resp0.get_resolution(), "types")
+        resp0.set_data_flag("GSB")
+        self.assertIsNotNone(resp0.d__data)
+        resp0.set_data_flag("SE")
+        self.assertIsNotNone(resp0.d__data)
+        resp0.set_data_flag("ESA")
+        esa = resp0.d__data.copy()
+
+        gamma_factor = 0.25
+        fcalc = qr.TwoDResponseCalculator(
+            t1_axis,
+            t2_axis,
+            t3_axis,
+            system=sys,
+            twodtype="F-2DES",
+            gamma_factor=gamma_factor,
+        )
+        with qr.energy_units("1/cm"):
+            fcalc.bootstrap(rwa=rwa, pad=0, lab=lab, verbose=True)
+
+        fcont = fcalc.calculate()
+        fresp0 = fcont.get_response(0.0)
+        fresp0.set_data_flag("ESA")
+        npt.assert_allclose(fresp0.d__data, (gamma_factor - 1.0) * esa)
         # t2 = time.time()
         # print("...done in", t2-t1,"sec")
 
@@ -353,8 +378,12 @@ class TestTwoDSpectrum(unittest.TestCase):
         #
         #    plt.show()
 
-        npt.assert_allclose(twod01.data, twod1.data)
-        npt.assert_allclose(twod02.data, twod2.data)
+        # The stored references were generated before 2D FFTs carried explicit
+        # integral factors.  Keep this compatibility scaling until the
+        # reference data are regenerated; then remove this factor.
+        fft_integral_scale = Nt1 * dt1 * dt3
+        npt.assert_allclose(twod01.data * fft_integral_scale, twod1.data)
+        npt.assert_allclose(twod02.data * fft_integral_scale, twod2.data)
 
     def test_get_cut_along_line_uses_correct_y_coordinate(self):
         """get_cut_along_line must use point2[1] not point2[0] for vy2"""

@@ -3,10 +3,7 @@ class NumConf:
 
     def __init__(self) -> None:
 
-        # Message Passing Parallelization
-        self.mpi_acceleration = False
-
-        # Shared memory parallelization
+        # Shared memory acceleration
         self.cpu_acceleration = True
         self.num_threads = -1
 

@@ -9,6 +9,111 @@ from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
 
 
+def _normalize_integrals(integrals: Any) -> list[str]:
+    """Return a stable list of integral-time labels from config metadata."""
+    if integrals is None:
+        return []
+    if isinstance(integrals, str):
+        return [integrals]
+    if isinstance(integrals, set):
+        return sorted(integrals)
+    return list(integrals)
+
+
+def _label_from_terms(terms: list[tuple[int, str]]) -> str:
+    """Build a compact label such as ``t1+t2-s2`` from signed terms."""
+    label = ""
+    for kk, (sign, name) in enumerate(terms):
+        if sign not in (-1, 1):
+            raise ValueError("Only unit signs are supported in time labels")
+        if kk == 0:
+            if sign < 0:
+                label += "-"
+        else:
+            label += "+" if sign > 0 else "-"
+        label += name
+    return label
+
+
+def _parse_time_label(label: str) -> list[tuple[int, str]]:
+    """Parse labels made of variable names joined by ``+`` and ``-`` signs."""
+    terms = []
+    sign = 1
+    token = ""
+    for char in label:
+        if char in "+-":
+            if token:
+                terms.append((sign, token))
+                token = ""
+            sign = 1 if char == "+" else -1
+        elif not char.isspace():
+            token += char
+    if token:
+        terms.append((sign, token))
+    if not terms:
+        raise ValueError("Empty time label")
+    return terms
+
+
+def _generate_time_argument_labels(response_times: dict[str, Any]) -> list[str]:
+    """Generate all supported line-shape-function time arguments.
+
+    The ordinary arguments are all non-empty ordered combinations of response
+    times. Integral variables attached to reset times generate two additional
+    variants for every argument containing their parent: one with the parent
+    replaced by the integration time, and one with it replaced by the remaining
+    interval ``parent-integral``.
+    """
+    labels = []
+    names = list(response_times)
+
+    reset_integrals = {}
+    for name, info in response_times.items():
+        if info.get("reset", False):
+            integrals = _normalize_integrals(info.get("integral", None))
+            if integrals:
+                reset_integrals[name] = integrals
+
+    for length in range(1, len(names) + 1):
+        for combo in combinations(names, length):
+            labels.append("+".join(combo))
+
+            replacement_groups = []
+            for name in combo:
+                variants = [[(1, name)]]
+                for integral in reset_integrals.get(name, []):
+                    variants.append([(1, integral)])
+                    variants.append([(1, name), (-1, integral)])
+                replacement_groups.append(variants)
+
+            generated: list[list[tuple[int, str]]] = [[]]
+            for variants in replacement_groups:
+                generated = [
+                    base + variant for base in generated for variant in variants
+                ]
+
+            for terms in generated[1:]:
+                labels.append(_label_from_terms(terms))
+
+    unique_labels = []
+    for label in labels:
+        if label not in unique_labels:
+            unique_labels.append(label)
+    return unique_labels
+
+
+def _default_storage_config(one_jump: bool = False) -> dict[str, Any]:
+    """Return the standard third-order response storage configuration."""
+    t2_integral = {"s2"} if one_jump else None
+    return {
+        "response_times": {
+            "t1": {"reset": False, "integral": None, "axis": 0},
+            "t2": {"reset": True, "integral": t2_integral},
+            "t3": {"reset": False, "integral": None, "axis": 1},
+        }
+    }
+
+
 class FunctionStorage:
     """Data storage for discrete representation of correlation functions
     and lineshape functions.
@@ -30,7 +135,7 @@ class FunctionStorage:
         timeaxis: Any = None,
         dtype: Any = numpy.complex64,
         show_config: bool = False,
-        config: dict | None = None,
+        config: dict | int | None = None,
     ) -> None:
 
         #
@@ -38,18 +143,15 @@ class FunctionStorage:
         #
         # This dictionary describes what g(t) values will be stored and how
         #
-        if config is None:
-            self.config: dict[str, Any] = {
-                "response_times": {
-                    "t1": {"reset": False, "integral": {"s1"}, "axis": 0},
-                    "t2": {"reset": True, "integral": None},
-                    "t3": {"reset": False, "integral": {"s3"}, "axis": 1},
-                }
-            }  # ,
-            # "t4":{"reset":False,"integral":None,"axis":2}}}
-
-        else:
+        self.config: dict[str, Any]
+        if config is None or config == 0:
+            self.config = _default_storage_config(one_jump=False)
+        elif config == 1:
+            self.config = _default_storage_config(one_jump=True)
+        elif isinstance(config, dict):
             self.config = config
+        else:
+            raise ValueError("FunctionStorage config has to be None, 0, 1, or a dict")
 
         #######################################################################
         #
@@ -61,25 +163,14 @@ class FunctionStorage:
         # generate the list of argument combinations
         #
         values = self.config["response_times"]
-        Nf = len(values)  # Total number of elements
-
-        # Generate all M-tuples (1 ≤ M ≤ N) while preserving order
-        all_tuples = [list(combinations(values, M)) for M in range(1, Nf + 1)]
-
-        # Flatten and print results
-        self.time_combination_tuples = []
-        self.time_combination_strings = []
-        for tuples in all_tuples:
-            for t in tuples:
-                self.time_combination_tuples.append(t)
-                tstr = ""
-                kk = 0
-                for x in t:
-                    if kk > 0:
-                        tstr += "+"
-                    tstr += x
-                    kk += 1
-                self.time_combination_strings.append(tstr)
+        if self.config.get("arguments", "auto") == "auto":
+            self.time_combination_strings = _generate_time_argument_labels(values)
+        else:
+            self.time_combination_strings = list(self.config["arguments"])
+        self.time_combination_tuples = [
+            tuple(name for _, name in _parse_time_label(label))
+            for label in self.time_combination_strings
+        ]
 
         if show_config:
             print("\nStorage configuration")
@@ -89,13 +180,20 @@ class FunctionStorage:
         # creating time_index
         #
         time_index: dict[str, int | tuple[int, ...]] = {}
+        variable_index: dict[str, int] = {}
 
         # find all reset times
         reset_times = []
+        self.integral_parent = {}
         for rst_key in self.config["response_times"]:
             if self.config["response_times"][rst_key]["reset"]:
                 reset_times.append(rst_key)
-                time_index[rst_key] = -1
+                variable_index[rst_key] = -1
+                for integral in _normalize_integrals(
+                    self.config["response_times"][rst_key].get("integral", None)
+                ):
+                    variable_index[integral] = -1
+                    self.integral_parent[integral] = rst_key
 
         # find all 1D times
         oned_times = []
@@ -103,7 +201,7 @@ class FunctionStorage:
             if not self.config["response_times"][rst_key]["reset"]:
                 axis = self.config["response_times"][rst_key]["axis"]
                 oned_times.append(rst_key)
-                time_index[rst_key] = axis
+                variable_index[rst_key] = axis
 
         # is the number of 1D times matching the number of submitted time axes?
         if isinstance(timeaxis, TimeAxis):
@@ -119,22 +217,31 @@ class FunctionStorage:
 
         self.oned_times = oned_times
 
-        # find all combinations with 2 or more times and calculate their dimension
-        for tpl, tstr in zip(
-            self.time_combination_tuples, self.time_combination_strings
-        ):
-            if len(tpl) > 1:
-                dim: list[int] = []
-                for tm in tpl:
-                    # if time_index[tm] >= 0:     # we add even -1 to time_index
-                    val_tm = time_index[tm]
-                    dim.append(val_tm if isinstance(val_tm, int) else 0)
-                if len(dim) == 1:
-                    time_index[tstr] = dim[0]
-                elif len(dim) > 1:
-                    time_index[tstr] = tuple(dim)
-                else:
-                    raise QuantarheiError("Inconsistent configuration")
+        self.variable_index = variable_index
+        self.time_expressions = {}
+        self.time_dependencies: dict[str, set[str]] = {}
+
+        # find all time arguments and calculate their dimension
+        for tstr in self.time_combination_strings:
+            terms = _parse_time_label(tstr)
+            axes = []
+            dependencies: set[str] = set()
+            for _, tm in terms:
+                if tm not in variable_index:
+                    raise Exception("Unknown time variable in storage config: " + tm)
+                dependencies.add(tm)
+                axis = variable_index[tm]
+                if axis >= 0 and axis not in axes:
+                    axes.append(axis)
+
+            self.time_expressions[tstr] = terms
+            self.time_dependencies[tstr] = dependencies
+            if len(axes) == 0:
+                time_index[tstr] = -1
+            elif len(axes) == 1:
+                time_index[tstr] = axes[0]
+            else:
+                time_index[tstr] = tuple(axes)
 
         # order time_index
         # Sorting criteria:
@@ -282,6 +389,8 @@ class FunctionStorage:
 
         # 2D view of the data for fast access
         self._data2d = self.data.reshape((self.N, self.data_stride))
+        self._last_reset_values: dict[str, Any] | None = None
+        self._data_initialized = False
 
         #
         # Here the g(t) functions are stored
@@ -384,12 +493,13 @@ class FunctionStorage:
                         sta = start + self.start_dic[j]
                         end = start + self.end_dic[j]
 
-                    if sta + 1 == end:
-                        return self.data[sta]
                     if isinstance(j, int):
                         tpl = self.reshapes[j]
                     else:
                         tpl = self.reshapes_dic[j]
+
+                    if sta + 1 == end and len(tpl) == 0:
+                        return self.data[sta]
 
                     return self.data[sta:end].reshape(tpl)
 
@@ -403,12 +513,13 @@ class FunctionStorage:
                         sta = self.start_dic[j]
                         end = self.end_dic[j]
 
-                    if sta + 1 == end:
-                        return self._data2d[i, sta]
                     if isinstance(j, int):
                         tpl = [self._data2d.shape[0]] + self.reshapes[j]  # type: ignore[misc]
                     else:
                         tpl = [self._data2d.shape[0]] + self.reshapes_dic[j]  # type: ignore[misc]
+
+                    if sta + 1 == end and len(tpl) == 1:
+                        return self._data2d[i, sta]
 
                     return self._data2d[i, sta:end].reshape(tpl)
 
@@ -494,6 +605,8 @@ class FunctionStorage:
             if added:
                 self.Nf += 1
 
+        self._data_initialized = False
+
     def _check_and_make_space(self, nn: int) -> None:
         """Check if the required position is outside the allocated mapping
         and if so, make more space.
@@ -527,75 +640,66 @@ class FunctionStorage:
 
         return ret
 
-    # FIXME: allow multiple reset times
-    def create_data(self, reset: dict | None = None) -> None:
+    def create_data(self, reset: dict | None = None, force: bool = False) -> None:
         """We create data for all submitted functions"""
         if reset is None:
             reset = {"t2": 0.0}
-        tt_matrix = []
-        t2 = reset["t2"]
+        reset = dict(reset)
+        reset_defaults = getattr(self, "_reset_defaults", {})
+        for integral, parent in self.integral_parent.items():
+            if integral not in reset:
+                if integral in reset_defaults:
+                    reset[integral] = reset_defaults[integral]
+                elif parent not in reset:
+                    raise Exception("Parent reset time not specified: " + parent)
+                else:
+                    reset[integral] = reset[parent] / 2.0
 
-        t2m = numpy.array([t2])
+        changed_variables = self._changed_reset_variables(reset)
+        if force or not self._data_initialized or self._last_reset_values is None:
+            labels_to_update = list(self.time_index)
+        else:
+            labels_to_update = [
+                label
+                for label in self.time_index
+                if self.time_dependencies[label].intersection(changed_variables)
+            ]
+
+        if not labels_to_update:
+            self._last_reset_values = dict(reset)
+            return
+
+        tt_matrix = []
+
         _colon_ = slice(None, None, None)
 
-        for tm in self.time_index:
-            # list of time axes from the time_index
+        for tm in labels_to_update:
             dms = self.time_index[tm]
-
-            # handling single variables
             if isinstance(dms, int):
-                if dms == -1:
-                    tt_matrix.append(t2m)
+                axes = [] if dms == -1 else [dms]
+            else:
+                axes = [axis for axis in dms if axis >= 0]
+
+            tt_dim = [self.dim[axis] for axis in axes]
+            if len(tt_dim) == 0:
+                tt = numpy.zeros(1, dtype=numpy.float64)
+            else:
+                tt = numpy.zeros(tt_dim, dtype=numpy.float64)
+
+            for sign, name in self.time_expressions[tm]:
+                axis = self.variable_index[name]
+                if axis == -1:
+                    if name not in reset:
+                        raise Exception("Reset time not specified: " + name)
+                    tt += sign * reset[name]
+                elif len(tt_dim) == 1:
+                    tt += sign * self.ta[axis].data
                 else:
-                    tt_matrix.append(self.ta[dms].data)
+                    index_list: list[slice | None] = [None] * len(tt_dim)
+                    index_list[axes.index(axis)] = _colon_
+                    tt += sign * self.ta[axis].data.__getitem__(tuple(index_list))
 
-            # handling tuples
-            elif isinstance(dms, (tuple, list)):
-                # from tuples we need to eliminate -1
-                # to get the final dimension of the stored representation
-                tt_dim = []
-                _tm_val = self.time_index[tm]
-                assert isinstance(_tm_val, tuple)
-                for elem in _tm_val:
-                    if elem >= 0:
-                        tt_dim.append(self.dim[elem])
-
-                # tt_dim is the final dimension and we allocate space for time variable
-
-                tt = numpy.zeros(tt_dim, dtype=numpy.float32)
-
-                #  now let's go axis by axis
-                dim_needed = 0
-                for ldm in dms:
-                    # if we find -1, we add the corresponding single value (now it is t2)
-                    # We do it like this always, no matter how big is 'tt' (constant can be broadcasted
-                    # automatically)
-                    if ldm == -1:
-                        tt += t2
-
-                    # if it is not -1
-                    else:
-                        # but it is the only dimension available, we have a 1D case
-                        if len(tt_dim) == 1:
-                            tt += self.ta[ldm].data
-
-                        # otherwise we have multi-dimensional case,
-                        # and we have to combine time axes into multi-D matrix
-                        # We have to be aware of which axis we are - this is given by 'ldm' variable
-                        else:
-                            #
-                            # Here we have to figure out how to construct the index for broadcasting
-                            #
-                            index_list: list[slice | None] = [None] * len(tt_dim)
-                            # index_list[ldm] = _colon_
-                            index_list[dim_needed] = _colon_
-                            index = tuple(index_list)
-
-                            tt += self.ta[ldm].data.__getitem__(index)
-
-                            dim_needed += 1
-
-                tt_matrix.append(tt)
+            tt_matrix.append(tt)
 
         #
         # loop over all stored functions
@@ -604,8 +708,32 @@ class FunctionStorage:
             func = self.funcs[key]
             # start = key*self.data_stride
 
-            for kk, tm in zip(range(self.Nt), self.time_index):
-                self.__setitem__((key, tm), func(tt_matrix[kk]).reshape(self._N[kk]))
+            for kk, tm in enumerate(labels_to_update):
+                tm_index = self.time_mapping[tm]
+                self.__setitem__(
+                    (key, tm), func(tt_matrix[kk]).reshape(self._N[tm_index])
+                )
+
+        self._last_reset_values = dict(reset)
+        self._data_initialized = True
+
+    def _changed_reset_variables(self, reset: dict) -> set[str]:
+        """Return reset variables whose values differ from the previous call."""
+        if self._last_reset_values is None:
+            return set(reset)
+
+        changed: set[str] = set()
+        for name, value in reset.items():
+            if name not in self._last_reset_values:
+                changed.add(name)
+            elif not numpy.array_equal(value, self._last_reset_values[name]):
+                changed.add(name)
+
+        for name in self._last_reset_values:
+            if name not in reset:
+                changed.add(name)
+
+        return changed
 
     def effective_size(self) -> int:
         """Effective size of the storage. Some stored functions have the same functional form"""
@@ -650,11 +778,22 @@ class FunctionStorage:
 
     def get_reorganization_energies(self) -> numpy.ndarray:
         """Returns the estimate of the reoganization energies of the stored functions"""
-        index = (slice(None, None, None), "t1")
+        label = "t1"
+        axis = self.ta[0]
+        for candidate in self.oned_times:
+            axis_index = self.variable_index[candidate]
+            candidate_axis = self.ta[axis_index]
+            if not numpy.isclose(candidate_axis.data[-1], 0.0):
+                label = candidate
+                axis = candidate_axis
+                break
+
+        index = (slice(None, None, None), label)
         igg = -numpy.imag(self.__getitem__(index))
-        tal = self.ta[0].length - 1
-        # print("t1_max = ", self.ta[0].data[tal])
-        lam = igg[:, tal] / self.ta[0].data[tal]
+        tal = axis.length - 1
+        if numpy.isclose(axis.data[tal], 0.0):
+            return numpy.zeros(igg.shape[0], dtype=igg.dtype)
+        lam = igg[:, tal] / axis.data[tal]
 
         return lam
 

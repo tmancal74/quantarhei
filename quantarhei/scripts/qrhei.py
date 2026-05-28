@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import os
-import subprocess
 import traceback
 from importlib.resources import files
 from typing import Any
@@ -29,7 +28,6 @@ parser_fetch: Any = None
 def do_command_run(args: Any) -> None:
     """Runs a script"""
     m = qr.Manager().log_conf
-    dc = qr.Manager().get_DistributedConfiguration()
 
     #
     # analyzing --verbosity option
@@ -50,11 +48,6 @@ def do_command_run(args: Any) -> None:
                 " for -y/--verbosity option"
             )
 
-    # we set the verbosity lower for other than the leading process
-    if dc.rank != 0:
-        m.verbosity -= 2
-        m.fverbosity -= 2
-
     #
     # log into file
     #
@@ -62,15 +55,6 @@ def do_command_run(args: Any) -> None:
 
     if m.log_to_file:
         m.log_file_name = args.filename
-
-    #
-    # parallel options
-    #
-    nprocesses = args.nprocesses
-    flag_parallel = args.parallel
-    hostfile = ""
-    if len(args.hostfile) > 0:
-        hostfile = args.hostfile
 
     #
     # some other logging option
@@ -107,12 +91,6 @@ def do_command_run(args: Any) -> None:
     #
     if args.inputfile:
         input_file = args.inputfile
-
-    #
-    # Driver for MPI (-d option)
-    #
-    if args.driver:
-        driver_name = args.driver
 
     #
     # if the file is yaml, look into it to find the script file name
@@ -157,119 +135,30 @@ def do_command_run(args: Any) -> None:
             loglevel=qr.LOG_URGENT,
         )
 
-    #
-    # Run serial or parallel
-    #
+    if not flag_silent and (not flag_quiet):
+        qr.printlog(" --- output below ---\n", verbose=True, loglevel=qr.LOG_URGENT)
 
-    if flag_parallel:
-        #
-        # If this is set to True, we use one more processes than processor
-        # number to steer other processes
-        #
-        # Also set the corresponding flag in the parallel module
-        #
-        use_steerer = False
-        if use_steerer:
-            nsteerer = 1
-        else:
-            nsteerer = 0
+    # running the script within the same interpreter
+    try:
+        # launch this properly, so that it gives information
+        # on the origin of exceptions
+        with open(scr) as fp:
+            code = fp.read()
+            glbs = globals()
+            glbs.update(dict(_input_file_=input_file))
 
-        #
-        # get parallel configuration
-        #
-        cpu_count = 0
-        try:
-            import multiprocessing
+        exec(compile(code, scr, "exec"), glbs)
 
-            cpu_count = multiprocessing.cpu_count()
-        except (ImportError, NotImplementedError):
-            pass
+    except SystemExit:
+        qr.printlog("", verbose=True, loglevel=qr.LOG_DETAIL)
+        qr.printlog(
+            " --- Exited by SystemExit --- ", verbose=True, loglevel=qr.LOG_DETAIL
+        )
 
-        prl_exec = driver_name
-        prl_n = "-n"
-        prl_h = ""
-        if len(hostfile) > 0:
-            prl_h += " --hostfile " + hostfile + " "
+    except Exception:
+        print(traceback.format_exc())
 
-        if cpu_count != 0:
-            prl_np = cpu_count + nsteerer
-        else:
-            prl_np = 4
-
-        if nprocesses != 0:
-            prl_np = nprocesses + nsteerer
-
-        #
-        engine = "qrhei"
-        if m.log_to_file:
-            engine += " -lf " + m.log_file_name
-        engine += " -y " + str(m.verbosity) + "," + str(m.fverbosity) + " run -q"
-        engine += " -i " + input_file + " "
-
-        # running MPI with proper parallel configuration
-        prl_cmd = prl_exec + " " + prl_n + " " + str(prl_np) + " " + prl_h
-        cmd = prl_cmd + engine + scr
-
-        if not flag_silent:
-            qr.printlog("System reports", cpu_count, "processors")
-            qr.printlog(
-                "Starting parallel execution with",
-                prl_np,
-                "processes (executing command below)",
-            )
-            qr.printlog(">>>", cmd)
-            qr.printlog("")
-
-        try:
-            p = subprocess.Popen(
-                cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-            )
-
-            if not flag_silent and (not flag_quiet):
-                qr.printlog(" --- output below ---\n", verbose=True, loglevel=1)
-
-            # read and print output
-            for line in iter(p.stdout.readline, b""):
-                # for line in p.stdout.readlines():
-                ln = line.decode()
-                # line is returned with a \n character at the end
-                # ln = ln[0:len(ln)-2]
-                print(ln, end="", flush=True)
-
-            retval = p.wait()
-
-        except SystemExit:
-            qr.printlog("", verbose=True, loglevel=qr.LOG_DETAIL)
-            qr.printlog(
-                " --- Exited by SystemExit --- ", verbose=True, loglevel=qr.LOG_DETAIL
-            )
-            pass
-
-    else:
-        if not flag_silent and (not flag_quiet):
-            qr.printlog(" --- output below ---\n", verbose=True, loglevel=qr.LOG_URGENT)
-
-        # running the script within the same interpreter
-        try:
-            # launch this properly, so that it gives information
-            # on the origin of exceptions
-            with open(scr) as fp:
-                code = fp.read()
-                glbs = globals()
-                glbs.update(dict(_input_file_=input_file))
-
-            exec(compile(code, scr, "exec"), glbs)
-
-        except SystemExit:
-            qr.printlog("", verbose=True, loglevel=qr.LOG_DETAIL)
-            qr.printlog(
-                " --- Exited by SystemExit --- ", verbose=True, loglevel=qr.LOG_DETAIL
-            )
-
-        except Exception:
-            print(traceback.format_exc())
-
-        retval = 0
+    retval = 0
 
     #
     # Saying good bye
@@ -292,70 +181,7 @@ def do_command_run(args: Any) -> None:
 def do_command_test(args: Any) -> None:
     """Runs Quantarhei tests"""
     qr.printlog("--- Running tests ---", loglevel=qr.LOG_URGENT)
-    qr.printlog("")
-    qr.printlog("Testing parallel capabilities:", loglevel=qr.LOG_URGENT)
-
-    #
-    # number of processors
-    #
-    cpu_count = 0
-    try:
-        import multiprocessing
-
-        cpu_count = multiprocessing.cpu_count()
-    except (ImportError, NotImplementedError):
-        pass
-    qr.printlog("Processor count:", cpu_count)
-
-    #
-    # mpi4py
-    #
-    have_mpi = False
-    try:
-        have_mpi = True
-    except Exception:
-        pass
-    qr.printlog("mpi4py installed:", have_mpi)
-
-    #
-    # MPI implementation
-    #
-    cmd = "mpirun -h"
-    mpirun = _try_cmd(cmd)
-
-    qr.printlog("mpirun available:", mpirun)
-
-    #
-    # MPI implementation
-    #
-    cmd = "mpiexec -h"
-    mpiexec = _try_cmd(cmd)
-
-    qr.printlog("mpiexec available:", mpiexec)
-
-
-def _try_cmd(cmd: str) -> bool:
-    ret = False
-    try:
-        p = subprocess.Popen(
-            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
-
-        # read and print output
-        for line in iter(p.stdout.readline, b""):
-            # for line in p.stdout.readlines():
-            ln = line.decode()
-            # line is returned with a \n character at the end
-            # ln = ln[0:len(ln)-2]
-            # print(ln, end="", flush=True)
-
-        retval = p.wait()
-    except OSError:
-        pass
-    if retval == 0:
-        ret = True
-
-    return ret
+    qr.printlog("No built-in qrhei tests are currently defined.")
 
 
 def _match_filenames(
@@ -607,26 +433,6 @@ def main() -> None:
         "-q", "--quiet", action="store_true", help="no output from qrhei script itself"
     )
     parser_run.add_argument(
-        "-p", "--parallel", action="store_true", help="executes the code in parallel"
-    )
-    parser_run.add_argument(
-        "-n", "--nprocesses", type=int, default=0, help="number of processes to start"
-    )
-    parser_run.add_argument(
-        "-d",
-        "--driver",
-        type=str,
-        default="mpirun",
-        help="driver command, e.g. for MPI.",
-    )
-    parser_run.add_argument(
-        "-f",
-        "--hostfile",
-        metavar="HOSTFILE",
-        default="",
-        help="list of available host for parallel calculation",
-    )
-    parser_run.add_argument(
         "-b",
         "--benchmark",
         type=int,
@@ -781,9 +587,6 @@ def main() -> None:
     #
     if args.info:
         qr.printlog("\nqrhei: Quantarhei Package Driver\n", verbose=True, loglevel=1)
-        #                   +"\n"
-        #                   +"MPI parallelization enabled: ", flag_parallel,
-        #                    verbose=True, loglevel=0)
         if not args.version:
             qr.printlog(
                 "Package version: ",

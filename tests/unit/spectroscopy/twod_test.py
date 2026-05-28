@@ -227,4 +227,144 @@ class TestTwod(unittest.TestCase):
 
         t2 = qr.TimeAxis(30, 10, 10.0)
 
-        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1, t2, t3, relaxation_theory="standard_Foerster"
+        )
+        self.assertEqual(twod_calc.relaxation_theory, "standard_Foerster")
+
+    def test_TwoDResponseCalculator_accepts_time_dependent_rates(self):
+        """Testing that 2D spectra accept time-dependent rate matrices"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+
+        twod_calc = qr.TwoDResponseCalculator(
+            t1,
+            t2,
+            t3,
+            relaxation_theory="standard_Redfield",
+            rate_matrix_time_dependent=True,
+        )
+
+        self.assertTrue(twod_calc.rate_matrix_time_dependent)
+
+    def test_TwoDResponseCalculator_F2DES_options(self):
+        """Testing F-2DES option validation"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+
+        twod_calc = qr.TwoDResponseCalculator(
+            t1, t2, t3, twodtype="F-2DES", gamma_factor=0.5
+        )
+        self.assertEqual(twod_calc.twodtype, "F-2DES")
+        self.assertEqual(twod_calc.gamma_factor, 0.5)
+
+        with self.assertRaises(Exception) as context:
+            qr.TwoDResponseCalculator(t1, t2, t3, twodtype="F-2DES")
+
+        self.assertIn("Not enough parameters for F-2DES", str(context.exception))
+
+        with self.assertRaises(NotImplementedError) as context:
+            qr.TwoDResponseCalculator(
+                t1, t2, t3, twodtype="F-2DES", population_factors=(1.0, 1.0, 1.0)
+            )
+
+        self.assertIn("state-resolved ESA", str(context.exception))
+
+        rate_matrix = numpy.zeros((t2.length, 2, 2), dtype=numpy.float64)
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, rate_matrix=rate_matrix)
+
+        self.assertEqual(twod_calc._rate_matrix.shape, rate_matrix.shape)
+
+    def test_TwoDResponseCalculator_jump_order_option(self):
+        """Testing 2D response jump-order option validation"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+
+        twod_calc = qr.TwoDResponseCalculator(
+            t1, t2, t3, jump_order=1, jump_time_graining=3
+        )
+        self.assertEqual(twod_calc.jump_order, 1)
+        self.assertEqual(twod_calc.jump_time_graining, 3)
+        self.assertEqual(twod_calc.jump_kernel_cutoff, 0.0)
+        self.assertEqual(twod_calc.jump_kernel_zero_cutoff, 0.0)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_order=2)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_time_graining=0)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_cutoff=-1.0)
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, jump_kernel_zero_cutoff=-1.0)
+
+    def test_TwoDResponseCalculator_external_population_propagator_option(self):
+        """Testing external population propagator option validation"""
+        t1 = qr.TimeAxis(0.0, 1000, 1.0)
+        t3 = qr.TimeAxis(0.0, 1000, 1.0)
+        t2 = qr.TimeAxis(30, 10, 10.0)
+        Uee = numpy.zeros((2, 2, t2.length), dtype=numpy.float64)
+
+        twod_calc = qr.TwoDResponseCalculator(t1, t2, t3, population_propagator=Uee)
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+        self.assertIs(twod_calc.population_propagator, Uee)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                population_dynamics_mode="unknown",
+            )
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                rate_matrix=numpy.zeros((2, 2), dtype=numpy.float64),
+                population_propagator=Uee,
+            )
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                jump_order=1,
+            )
+
+        Ueeee = numpy.zeros((2, 2, 2, 2, t2.length), dtype=numpy.complex128)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1,
+            t2,
+            t3,
+            density_matrix_propagator=Ueeee,
+            include_nonsecular_remainder=False,
+        )
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+        self.assertIs(twod_calc.density_matrix_propagator, Ueeee)
+        self.assertFalse(twod_calc.include_nonsecular_remainder)
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(
+                t1,
+                t2,
+                t3,
+                population_propagator=Uee,
+                density_matrix_propagator=Ueeee,
+            )
+
+        t1_zero = qr.TimeAxis(0.0, 1, 1.0)
+        rho = numpy.zeros((2, 2, t2.length), dtype=numpy.complex128)
+        twod_calc = qr.TwoDResponseCalculator(
+            t1_zero, t2, t3, density_matrix_trajectory=rho
+        )
+        self.assertIs(twod_calc.density_matrix_trajectory, rho)
+        self.assertEqual(twod_calc.population_dynamics_mode, "full_conditional")
+
+        with assert_raises(ValueError):
+            qr.TwoDResponseCalculator(t1, t2, t3, density_matrix_trajectory=rho)

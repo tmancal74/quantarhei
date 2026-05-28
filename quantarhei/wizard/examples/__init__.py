@@ -15,7 +15,6 @@ _available_examples = [
     "ex_018_ModifiedRedfieldTheory_1.py",
     "ex_020_EvolutionSuperOperator_1.py",
     "ex_050_PDB_FMO1.py",
-    "ex_300_ParallelIterators.py",
     "ex_800_DiagProblem.py",
     "ex_853_RC.py",
     "ex_854_2DSpectrum_DimerDisorder.py",

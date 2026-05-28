@@ -9,6 +9,7 @@ from ..core.dfunction import DFunction
 from ..core.managers import Manager, eigenbasis_of, energy_units
 from ..core.triangle import triangle
 from ..core.units import c_int, eps0_int, kB_intK
+from ..core.wrappers import deprecated
 from ..exceptions import BuildError, ImplementationError, QuantarheiError
 from ..qm import ReducedDensityMatrix, SelfAdjointOperator
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
@@ -447,10 +448,12 @@ class OpenSystem:
 
         return WPM
 
-    def get_lineshape_functions(self) -> Any:
+    def get_lineshape_functions(
+        self, config: dict | int | None = None, timeaxis: Any = None
+    ) -> Any:
         """Returns lineshape functions defined for this system"""
         sbi = self.get_SystemBathInteraction()
-        return sbi.get_goft_storage()
+        return sbi.get_goft_storage(config=config, timeaxis=timeaxis)
 
     def map_lineshape_to_states(self, mpx: numpy.ndarray) -> numpy.ndarray:
         """Maps the participation matrix on g(t) functions storage
@@ -1007,10 +1010,31 @@ class OpenSystem:
 
         return prop
 
-    # FIXME: There must be a general theory here
-    def get_RedfieldRateMatrix(self, corr_mat: object = None) -> object:
-        """Returns Redfield rate matrix"""
-        from ..qm import RedfieldRateMatrix
+    def get_RateMatrix(
+        self,
+        relaxation_theory: str | None = None,
+        time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+        corr_mat: object = None,
+    ) -> object:
+        """Returns a rate matrix corresponding to the system.
+
+        Parameters
+        ----------
+        relaxation_theory : str
+            Relaxation theory used to calculate the rates. Currently supports
+            standard Redfield and standard Foerster aliases.
+
+        time_dependent : bool
+            If ``True``, returns the time-dependent version of the requested
+            rate matrix when available.
+        """
+        from ..qm import (
+            FoersterRateMatrix,
+            RedfieldRateMatrix,
+            TDFoersterRateMatrix,
+            TDRedfieldRateMatrix,
+        )
 
         if self._built:
             ham = self.get_Hamiltonian()
@@ -1018,19 +1042,72 @@ class OpenSystem:
         else:
             raise QuantarheiError()
 
-        return RedfieldRateMatrix(ham, sbi, corr_mat=corr_mat)
+        theories = dict()
+        theories["standard_Redfield"] = [
+            "standard_Redfield",
+            "stR",
+            "Redfield",
+            "CLME2",
+            "QME",
+        ]
+        theories["standard_Foerster"] = ["standard_Foerster", "stF", "Foerster"]
 
-    def get_FoersterRateMatrix(self) -> object:
-        """Returns Förster rate matrix for the open system"""
-        from ..qm import FoersterRateMatrix
+        if relaxation_theory is None:
+            relaxation_theory = "standard_Redfield"
 
-        if self._built:
-            ham = self.get_Hamiltonian()
-            sbi = self.get_SystemBathInteraction()
-        else:
-            raise QuantarheiError()
+        if relaxation_theory in theories["standard_Redfield"]:
+            if time_dependent:
+                return TDRedfieldRateMatrix(
+                    ham, sbi, cutoff_time=relaxation_cutoff_time
+                )
 
-        return FoersterRateMatrix(ham, sbi)
+            return RedfieldRateMatrix(
+                ham, sbi, cutoff_time=relaxation_cutoff_time, corr_mat=corr_mat
+            )
+
+        if relaxation_theory in theories["standard_Foerster"]:
+            if time_dependent:
+                return TDFoersterRateMatrix(
+                    ham, sbi, cutoff_time=relaxation_cutoff_time
+                )
+
+            return FoersterRateMatrix(ham, sbi, cutoff_time=relaxation_cutoff_time)
+
+        raise Exception("Rate matrix theory not implemented")
+
+    @deprecated(alternative="get_RateMatrix(relaxation_theory='Redfield')")
+    def get_RedfieldRateMatrix(
+        self,
+        corr_mat: object = None,
+        time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+    ) -> object:
+        """Returns Redfield rate matrix.
+
+        Deprecated; use ``get_RateMatrix(relaxation_theory="Redfield")``.
+        """
+        return self.get_RateMatrix(
+            relaxation_theory="standard_Redfield",
+            time_dependent=time_dependent,
+            relaxation_cutoff_time=relaxation_cutoff_time,
+            corr_mat=corr_mat,
+        )
+
+    @deprecated(alternative="get_RateMatrix(relaxation_theory='Foerster')")
+    def get_FoersterRateMatrix(
+        self,
+        time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+    ) -> object:
+        """Returns Förster rate matrix for the open system.
+
+        Deprecated; use ``get_RateMatrix(relaxation_theory="Foerster")``.
+        """
+        return self.get_RateMatrix(
+            relaxation_theory="standard_Foerster",
+            time_dependent=time_dependent,
+            relaxation_cutoff_time=relaxation_cutoff_time,
+        )
 
     def get_KTHierarchy(self, depth: int = 2) -> Any:
         """Returns the Kubo-Tanimura hierarchy of an open system"""

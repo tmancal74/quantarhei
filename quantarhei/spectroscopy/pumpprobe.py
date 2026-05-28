@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy
 import scipy
 
-from .. import COMPLEX
+from .. import COMPLEX, signal_TOTL
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..core.dfunction import DFunction
@@ -18,6 +18,7 @@ from ..core.units import convert
 from ..exceptions import QuantarheiError
 from ..utils import derived_type
 from .mocktwodcalculator import MockTwoDResponseCalculator as MockTwoDSpectrumCalculator
+from .responses import NonLinearResponse
 from .twodcontainer import TwoDSpectrumContainer
 
 
@@ -68,6 +69,26 @@ class PumpProbeSpectrum(DFunction):
             self.data += data
 
     # FIXME: Add function _add_data (if data None = set_data, else add)
+
+
+class _RWAOverrideSystem:
+    """Delegates to a system while overriding the response-backend RWA."""
+
+    def __init__(self, system: Any, rwa: Any, lineshape_timeaxis: Any = None) -> None:
+        self._system = system
+        self._rwa = rwa
+        self._lineshape_timeaxis = lineshape_timeaxis
+
+    def get_RWA_suggestion(self) -> Any:
+        return self._rwa
+
+    def get_lineshape_functions(self, config: dict | int | None = None) -> Any:
+        return self._system.get_lineshape_functions(
+            config=config, timeaxis=self._lineshape_timeaxis
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._system, name)
 
 
 class PumpProbeSpectrumContainer(TwoDSpectrumContainer):
@@ -341,10 +362,31 @@ class PumpProbeSpectrumCalculator:
         rate_matrix: Any = None,
         effective_hamiltonian: Any = None,
         separate_relax_pwy: bool = True,
+        population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        density_matrix_trajectory: Any = None,
+        population_time_axis: Any = None,
+        include_nonsecular_remainder: bool = True,
+        include_remainder: bool = True,
+        dipole_normalization_tol: float = 1.0e-12,
     ) -> None:
 
         self.t2axis = t2axis
         self.t3axis = t3axis
+
+        external_count = sum(
+            item is not None
+            for item in (
+                population_propagator,
+                density_matrix_propagator,
+                density_matrix_trajectory,
+            )
+        )
+        if external_count > 1:
+            raise ValueError(
+                "population_propagator, density_matrix_propagator, and "
+                "density_matrix_trajectory are mutually exclusive"
+            )
 
         if system is not None:
             self.system = copy.deepcopy(system)
@@ -380,6 +422,13 @@ class PumpProbeSpectrumCalculator:
         self.t3s: Any = None
         self.pathways: Any = None
         self.rwa: Any = None
+        self.density_matrix_trajectory: Any = density_matrix_trajectory
+        self.population_propagator: Any = population_propagator
+        self.density_matrix_propagator: Any = density_matrix_propagator
+        self.population_time_axis: Any = population_time_axis
+        self.include_nonsecular_remainder = include_nonsecular_remainder
+        self.include_remainder = include_remainder
+        self.dipole_normalization_tol = dipole_normalization_tol
 
         self.verbose = False
 
@@ -437,6 +486,61 @@ class PumpProbeSpectrumCalculator:
 
     def set_pathways(self, pathways: Any) -> None:
         self.pathways = pathways
+
+    def set_density_matrix_trajectory(
+        self, density_matrix_trajectory: Any, timeaxis: Any = None
+    ) -> None:
+        """Set an externally calculated density-matrix trajectory."""
+        self.density_matrix_trajectory = density_matrix_trajectory
+        self.population_propagator = None
+        self.density_matrix_propagator = None
+        self.population_time_axis = timeaxis
+
+    def set_population_propagator(
+        self, population_propagator: Any, timeaxis: Any = None
+    ) -> None:
+        """Set an externally calculated one-exciton population propagator."""
+        self.population_propagator = population_propagator
+        self.density_matrix_trajectory = None
+        self.density_matrix_propagator = None
+        self.population_time_axis = timeaxis
+
+    def set_density_matrix_propagator(
+        self, density_matrix_propagator: Any, timeaxis: Any = None
+    ) -> None:
+        """Set an externally calculated one-exciton density-matrix propagator."""
+        self.density_matrix_propagator = density_matrix_propagator
+        self.density_matrix_trajectory = None
+        self.population_propagator = None
+        self.population_time_axis = timeaxis
+
+    def set_dynamics(
+        self,
+        density_matrix_trajectory: Any = None,
+        population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        timeaxis: Any = None,
+    ) -> None:
+        """Set exactly one external dynamics object for response-backend PP."""
+        dynamics_count = sum(
+            item is not None
+            for item in (
+                density_matrix_trajectory,
+                population_propagator,
+                density_matrix_propagator,
+            )
+        )
+        if dynamics_count != 1:
+            raise ValueError(
+                "Exactly one of density_matrix_trajectory, population_propagator, "
+                "or density_matrix_propagator has to be supplied"
+            )
+        if density_matrix_trajectory is not None:
+            self.set_density_matrix_trajectory(density_matrix_trajectory, timeaxis)
+        elif population_propagator is not None:
+            self.set_population_propagator(population_propagator, timeaxis)
+        else:
+            self.set_density_matrix_propagator(density_matrix_propagator, timeaxis)
 
     def bath_reorg(self, cfm: Any, indx: Any) -> float:
         coft = cfm.cfuncs[cfm.get_index_by_where((indx, indx))]
@@ -533,6 +637,8 @@ class PumpProbeSpectrumCalculator:
         show_progress: bool = False,
         approx: Any = None,
         spec: Any = None,
+        gsb_mode: str = "hole",
+        orientational_averaging: str = "legacy",
     ) -> Any:
         """Calculates all 2D spectra for a system and reduced density matrix
         evolution. The approach assumes no diiference between pathways with
@@ -600,10 +706,25 @@ class PumpProbeSpectrumCalculator:
 
             if approx == "Novoderezhkin":
                 ppspec1 = self.calculate_pathways_rdm_novoderezhkin(
-                    rdm0, rdm, T2, lab, ptol=1.0e-6, spec=spec
+                    rdm0,
+                    rdm,
+                    T2,
+                    lab,
+                    ptol=1.0e-6,
+                    spec=spec,
+                    gsb_mode=gsb_mode,
+                    orientational_averaging=orientational_averaging,
                 )
             else:
-                ppspec1 = self.calculate_pathways_rdm(rdm0, rdm, T2, lab, spec=spec)
+                ppspec1 = self.calculate_pathways_rdm(
+                    rdm0,
+                    rdm,
+                    T2,
+                    lab,
+                    spec=spec,
+                    gsb_mode=gsb_mode,
+                    orientational_averaging=orientational_averaging,
+                )
 
             tcont.set_spectrum(ppspec1, tag=T2)
 
@@ -613,6 +734,294 @@ class PumpProbeSpectrumCalculator:
             )
 
         return tcont
+
+    def _response_backend_trace(self, diagrams: list[str], tau: float, lab: Any) -> Any:
+        """Calculate selected response-backend diagrams as a t3 trace at t1 = 0."""
+        t1axis = TimeAxis(0.0, 1, self.t3axis.step)
+        backend_system = _RWAOverrideSystem(
+            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        )
+
+        response = numpy.zeros(self.t3axis.length, dtype=numpy.complex128)
+        for diagram in diagrams:
+            rsp = NonLinearResponse(
+                lab,
+                backend_system,
+                diagram,
+                t1axis,
+                self.t2axis,
+                self.t3axis,
+            )
+            response += numpy.ravel(numpy.asarray(rsp.calculate_matrix(tau)))
+
+        return response
+
+    def _full_dipole_rdm_weight(
+        self, rdm: Any, ii: int, jj: int, tol: float = 1.0e-12
+    ) -> Any:
+        """Return RDM element normalized by the two preparation dipole lengths."""
+        norm_i = numpy.linalg.norm(self.system.DD[ii, 0, :])
+        norm_j = numpy.linalg.norm(self.system.DD[jj, 0, :])
+        norm = norm_i * norm_j
+        if numpy.abs(norm) <= tol:
+            raise ValueError(
+                "Cannot normalize density matrix element by zero transition "
+                "dipole length"
+            )
+        return rdm[ii, jj] / norm
+
+    def _four_dipole_prefactors(self, lab: Any) -> dict[str, Any]:
+        """Return full orientational prefactors used by response functions."""
+        prefactors = {}
+        for key in ("abba", "baba"):
+            prefactors[key] = numpy.einsum(
+                "i,abi->ab", lab.F4eM4, self.system.get_F4d(key)
+            )
+        if self.system.mult > 1:
+            for key in ("fbfaba", "fafbba"):
+                prefactors[key] = numpy.einsum(
+                    "i,fabi->fab", lab.F4eM4, self.system.get_F4d(key)
+                )
+        return prefactors
+
+    def _response_backend_to_pump_probe(
+        self, response: numpy.ndarray, tau: float
+    ) -> Any:
+        """Fourier transform a t1=0 response trace into a pump-probe spectrum."""
+        onepp = PumpProbeSpectrum()
+        onepp.set_axis(self.oa3)
+
+        ppspec = -numpy.asarray(response, dtype=numpy.complex128)
+        ft = numpy.fft.hfft(ppspec) * self.t3axis.step
+        ft = numpy.fft.fftshift(ft)
+        ft = numpy.flipud(ft)
+        Nt = self.t3axis.length
+
+        data = numpy.real(ft[Nt // 2 : Nt + Nt // 2])
+        data = self.oa3.data * data
+
+        onepp._add_data(data)
+        onepp.set_t2(tau)
+        return onepp
+
+    def calculate_all_system_approx_response_backend(
+        self,
+        sys: Any,
+        rdmt: Any = None,
+        lab: Any = None,
+        show_progress: bool = False,
+        spec: Any = None,
+        population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        population_time_axis: Any = None,
+        include_nonsecular_remainder: bool = True,
+        include_remainder: bool = True,
+        dipole_normalization_tol: float = 1.0e-12,
+    ) -> Any:
+        """Calculate pump-probe spectra through the modern response backend.
+
+        This method is a pump-probe-like ``t1 = 0`` calculation.  The supplied
+        dynamics can be a reduced-density-matrix trajectory, a one-exciton
+        population propagator, or a one-exciton density-matrix propagator.
+        """
+        if spec is None:
+            spec = ["Full"]
+        if lab is None:
+            raise ValueError("A lab setup has to be supplied")
+        dynamics_count = sum(
+            item is not None
+            for item in (rdmt, population_propagator, density_matrix_propagator)
+        )
+        if dynamics_count != 1:
+            raise ValueError(
+                "Exactly one of rdmt, population_propagator, or "
+                "density_matrix_propagator has to be supplied"
+            )
+        if not numpy.isclose(lab.F4eM4[1:], [0, 0], atol=1e-6).all():
+            message = (
+                "Lab is not set to the magic angle polarization which is"
+                "the only supported measurement setting for this calculation. Set "
+                "polarization angle between first two pulses and the last two to"
+                "54.7356103 deg. and repeat the calculation."
+            )
+            raise OSError(message)
+
+        self.system = copy.deepcopy(sys)
+        if not self.system._diagonalized:
+            self.system.diagonalize()
+
+        t1axis = TimeAxis(0.0, 1, self.t3axis.step)
+        backend_system = _RWAOverrideSystem(
+            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        )
+        response_types = []
+        if "Full" in spec or "SE" in spec:
+            response_types.extend(["R1g", "R2g"])
+        if "Full" in spec or "GSB" in spec:
+            response_types.extend(["R3g", "R4g"])
+        if self.system.mult > 1 and ("Full" in spec or "ESA" in spec):
+            response_types.extend(["R1f", "R2f"])
+
+        if population_time_axis is None:
+            population_time_axis = self.t2axis
+        response_kwargs: dict[str, Any] = dict(
+            population_time_axis=population_time_axis
+        )
+        if rdmt is not None:
+            response_kwargs["density_matrix_trajectory"] = rdmt
+            response_kwargs["dipole_normalization_tol"] = dipole_normalization_tol
+        elif population_propagator is not None:
+            response_kwargs["population_propagator"] = population_propagator
+        else:
+            response_kwargs["density_matrix_propagator"] = density_matrix_propagator
+            response_kwargs["include_nonsecular_remainder"] = (
+                include_nonsecular_remainder
+            )
+
+        if include_remainder and rdmt is None:
+            if "Full" in spec or "SE" in spec:
+                response_types.extend(["R1g_scM0g", "R2g_scM0g"])
+            if self.system.mult > 1 and ("Full" in spec or "ESA" in spec):
+                response_types.extend(
+                    ["R1f_scM0g", "R2f_scM0g", "R1f_scM0e", "R2f_scM0e"]
+                )
+
+        responses = [
+            NonLinearResponse(
+                lab,
+                backend_system,
+                diagram,
+                t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
+            )
+            for diagram in response_types
+        ]
+
+        tcont = PumpProbeSpectrumContainer(t2axis=self.t2axis)
+
+        kk = 0
+        Nk = self.t2axis.length
+        printProgressBar(
+            kk, Nk, prefix="     - Progress:", suffix="Complete", length=50
+        )
+
+        for T2 in self.t2axis.data:
+            if show_progress:
+                print(" - calculating", kk, "of", Nk, "at t2 =", T2, "fs")
+
+            response = numpy.zeros(self.t3axis.length, dtype=numpy.complex128)
+            for rsp in responses:
+                data = numpy.asarray(rsp.calculate_matrix(T2))
+                response += numpy.ravel(data)
+
+            ppspec1 = self._response_backend_to_pump_probe(response, T2)
+            tcont.set_spectrum(ppspec1, tag=T2)
+
+            kk += 1
+            printProgressBar(
+                kk, Nk, prefix="     - Progress:", suffix="Complete", length=50
+            )
+
+        return tcont
+
+    def calculate(
+        self,
+        system: Any = None,
+        lab: Any = None,
+        density_matrix_trajectory: Any = None,
+        population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        population_time_axis: Any = None,
+        method: str = "response",
+        show_progress: bool = False,
+        spec: Any = None,
+        include_nonsecular_remainder: bool | None = None,
+        include_remainder: bool | None = None,
+        dipole_normalization_tol: float | None = None,
+        approx: Any = None,
+        gsb_mode: str = "hole",
+        orientational_averaging: str = "legacy",
+    ) -> Any:
+        """Calculate pump-probe spectra with the selected backend.
+
+        Parameters
+        ----------
+        system : Aggregate, optional
+            System to calculate. If omitted, the calculator's stored system is
+            used.
+        lab : LabSetup, optional
+            Laboratory setup. If omitted, the setup supplied to ``bootstrap`` is
+            used.
+        density_matrix_trajectory, population_propagator, density_matrix_propagator
+            Optional external dynamics. If omitted, dynamics previously set by
+            ``set_dynamics`` or one of the specialized setters are used.
+        method : {"response", "legacy"}
+            ``"response"`` uses the modern nonlinear-response backend.
+            ``"legacy"`` uses the old RDM pump-probe implementation.
+        """
+        if system is None:
+            system = self.system
+        if lab is None:
+            lab = self.lab
+        if lab is None:
+            raise ValueError("A lab setup has to be supplied or bootstrapped")
+
+        if population_time_axis is None:
+            population_time_axis = self.population_time_axis
+        if density_matrix_trajectory is None:
+            density_matrix_trajectory = self.density_matrix_trajectory
+        if population_propagator is None:
+            population_propagator = self.population_propagator
+        if density_matrix_propagator is None:
+            density_matrix_propagator = self.density_matrix_propagator
+        if include_nonsecular_remainder is None:
+            include_nonsecular_remainder = self.include_nonsecular_remainder
+        if include_remainder is None:
+            include_remainder = self.include_remainder
+        if dipole_normalization_tol is None:
+            dipole_normalization_tol = self.dipole_normalization_tol
+
+        if method in ("response", "modern"):
+            return self.calculate_all_system_approx_response_backend(
+                system,
+                rdmt=density_matrix_trajectory,
+                lab=lab,
+                show_progress=show_progress,
+                spec=spec,
+                population_propagator=population_propagator,
+                density_matrix_propagator=density_matrix_propagator,
+                population_time_axis=population_time_axis,
+                include_nonsecular_remainder=include_nonsecular_remainder,
+                include_remainder=include_remainder,
+                dipole_normalization_tol=dipole_normalization_tol,
+            )
+
+        if method == "legacy":
+            if density_matrix_trajectory is None:
+                raise ValueError(
+                    "Legacy pump-probe calculation requires density_matrix_trajectory"
+                )
+            if (
+                population_propagator is not None
+                or density_matrix_propagator is not None
+            ):
+                raise ValueError(
+                    "Legacy pump-probe calculation does not accept propagators"
+                )
+            return self.calculate_all_system_approx(
+                system,
+                density_matrix_trajectory,
+                lab,
+                show_progress=show_progress,
+                approx=approx,
+                spec=spec,
+                gsb_mode=gsb_mode,
+                orientational_averaging=orientational_averaging,
+            )
+
+        raise ValueError("method has to be 'response' or 'legacy'")
 
     def calculate_all_system(
         self, sys: Any, eUt: Any, lab: Any, show_progress: bool = False
@@ -1368,6 +1777,8 @@ class PumpProbeSpectrumCalculator:
         lab: Any,
         ptol: float = 1.0e-6,
         spec: Any = None,
+        gsb_mode: str = "hole",
+        orientational_averaging: str = "legacy",
     ) -> Any:
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
@@ -1375,6 +1786,12 @@ class PumpProbeSpectrumCalculator:
         """
         if spec is None:
             spec = ["Full"]
+        if gsb_mode not in ("hole", "response"):
+            raise ValueError("gsb_mode has to be 'hole' or 'response'")
+        if orientational_averaging not in ("legacy", "four_dipole"):
+            raise ValueError(
+                "orientational_averaging has to be 'legacy' or 'four_dipole'"
+            )
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -1400,27 +1817,35 @@ class PumpProbeSpectrumCalculator:
         # the eigenbais => self.system.DD[nf,ni,:] would be proper transition
         # dipoles between eigenstates.
         dim = self.system.Nb[1] + self.system.Nb[0]
+        N0 = self.system.Nb[0]
+        N1 = self.system.Nb[1]
+        full_pref = None
+        if orientational_averaging == "four_dipole":
+            full_pref = self._four_dipole_prefactors(lab)
 
         # GSB (Ground state bleach)
         if "Full" in spec or "GSB" in spec:
-            for jj in range(1, dim):
-                pref_GSB = lab.F4eM4[0]
-                pref_GSB *= 2  # There are two pathways leading to the same results R3 and R4 (therefore twice)
-                pref_GSB *= numpy.sum(
-                    numpy.diag(rdm0)
-                )  # The GSB signal is dependent only on the last state
-                # => prefactor can be computed as a sum before
-                pref_GSB *= numpy.dot(
-                    self.system.DD[jj, 0, :], self.system.DD[jj, 0, :]
-                )
+            if gsb_mode == "response":
+                ppspec += self._response_backend_trace(["R3g", "R4g"], tau, lab)
+            else:
+                for jj in range(1, dim):
+                    pref_GSB = lab.F4eM4[0]
+                    pref_GSB *= 2  # There are two pathways leading to the same results R3 and R4 (therefore twice)
+                    pref_GSB *= numpy.sum(
+                        numpy.diag(rdm0)
+                    )  # The GSB signal is dependent only on the last state
+                    # => prefactor can be computed as a sum before
+                    pref_GSB *= numpy.dot(
+                        self.system.DD[jj, 0, :], self.system.DD[jj, 0, :]
+                    )
 
-                om = self.system.HH[jj, jj] - self.system.HH[0, 0] - self.rwa
-                omtau = 0  # during the t2 time bra and ket both in the ground state
+                    om = self.system.HH[jj, jj] - self.system.HH[0, 0] - self.rwa
+                    omtau = 0  # during the t2 time bra and ket both in the ground state
 
-                ft = -1j * om * self.t3axis.data - 1j * omtau * tau
+                    ft = -1j * om * self.t3axis.data - 1j * omtau * tau
 
-                ft -= gt3s[jj, jj]
-                ppspec += pref_GSB * numpy.exp(ft)
+                    ft -= gt3s[jj, jj]
+                    ppspec += pref_GSB * numpy.exp(ft)
 
         # SE
         if "Full" in spec or "SE" in spec:
@@ -1434,14 +1859,25 @@ class PumpProbeSpectrumCalculator:
                     state = [ii, jj]
                     omtau = self.system.HH[ii, ii] - self.system.HH[jj, jj]
 
-                    pref_SE = lab.F4eM4[0]
-                    pref_SE *= 2  # There are two pathways leading to the same results R1 and R2 (therefore twice)
-                    pref_SE *= rdm[
-                        ii, jj
-                    ]  # It should include excitation weighted by evolution
-                    pref_SE *= numpy.dot(
-                        self.system.DD[ii, 0, :], self.system.DD[jj, 0, :]
-                    )
+                    if orientational_averaging == "four_dipole":
+                        assert full_pref is not None
+                        a = ii - N0
+                        b = jj - N0
+                        pref_SE = self._full_dipole_rdm_weight(rdm, ii, jj)
+                        pref_SE *= full_pref["abba"][b, a]
+                        pref_SE += (
+                            self._full_dipole_rdm_weight(rdm, ii, jj)
+                            * full_pref["baba"][b, a]
+                        )
+                    else:
+                        pref_SE = lab.F4eM4[0]
+                        pref_SE *= 2  # There are two pathways leading to the same results R1 and R2 (therefore twice)
+                        pref_SE *= rdm[
+                            ii, jj
+                        ]  # It should include excitation weighted by evolution
+                        pref_SE *= numpy.dot(
+                            self.system.DD[ii, 0, :], self.system.DD[jj, 0, :]
+                        )
 
                     ft = -1j * om * self.t3axis.data - 1j * omtau * tau
 
@@ -1472,14 +1908,26 @@ class PumpProbeSpectrumCalculator:
                         om = self.system.HH[ll, ll] - self.system.HH[jj, jj] - self.rwa
                         omtau = self.system.HH[ii, ii] - self.system.HH[jj, jj]
 
-                        pref_ESA = lab.F4eM4[0]
-                        pref_ESA *= 2  # There are two pathways leading to the same results R1* and R2* (therefore twice)
-                        pref_ESA *= rdm[
-                            ii, jj
-                        ]  # It should include excitation weighted by evolution
-                        pref_ESA *= numpy.dot(
-                            self.system.DD[ll, ii, :], self.system.DD[jj, ll, :]
-                        )
+                        if orientational_averaging == "four_dipole":
+                            assert full_pref is not None
+                            a = ii - N0
+                            b = jj - N0
+                            f = ll - N0 - N1
+                            pref_ESA = self._full_dipole_rdm_weight(rdm, ii, jj)
+                            pref_ESA *= full_pref["fbfaba"][f, b, a]
+                            pref_ESA += (
+                                self._full_dipole_rdm_weight(rdm, ii, jj)
+                                * full_pref["fafbba"][f, b, a]
+                            )
+                        else:
+                            pref_ESA = lab.F4eM4[0]
+                            pref_ESA *= 2  # There are two pathways leading to the same results R1* and R2* (therefore twice)
+                            pref_ESA *= rdm[
+                                ii, jj
+                            ]  # It should include excitation weighted by evolution
+                            pref_ESA *= numpy.dot(
+                                self.system.DD[ll, ii, :], self.system.DD[jj, ll, :]
+                            )
 
                         Fl = ll
                         Ek = jj
@@ -1533,6 +1981,8 @@ class PumpProbeSpectrumCalculator:
         lab: Any,
         ptol: float = 1.0e-6,
         spec: Any = None,
+        gsb_mode: str = "hole",
+        orientational_averaging: str = "legacy",
     ) -> Any:
         """Calculate the shape of a Liouville pathway
         so far implemented only for electronic
@@ -1540,6 +1990,12 @@ class PumpProbeSpectrumCalculator:
         """
         if spec is None:
             spec = ["Full"]
+        if gsb_mode not in ("hole", "response"):
+            raise ValueError("gsb_mode has to be 'hole' or 'response'")
+        if orientational_averaging not in ("legacy", "four_dipole"):
+            raise ValueError(
+                "orientational_averaging has to be 'legacy' or 'four_dipole'"
+            )
         onepp = PumpProbeSpectrum()
         onepp.set_axis(self.oa3)
 
@@ -1569,26 +2025,34 @@ class PumpProbeSpectrumCalculator:
         # the eigenbais => self.system.DD[nf,ni,:] would be proper transition
         # dipoles between eigenstates.
         dim = self.system.Nb[1] + self.system.Nb[0]
+        N0 = self.system.Nb[0]
+        N1 = self.system.Nb[1]
+        full_pref = None
+        if orientational_averaging == "four_dipole":
+            full_pref = self._four_dipole_prefactors(lab)
 
         # GSB (Ground state bleach)
         if "Full" in spec or "GSB" in spec:
-            for jj in range(1, dim):
-                pref_GSB = lab.F4eM4[0]
-                pref_GSB *= 2  # There are two pathways leading to the same results R3 and R4 (therefore twice)
-                pref_GSB *= numpy.sum(
-                    numpy.diag(rdm0)
-                )  # The GSB signal is dependent only on the last state
-                # => prefactor can be computed as a sum before
-                pref_GSB *= numpy.dot(
-                    self.system.DD[jj, 0, :], self.system.DD[jj, 0, :]
-                )
+            if gsb_mode == "response":
+                ppspec += self._response_backend_trace(["R3g", "R4g"], tau, lab)
+            else:
+                for jj in range(1, dim):
+                    pref_GSB = lab.F4eM4[0]
+                    pref_GSB *= 2  # There are two pathways leading to the same results R3 and R4 (therefore twice)
+                    pref_GSB *= numpy.sum(
+                        numpy.diag(rdm0)
+                    )  # The GSB signal is dependent only on the last state
+                    # => prefactor can be computed as a sum before
+                    pref_GSB *= numpy.dot(
+                        self.system.DD[jj, 0, :], self.system.DD[jj, 0, :]
+                    )
 
-                om = self.system.HH[jj, jj] - self.system.HH[0, 0] - self.rwa
+                    om = self.system.HH[jj, jj] - self.system.HH[0, 0] - self.rwa
 
-                ft = -1j * om * self.t3axis.data
+                    ft = -1j * om * self.t3axis.data
 
-                ft -= gt3s[jj, jj]
-                ppspec += pref_GSB * numpy.exp(ft)
+                    ft -= gt3s[jj, jj]
+                    ppspec += pref_GSB * numpy.exp(ft)
 
         # SE
         if "Full" in spec or "SE" in spec:
@@ -1596,12 +2060,22 @@ class PumpProbeSpectrumCalculator:
                 om = self.system.HH[ii, ii] - self.system.HH[0, 0] - self.rwa
                 state = [ii, ii]
 
-                pref_SE = lab.F4eM4[0]
-                pref_SE *= 2  # There are two pathways leading to the same results R1 and R2 (therefore twice)
-                pref_SE *= rdm[
-                    ii, ii
-                ]  # It should include excitation weighted by evolution
-                pref_SE *= numpy.dot(self.system.DD[ii, 0, :], self.system.DD[ii, 0, :])
+                if orientational_averaging == "four_dipole":
+                    assert full_pref is not None
+                    a = ii - N0
+                    weight = self._full_dipole_rdm_weight(rdm, ii, ii)
+                    pref_SE = weight * (
+                        full_pref["abba"][a, a] + full_pref["baba"][a, a]
+                    )
+                else:
+                    pref_SE = lab.F4eM4[0]
+                    pref_SE *= 2  # There are two pathways leading to the same results R1 and R2 (therefore twice)
+                    pref_SE *= rdm[
+                        ii, ii
+                    ]  # It should include excitation weighted by evolution
+                    pref_SE *= numpy.dot(
+                        self.system.DD[ii, 0, :], self.system.DD[ii, 0, :]
+                    )
 
                 ft = (
                     -1j * om * self.t3axis.data
@@ -1623,14 +2097,23 @@ class PumpProbeSpectrumCalculator:
 
                     om = self.system.HH[ll, ll] - self.system.HH[ii, ii] - self.rwa
 
-                    pref_ESA = lab.F4eM4[0]
-                    pref_ESA *= 2  # There are two pathways leading to the same results R1* and R2* (therefore twice)
-                    pref_ESA *= rdm[
-                        ii, ii
-                    ]  # It should include excitation weighted by evolution
-                    pref_ESA *= numpy.dot(
-                        self.system.DD[ll, ii, :], self.system.DD[ii, ll, :]
-                    )
+                    if orientational_averaging == "four_dipole":
+                        assert full_pref is not None
+                        a = ii - N0
+                        f = ll - N0 - N1
+                        weight = self._full_dipole_rdm_weight(rdm, ii, ii)
+                        pref_ESA = weight * (
+                            full_pref["fbfaba"][f, a, a] + full_pref["fafbba"][f, a, a]
+                        )
+                    else:
+                        pref_ESA = lab.F4eM4[0]
+                        pref_ESA *= 2  # There are two pathways leading to the same results R1* and R2* (therefore twice)
+                        pref_ESA *= rdm[
+                            ii, ii
+                        ]  # It should include excitation weighted by evolution
+                        pref_ESA *= numpy.dot(
+                            self.system.DD[ll, ii, :], self.system.DD[ii, ll, :]
+                        )
 
                     Fl = ll
                     Ek = ii
@@ -1684,15 +2167,19 @@ def calculate_from_2D(twod: Any) -> PumpProbeSpectrum:
     t2 = twod.get_t2()
     pp.set_t2(t2)
 
-    # time step for integration
+    # frequency step for integration
     xaxis = twod.xaxis
     dw = xaxis.step
 
-    # real part of the total 2D spectrum
-    tddata = numpy.real(twod.d__data)
+    # real part of the total 2D spectrum or response
+    if hasattr(twod, "d__data"):
+        twod.set_data_flag(signal_TOTL)
+        tddata = numpy.real(twod.d__data)
+    else:
+        tddata = numpy.real(twod.data)
 
-    # integration over omega_1 axis
-    ppdata = -numpy.sum(tddata, axis=1) * dw
+    # integration over omega_1 axis with the detection-frequency prefactor
+    ppdata = -twod.yaxis.data * numpy.sum(tddata, axis=1) * dw / (2.0 * numpy.pi)
 
     # setting pump-probe data
     pp.set_data(ppdata)

@@ -1,10 +1,12 @@
 import unittest
+import warnings
 
 import numpy
 
 from quantarhei import CorrelationFunction, Hamiltonian, TimeAxis
 from quantarhei.core.managers import Manager, eigenbasis_of, energy_units
 from quantarhei.core.wrappers import (
+    deprecated,
     enforce_basis_context,
     enforce_energy_units_context,
     prevent_basis_context,
@@ -14,6 +16,39 @@ from quantarhei.core.wrappers import (
 
 class TestWrappers(unittest.TestCase):
     """Test for function wrappers"""
+
+    def test_deprecated_warning(self):
+        """(Wrappers) Testing deprecation warning"""
+
+        @deprecated
+        def func(text):
+            return f"Ahoj {text}"
+
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter("always")
+            self.assertEqual(func("Ciao"), "Ahoj Ciao")
+
+        self.assertEqual(len(warning_list), 1)
+        self.assertTrue(issubclass(warning_list[0].category, DeprecationWarning))
+        self.assertIn("func is deprecated", str(warning_list[0].message))
+
+    def test_deprecated_warning_with_alternative(self):
+        """(Wrappers) Testing deprecation warning with replacement hint"""
+
+        @deprecated(alternative="other_func")
+        def func(text):
+            return f"Ahoj {text}"
+
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter("always")
+            self.assertEqual(func("Ciao"), "Ahoj Ciao")
+
+        self.assertEqual(len(warning_list), 1)
+        self.assertTrue(issubclass(warning_list[0].category, DeprecationWarning))
+        self.assertIn(
+            "func is deprecated; use other_func instead",
+            str(warning_list[0].message),
+        )
 
     def test_eigenbasis_of_prevention(self):
         """(Wrappers) Testing eigenbasis_of context prevention"""

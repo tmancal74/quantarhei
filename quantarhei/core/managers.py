@@ -54,12 +54,9 @@ from __future__ import annotations
 
 import os
 import warnings
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
-
-if TYPE_CHECKING:
-    from .parallel import DistributedConfiguration
 
 
 class SecurityWarning(UserWarning):
@@ -309,12 +306,6 @@ class Manager(metaclass=Singleton):
             "redfieldtensor.ssRedfieldRateTensor": "0",
         }
 
-        self.parallel_implementations: dict[str, dict[str, str]] = {}
-        self.parallel_implementations["redfieldrates.ssRedfieldRateMatrix"] = {
-            "0": "quantarhei.implementations.python.parallel",
-            "1": "quantarhei.implementations.cython.parallel",
-        }
-
         if not exists:
             # and save them
             self.save_implementations()
@@ -333,7 +324,6 @@ class Manager(metaclass=Singleton):
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
 
-        self.parallel_conf: DistributedConfiguration | None = None
         self._saved_units: dict[str, str] = {}
 
         self.save_dict: dict[str, Any] = {}
@@ -358,31 +348,6 @@ class Manager(metaclass=Singleton):
         # Read local user config file (this will only be done on request)
         #
         # self._read_uconf()
-
-        #
-        # Initialization of parallel environment
-        #
-        try:
-            from .parallel import DistributedConfiguration
-
-            # from .parallel import start_parallel_region
-            dc = DistributedConfiguration()
-            self.parallel_conf = dc
-            dc.start_parallel_region()
-
-            # this must be put into qrhei script !!!
-            # if dc.rank != 0:
-            #    self.log_conf.verbosity -= 2
-            #    self.log_conf.fverbosity -= 2
-            # print(dc.rank, self.log_conf.verbosity)
-        except Exception:
-            self.parallel_conf = None
-
-    def __del__(self) -> None:
-        """Closes parallel environment if needed"""
-        if self.parallel_conf is not None:
-            # from .parallel import close_parallel_region
-            self.parallel_conf.finish_parallel_region()
 
     def load_conf(self) -> None:
         """Loads configuration file
@@ -842,14 +807,6 @@ class Manager(metaclass=Singleton):
 
     def register_with_basis(self, nb: int, operator: Any) -> None:
         self.basis_registered[nb].append(operator)
-
-    def get_DistributedConfiguration(self) -> DistributedConfiguration:
-        """ """
-        from .parallel import DistributedConfiguration
-
-        if self.parallel_conf is None:
-            self.parallel_conf = DistributedConfiguration()
-        return self.parallel_conf
 
 
 class Managed:

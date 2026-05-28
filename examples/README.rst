@@ -65,7 +65,6 @@ PDB & Biological Systems
 Advanced & Miscellaneous
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- ``demo_300_ParallelIterators.py`` — Parallel iterators
 - ``demo_800_DiagProblem.py`` — Diagonalization problem
 - ``demo_850_vibrons.py`` — Vibrons
 - ``demo_853_RC.py`` — Reaction center simulation

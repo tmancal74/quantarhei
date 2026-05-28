@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 import numpy
 
-from .. import REAL, signal_NONR, signal_REPH
+from .. import signal_NONR, signal_REPH
 from ..builders.aggregates import Aggregate
 from ..builders.molecules import Molecule
 from ..builders.opensystem import OpenSystem
@@ -13,13 +13,64 @@ from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..exceptions import ImplementationError, QuantarheiError
 from ..implementations.aceto.lab_settings import lab_settings
-from ..qm.propagators.poppropagator import PopulationPropagator
 
 # deprecated class
 # This is how we calculate it now
-from ..spectroscopy.responses import LiouvillePathway, NonLinearResponse
+from ..spectroscopy.responses import (
+    LiouvillePathway,
+    NonLinearResponse,
+    get_common_time_axis,
+    get_single_exciton_rate_matrix,
+    validate_2d_time_axes,
+)
 from ..utils import derived_type
 from .twodresponse import TwoDResponse
+
+
+def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
+    """Apply the endpoint half-weight used before Fourier transformation."""
+    ret = data.copy()
+    ret[:, 0] *= 0.5
+    ret[0, :] *= 0.5
+    return ret
+
+
+def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:
+    """Transform a time-domain response contribution to a 2D spectrum."""
+    data = _apply_response_window(data)
+
+    if signal == signal_REPH:
+        ftresp = numpy.fft.fft(data, axis=1)
+    elif signal == signal_NONR:
+        ftresp = numpy.fft.ifft(data, axis=1) * data.shape[1]
+    else:
+        raise Exception("Unknown 2D signal type: " + signal)
+
+    ftresp = numpy.fft.ifft(ftresp, axis=0)
+    return numpy.fft.fftshift(ftresp)
+
+
+def _pad_response_data(
+    data: numpy.ndarray, pad: int, window: numpy.ndarray | None = None
+) -> numpy.ndarray:
+    """Pad a response contribution in the same way as the total response."""
+    if window is not None:
+        size = int(len(window) / 2)
+        data = data.copy()
+        data[len(data) - size :, :] *= window[size:, None]
+        data[:, len(data) - size :] *= window[None, size:]
+
+    if pad > 0:
+        data = numpy.hstack((data, numpy.zeros((data.shape[0], pad))))
+        data = numpy.vstack((data, numpy.zeros((pad, data.shape[1]))))
+
+    return data
+
+
+def _normalize_twodtype(twodtype: str) -> str:
+    if twodtype in ["2DES", "F-2DES"]:
+        return twodtype
+    raise Exception("Unknown type of 2D spectrum: " + twodtype)
 
 
 class TwoDResponseCalculator:
@@ -32,6 +83,18 @@ class TwoDResponseCalculator:
 
     Parameters
     ----------
+    twodtype : {"2DES", "F-2DES"}
+        Type of 2D spectrum to calculate. ``"F-2DES"`` currently supports
+        the ``gamma_factor`` fluorescence-detected approximation.
+
+    gamma_factor : float
+        Fluorescence-detected 2D weighting factor. ESA contributions are
+        weighted by ``gamma_factor - 1``.
+
+    population_factors : tuple
+        Reserved for state-resolved fluorescence-detected 2D spectra. This
+        mode is not implemented yet because it requires state-resolved ESA
+        responses.
 
 
     """
@@ -55,12 +118,107 @@ class TwoDResponseCalculator:
         dynamics: str = "secular",
         relaxation_tensor: Any = None,
         rate_matrix: Any = None,
+        relaxation_theory: str | None = None,
+        rate_matrix_time_dependent: bool = False,
+        relaxation_cutoff_time: float | None = None,
+        rate_matrix_options: dict[str, Any] | None = None,
+        population_propagator: Any = None,
+        density_matrix_propagator: Any = None,
+        density_matrix_trajectory: Any = None,
+        population_time_axis: Any = None,
+        population_dynamics_mode: str | None = None,
+        include_nonsecular_remainder: bool = True,
+        dipole_normalization_tol: float = 1.0e-12,
         effective_hamiltonian: Any = None,
+        twodtype: str = "2DES",
+        gamma_factor: float | None = None,
+        population_factors: Any = None,
+        jump_order: int = 0,
+        jump_time_graining: int = 1,
+        jump_kernel_cutoff: float = 0.0,
+        jump_kernel_zero_cutoff: float = 0.0,
     ) -> None:
+
+        twodtype = _normalize_twodtype(twodtype)
+        if twodtype == "F-2DES":
+            if gamma_factor is None and population_factors is None:
+                raise Exception("Not enough parameters for F-2DES")
+            if population_factors is not None:
+                raise NotImplementedError(
+                    "F-2DES with population_factors requires state-resolved "
+                    "ESA responses and is not implemented yet."
+                )
+
+        if jump_order not in (0, 1):
+            raise ValueError("2D response jump_order has to be 0 or 1")
+        if jump_time_graining < 1:
+            raise ValueError("jump_time_graining has to be a positive integer")
+        if jump_kernel_cutoff < 0.0:
+            raise ValueError("jump_kernel_cutoff has to be non-negative")
+        if jump_kernel_zero_cutoff < 0.0:
+            raise ValueError("jump_kernel_zero_cutoff has to be non-negative")
+        if population_dynamics_mode is None:
+            population_dynamics_mode = (
+                "full_conditional"
+                if population_propagator is not None
+                or density_matrix_propagator is not None
+                or density_matrix_trajectory is not None
+                else "jump_decomposition"
+            )
+        if population_dynamics_mode not in ("jump_decomposition", "full_conditional"):
+            raise ValueError(
+                "population_dynamics_mode has to be 'jump_decomposition' "
+                "or 'full_conditional'"
+            )
+        external_count = sum(
+            item is not None
+            for item in (
+                population_propagator,
+                density_matrix_propagator,
+                density_matrix_trajectory,
+            )
+        )
+        if external_count > 1:
+            raise ValueError(
+                "population_propagator, density_matrix_propagator, and "
+                "density_matrix_trajectory are mutually exclusive"
+            )
+        if external_count > 0 and (
+            rate_matrix is not None or relaxation_theory is not None
+        ):
+            raise ValueError(
+                "External propagators cannot be combined with rate_matrix "
+                "or relaxation_theory"
+            )
+        if external_count > 0 and jump_order > 0:
+            raise ValueError(
+                "External propagators cannot be combined with jump_order > 0"
+            )
+        if density_matrix_trajectory is not None and (
+            t1axis.length != 1 or not numpy.isclose(t1axis.data[0], 0.0)
+        ):
+            raise ValueError(
+                "density_matrix_trajectory is only allowed for pump-probe-like "
+                "calculations with t1 = 0"
+            )
 
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
+        self.twodtype = twodtype
+        self.gamma_factor = gamma_factor
+        self.population_factors = population_factors
+        self.jump_order = jump_order
+        self.jump_time_graining = jump_time_graining
+        self.jump_kernel_cutoff = jump_kernel_cutoff
+        self.jump_kernel_zero_cutoff = jump_kernel_zero_cutoff
+        self.population_propagator = population_propagator
+        self.density_matrix_propagator = density_matrix_propagator
+        self.density_matrix_trajectory = density_matrix_trajectory
+        self.population_dynamics_mode = population_dynamics_mode
+        self.include_nonsecular_remainder = include_nonsecular_remainder
+        self.dipole_normalization_tol = dipole_normalization_tol
+        self.response_diagnostics: list[dict[str, Any]] = []
 
         # FIXME: check the compatibility of the axes
 
@@ -80,15 +238,23 @@ class TwoDResponseCalculator:
         self.dynamics = dynamics
 
         # unprotected properties
-        self.data = None
+        self.data: numpy.ndarray | None = None
 
         self.responses: list[Any] = []
 
         self._relaxation_tensor = None
         self._rate_matrix = None
+        self._response_rate_matrix: Any = None
         self._relaxation_hamiltonian = None
+        self._population_time_axis = population_time_axis
         self._has_relaxation_tensor = False
         self._has_rate_matrix = False
+        self.relaxation_theory = relaxation_theory
+        self.rate_matrix_time_dependent = rate_matrix_time_dependent
+        self.relaxation_cutoff_time = relaxation_cutoff_time
+        self.rate_matrix_options = (
+            {} if rate_matrix_options is None else rate_matrix_options
+        )
         if relaxation_tensor is not None:
             self._relaxation_tensor = relaxation_tensor
             self._has_relaxation_tensor = True
@@ -113,6 +279,25 @@ class TwoDResponseCalculator:
         self.Uc0: Any = None
 
         self.tc = 0
+
+    def _detection_weight(self, resp: Any) -> float:
+        """Returns the detection weight for a response contribution."""
+        if self.twodtype == "2DES":
+            return 1.0
+
+        if self.twodtype == "F-2DES":
+            if not isinstance(resp, NonLinearResponse):
+                raise NotImplementedError(
+                    "F-2DES requires NonLinearResponse metadata; predefined "
+                    "LiouvillePathway responses are not supported."
+                )
+
+            if self.gamma_factor is not None:
+                if resp.process == "ESA":
+                    return self.gamma_factor - 1.0
+                return 1.0
+
+        raise Exception("Unknown type of 2D spectrum: " + self.twodtype)
 
     def _vprint(self, *args: Any, **kwargs: Any) -> None:
         """Prints a string if the self.verbose attribute is True"""
@@ -177,18 +362,45 @@ class TwoDResponseCalculator:
                 #
                 # Relaxation rates
                 #
-                if not self._has_rate_matrix:
-                    # FIXME: This is a quick fix to make a zero rate matrix
-                    class hlp:
-                        def __init__(self, N: int) -> None:
-                            self.data: numpy.ndarray = numpy.zeros((N, N), dtype=REAL)
+                relaxation_requested = (
+                    self._has_rate_matrix
+                    or self.relaxation_theory is not None
+                    or self.population_propagator is not None
+                    or self.density_matrix_propagator is not None
+                    or self.density_matrix_trajectory is not None
+                )
+                if relaxation_requested:
+                    if (
+                        self.population_propagator is None
+                        and self.density_matrix_propagator is None
+                        and self.density_matrix_trajectory is None
+                    ):
+                        validate_2d_time_axes(self.t1axis, self.t2axis, self.t3axis)
+                        self._population_time_axis = get_common_time_axis(
+                            self.t1axis, self.t2axis, self.t3axis
+                        )
+                    elif self._population_time_axis is None:
+                        self._population_time_axis = self.t2axis
 
-                    KK = hlp(Ns[1])
-                else:
+                if self._has_rate_matrix:
                     KK = self._rate_matrix
+                elif self.relaxation_theory is not None:
+                    KK = sys.get_RateMatrix(
+                        relaxation_theory=self.relaxation_theory,
+                        time_dependent=self.rate_matrix_time_dependent,
+                        relaxation_cutoff_time=self.relaxation_cutoff_time,
+                        **self.rate_matrix_options,
+                    )
+                else:
+                    KK = None
 
                 # relaxation rate in single exciton band
-                Kr = KK.data[Ns[0] : Ns[0] + Ns[1], Ns[0] : Ns[0] + Ns[1]]  # *10.0
+                if KK is None:
+                    Kr = None
+                    self._response_rate_matrix = None
+                else:
+                    Kr = get_single_exciton_rate_matrix(sys, KK)  # *10.0
+                    self._response_rate_matrix = Kr
                 # print(1.0/KK.data)
 
                 # FIXME: we need also 2 exciton rates
@@ -200,23 +412,11 @@ class TwoDResponseCalculator:
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
+                sys.get_lineshape_functions(self.jump_order)
 
                 #
                 #  This section will also be removed - It goes to the new Response class
                 #
-
-                #
-                # Finding population evolution matrix
-                #
-                prop = PopulationPropagator(self.t2axis, Kr)
-                self.Uee = prop.get_PropagationMatrix(self.t2axis)
-                jumps = prop.get_JumpExpansion(self.t2axis, max_order=3)
-
-                # FIXME: Order of transfer is set by hand here
-                # - needs to be moved to some reasonable place
-
-                # Ucor = Uee
-                self.Uc0 = jumps[0]
 
             ###############################################################################
 
@@ -332,25 +532,63 @@ class TwoDResponseCalculator:
         resp_Nsewt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Resawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
         resp_Nesawt = numpy.zeros((Nr1, Nr3), dtype=ntype, order=order)
+        response_pieces: list[tuple[Any, numpy.ndarray]] = []
 
         if self._has_system and not self._has_responses:
             #
             # Calculating all responses from the system
             #
             self.resp_fcions = []
+            response_kwargs: dict[str, Any] = dict(
+                rate_matrix=self._response_rate_matrix,
+                population_propagator=self.population_propagator,
+                density_matrix_propagator=self.density_matrix_propagator,
+                density_matrix_trajectory=self.density_matrix_trajectory,
+                population_dynamics_mode=self.population_dynamics_mode,
+                include_nonsecular_remainder=self.include_nonsecular_remainder,
+                dipole_normalization_tol=self.dipole_normalization_tol,
+                population_time_axis=self._population_time_axis,
+                jump_time_graining=self.jump_time_graining,
+                jump_kernel_cutoff=self.jump_kernel_cutoff,
+                jump_kernel_zero_cutoff=self.jump_kernel_zero_cutoff,
+            )
 
             # basic pathways
             Nr1g = NonLinearResponse(
-                self.lab, self.system, "R1g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R1g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr2g = NonLinearResponse(
-                self.lab, self.system, "R2g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R2g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr3g = NonLinearResponse(
-                self.lab, self.system, "R3g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R3g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
             Nr4g = NonLinearResponse(
-                self.lab, self.system, "R4g", self.t1axis, self.t2axis, self.t3axis
+                self.lab,
+                self.system,
+                "R4g",
+                self.t1axis,
+                self.t2axis,
+                self.t3axis,
+                **response_kwargs,
             )
 
             self.resp_fcions.append(Nr1g)
@@ -361,10 +599,22 @@ class TwoDResponseCalculator:
             if self.system.mult > 1:
                 # ESA (if mult > 1)
                 Nr1f = NonLinearResponse(
-                    self.lab, self.system, "R1f", self.t1axis, self.t2axis, self.t3axis
+                    self.lab,
+                    self.system,
+                    "R1f",
+                    self.t1axis,
+                    self.t2axis,
+                    self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f = NonLinearResponse(
-                    self.lab, self.system, "R2f", self.t1axis, self.t2axis, self.t3axis
+                    self.lab,
+                    self.system,
+                    "R2f",
+                    self.t1axis,
+                    self.t2axis,
+                    self.t3axis,
+                    **response_kwargs,
                 )
 
                 self.resp_fcions.append(Nr1f)
@@ -378,6 +628,7 @@ class TwoDResponseCalculator:
                 self.t1axis,
                 self.t2axis,
                 self.t3axis,
+                **response_kwargs,
             )
             Nr2g_scM0g = NonLinearResponse(
                 self.lab,
@@ -386,6 +637,7 @@ class TwoDResponseCalculator:
                 self.t1axis,
                 self.t2axis,
                 self.t3axis,
+                **response_kwargs,
             )
 
             KK = Nr1g_scM0g.KK
@@ -396,6 +648,29 @@ class TwoDResponseCalculator:
                 # print("Including relaxation")
                 self.resp_fcions.append(Nr1g_scM0g)
                 self.resp_fcions.append(Nr2g_scM0g)
+                if Nr1g_scM0g._uses_single_jump_storage():
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1g_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2g_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
 
             if self.system.mult > 1:
                 Nr1f_scM0g = NonLinearResponse(
@@ -405,6 +680,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f_scM0g = NonLinearResponse(
                     self.lab,
@@ -413,6 +689,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr1f_scM0e = NonLinearResponse(
                     self.lab,
@@ -421,6 +698,7 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
                 Nr2f_scM0e = NonLinearResponse(
                     self.lab,
@@ -429,12 +707,58 @@ class TwoDResponseCalculator:
                     self.t1axis,
                     self.t2axis,
                     self.t3axis,
+                    **response_kwargs,
                 )
 
                 self.resp_fcions.append(Nr1f_scM0g)
                 self.resp_fcions.append(Nr2f_scM0g)
                 self.resp_fcions.append(Nr1f_scM0e)
                 self.resp_fcions.append(Nr2f_scM0e)
+                if Nr1f_scM0g._uses_single_jump_storage():
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1f_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2f_scM1g",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R1f_scM1e",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
+                    self.resp_fcions.append(
+                        NonLinearResponse(
+                            self.lab,
+                            self.system,
+                            "R2f_scM1e",
+                            self.t1axis,
+                            self.t2axis,
+                            self.t3axis,
+                            **response_kwargs,
+                        )
+                    )
 
             self._has_responses = True
 
@@ -445,11 +769,40 @@ class TwoDResponseCalculator:
 
             for resp in self.resp_fcions:
                 if isinstance(resp, NonLinearResponse):
+                    data = resp.calculate_matrix(tt2)
+                    self.response_diagnostics.append(dict(resp.diagnostics))
+                    response_pieces.append((resp, data))
                     if resp.rtype == "R":
-                        resp_Rgsb += resp.calculate_matrix(tt2)
+                        if resp.process == "GSB":
+                            resp_Rgsb += data
+                        elif resp.process == "SE":
+                            if resp.is_transfer:
+                                resp_Rsewt += data
+                            else:
+                                resp_Rse += data
+                        elif resp.process == "ESA":
+                            if resp.is_transfer:
+                                resp_Resawt += data
+                            else:
+                                resp_Resa += data
+                        else:
+                            raise Exception("Unknown response process")
 
                     elif resp.rtype == "NR":
-                        resp_Ngsb += resp.calculate_matrix(tt2)
+                        if resp.process == "GSB":
+                            resp_Ngsb += data
+                        elif resp.process == "SE":
+                            if resp.is_transfer:
+                                resp_Nsewt += data
+                            else:
+                                resp_Nse += data
+                        elif resp.process == "ESA":
+                            if resp.is_transfer:
+                                resp_Nesawt += data
+                            else:
+                                resp_Nesa += data
+                        else:
+                            raise Exception("Unknown response process")
 
                     else:
                         raise QuantarheiError("Unknown response type")
@@ -457,14 +810,18 @@ class TwoDResponseCalculator:
                 elif isinstance(resp, LiouvillePathway):
                     resp_any: Any = resp
                     if resp.rtype == "R":
-                        resp_Rgsb += resp_any.calculate_matrix(
+                        data = resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
+                        response_pieces.append((resp, data))
+                        resp_Rgsb += data
 
                     elif resp.rtype == "NR":
-                        resp_Ngsb += resp_any.calculate_matrix(
+                        data = resp_any.calculate_matrix(
                             self.lab, None, tt2, self.t1s, self.t3s, self.rwa
                         )
+                        response_pieces.append((resp, data))
+                        resp_Ngsb += data
                     else:
                         raise QuantarheiError("Unknown response type")
 
@@ -475,8 +832,8 @@ class TwoDResponseCalculator:
         #
         # FIXME: discontinue Aceto and remove the sum (and the code above)
         #
-        resp_r = resp_Rgsb  # + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
-        resp_n = resp_Ngsb  # + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
+        resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
+        resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 
         #
         # Calculate corresponding 2D spectrum
@@ -488,6 +845,7 @@ class TwoDResponseCalculator:
         t13Pad = TimeAxis(
             self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step
         )
+        response_window = None
         if self.pad > 0:
             self._vprint("padding by - " + str(self.pad))
 
@@ -504,17 +862,20 @@ class TwoDResponseCalculator:
             from scipy.signal import windows as sig
 
             window = 20
-            tuc = sig.tukey(window * 2, 1, sym=False)
-            for k in range(len(resp_r)):
-                resp_r[len(resp_r) - window :, k] *= tuc[window:]
-                resp_r[k, len(resp_r) - window :] *= tuc[window:]
-                resp_n[len(resp_n) - window :, k] *= tuc[window:]
-                resp_n[k, len(resp_n) - window :] *= tuc[window:]
+            response_window = sig.tukey(window * 2, 1, sym=False)
 
-            resp_r = numpy.hstack((resp_r, numpy.zeros((resp_r.shape[0], self.pad))))
-            resp_r = numpy.vstack((resp_r, numpy.zeros((self.pad, resp_r.shape[1]))))
-            resp_n = numpy.hstack((resp_n, numpy.zeros((resp_n.shape[0], self.pad))))
-            resp_n = numpy.vstack((resp_n, numpy.zeros((self.pad, resp_n.shape[1]))))
+            resp_r = _pad_response_data(resp_r, self.pad, response_window)
+            resp_n = _pad_response_data(resp_n, self.pad, response_window)
+            resp_Rgsb = _pad_response_data(resp_Rgsb, self.pad, response_window)
+            resp_Ngsb = _pad_response_data(resp_Ngsb, self.pad, response_window)
+            resp_Rse = _pad_response_data(resp_Rse, self.pad, response_window)
+            resp_Nse = _pad_response_data(resp_Nse, self.pad, response_window)
+            resp_Resa = _pad_response_data(resp_Resa, self.pad, response_window)
+            resp_Nesa = _pad_response_data(resp_Nesa, self.pad, response_window)
+            resp_Rsewt = _pad_response_data(resp_Rsewt, self.pad, response_window)
+            resp_Nsewt = _pad_response_data(resp_Nsewt, self.pad, response_window)
+            resp_Resawt = _pad_response_data(resp_Resawt, self.pad, response_window)
+            resp_Nesawt = _pad_response_data(resp_Nesawt, self.pad, response_window)
 
         else:
             onetwod.set_axis_1(self.oa1)
@@ -565,23 +926,24 @@ class TwoDResponseCalculator:
                 nESAWT=resp_Nesawt,
             )
 
-        # FIXME: This only applies when
-        resp_r[:, 0] = resp_r[:, 0] * 0.5
-        resp_n[:, 0] = resp_n[:, 0] * 0.5
-        resp_r[0, :] = resp_r[0, :] * 0.5
-        resp_n[0, :] = resp_n[0, :] * 0.5
+        for resp, data in response_pieces:
+            data = _pad_response_data(data, self.pad, response_window)
 
-        ftresp = numpy.fft.fft(resp_r, axis=1)  # \omega_1
-        ftresp = numpy.fft.ifft(ftresp, axis=0)  # \omega_3
-        reph2D = numpy.fft.fftshift(ftresp)
+            if isinstance(resp, NonLinearResponse):
+                signal = resp.signal
+                dtype = resp.storage_type
+                resolution = "types"
+            elif isinstance(resp, LiouvillePathway):
+                signal = signal_REPH if resp.rtype == "R" else signal_NONR
+                dtype = signal
+                resolution = "signals"
+            else:
+                raise Exception("Unknown response object")
 
-        ftresp = numpy.fft.ifft(resp_n, axis=1) * ftresp.shape[1]  # \omega_1
-        ftresp = numpy.fft.ifft(ftresp, axis=0)  # \omega_3
-        nonr2D = numpy.fft.fftshift(ftresp)
-
-        onetwod.set_resolution("signals")
-        onetwod._add_data(reph2D, dtype=signal_REPH)
-        onetwod._add_data(nonr2D, dtype=signal_NONR)
+            spect_data = _fourier_transform_response(data, signal)
+            spect_data *= data.shape[0] * self.t1axis.step * self.t3axis.step
+            spect_data *= self._detection_weight(resp)
+            onetwod._add_data(spect_data, resolution=resolution, dtype=dtype)
 
         onetwod.set_t2(self.t2axis.data[tc])
 
@@ -597,6 +959,8 @@ class TwoDResponseCalculator:
         """
         # FIXME: we will later use only one branch below
         from .twodcontainer import TwoDResponseContainer
+
+        self.response_diagnostics = []
 
         # if _have_aceto and self._has_system:
 
