@@ -3148,6 +3148,49 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return val, SS
 
+    def _extract_diagonal_widths(
+        self, Nel: int, Wd_ini: numpy.ndarray, Dr_ini: numpy.ndarray
+    ) -> tuple[numpy.ndarray, numpy.ndarray]:
+        Wd_in = numpy.zeros(Nel, dtype=REAL)
+        Dr_in = numpy.zeros(Nel, dtype=REAL)
+        for ii in range(Nel):
+            for k in self.vibindices[ii]:
+                Wd_in[ii] = Wd_ini[k, k]
+                Dr_in[ii] = Dr_ini[k, k]
+        return Wd_in, Dr_in
+
+    def _compute_coupling_coefficients(
+        self, N_states: int, Nel: int, SS: numpy.ndarray, band_filter: int | None = None
+    ) -> numpy.ndarray:
+        kap = numpy.zeros((N_states, Nel), dtype=REAL)
+        for aa in range(N_states):
+            if band_filter is not None:
+                ela = self.elinds[aa]
+                if self.which_band[ela] != band_filter:
+                    continue
+            st = 0
+            for ii in range(Nel):
+                for ialph in self.vibindices[ii]:
+                    kap[aa, ii] += numpy.abs(SS[st, aa]) ** 2
+                    st += 1
+        return kap
+
+    def _accumulate_band_linewidths(
+        self,
+        N_output: int,
+        Nel: int,
+        kap: numpy.ndarray,
+        Wd_in: numpy.ndarray,
+        Dr_in: numpy.ndarray,
+    ) -> tuple[numpy.ndarray, numpy.ndarray]:
+        Wd = numpy.zeros(N_output, dtype=REAL)
+        Dr = numpy.zeros(N_output, dtype=REAL)
+        for aa in range(N_output):
+            for nn in range(Nel):
+                Wd[aa] += (kap[aa, nn] ** 2) * (Wd_in[nn] ** 2)
+                Dr[aa] += (kap[aa, nn] ** 2) * (Dr_in[nn] ** 2)
+        return numpy.sqrt(Wd), numpy.sqrt(Dr)
+
     def diagonalize(self) -> None:
         """Transforms some internal quantities into diagonal basis"""
         if self._diagonalized:
@@ -3335,45 +3378,16 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             #
             # Transform line shapes for 0->1 transitions
             #
-            Wd_a = numpy.zeros(N1b, dtype=REAL)
-            Dr_a = numpy.zeros(N1b, dtype=REAL)
-
             Nel = self.Nbe[0] + self.Nbe[1]  # GS + singly excited states
-
-            Wd_in = numpy.zeros(Nel, dtype=REAL)
-            Dr_in = numpy.zeros(Nel, dtype=REAL)
 
             Wd_ini = self.Wd.copy()
             Dr_ini = self.Dr.copy()
 
-            for ii in range(Nel):
-                for k in self.vibindices[ii]:
-                    Wd_in[ii] = Wd_ini[k, k]  # self.Wd[k,k]
-                    Dr_in[ii] = Dr_ini[k, k]
+            Wd_in, Dr_in = self._extract_diagonal_widths(Nel, Wd_ini, Dr_ini)
 
-            # Nvib1el = len(self.vibindices[0])
-            kap = numpy.zeros((N1b, Nel), dtype=REAL)
+            kap = self._compute_coupling_coefficients(N1b, Nel, SS, band_filter=1)
 
-            # loop over all states in the 1-ex band
-            for aa in range(N1b):
-                ela = self.elinds[aa]
-                if self.which_band[ela] == 1:
-                    # loop over electronic states in the 1-ex band
-                    st = 0  # counts the total index of the state
-                    for ii in range(Nel):
-                        for ialph in self.vibindices[ii]:
-                            kap[aa, ii] += numpy.abs(SS[st, aa]) ** 2
-                            st += 1
-
-            # loop over all states in the 1-ex band
-
-            for aa in range(N1b):
-                for nn in range(Nel):
-                    Wd_a[aa] += (kap[aa, nn] ** 2) * (Wd_in[nn] ** 2)
-                    Dr_a[aa] += (kap[aa, nn] ** 2) * (Dr_in[nn] ** 2)
-
-            Wd_a = numpy.sqrt(Wd_a)
-            Dr_a = numpy.sqrt(Dr_a)
+            Wd_a, Dr_a = self._accumulate_band_linewidths(N1b, Nel, kap, Wd_in, Dr_in)
 
             self.Wd[0:N1b, 0:N1b] = numpy.diag(Wd_a)
             self.Dr[0:N1b, 0:N1b] = numpy.diag(Dr_a)
@@ -3382,33 +3396,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 Nel = self.Nel
                 N2b = self.Nb[0] + self.Nb[1] + self.Nb[2]
 
-                Wd_b = numpy.zeros(N1b, dtype=REAL)
+                Wd_in, Dr_in = self._extract_diagonal_widths(Nel, Wd_ini, Dr_ini)
 
-                Dr_b = numpy.zeros(N1b, dtype=REAL)
-                Wd_in = numpy.zeros(Nel)
-                Dr_in = numpy.zeros(Nel)
+                kap2 = self._compute_coupling_coefficients(N2b, Nel, SS)
 
-                for ii in range(Nel):
-                    for k in self.vibindices[ii]:
-                        Wd_in[ii] = Wd_ini[k, k]  # self.Wd[k,k]
-                        Dr_in[ii] = Dr_ini[k, k]
-
-                kap2 = numpy.zeros((N2b, Nel), dtype=REAL)
-                # loop over all states in the 1-ex band
-                for aa in range(N2b):
-                    st = 0
-                    for ii in range(Nel):
-                        for ialph in self.vibindices[ii]:
-                            kap2[aa, ii] += numpy.abs(SS[st, aa]) ** 2
-                            st += 1
-
-                for aa in range(N1b):
-                    for nn in range(Nel):
-                        Wd_b[aa] += (kap2[aa, nn] ** 2) * (Wd_in[nn] ** 2)
-                        Dr_b[aa] += (kap2[aa, nn] ** 2) * (Dr_in[nn] ** 2)
-
-                Wd_b = numpy.sqrt(Wd_b)
-                Dr_b = numpy.sqrt(Dr_b)
+                Wd_b, Dr_b = self._accumulate_band_linewidths(
+                    N1b, Nel, kap2, Wd_in, Dr_in
+                )
 
                 #
                 # Single exciton band
