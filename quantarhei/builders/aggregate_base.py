@@ -2853,7 +2853,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def _accumulate_fc_trace(
         self,
-        nop: ReducedDensityMatrix | Hamiltonian | ReducedDensityMatrixEvolution,
+        nop: ReducedDensityMatrix
+        | Hamiltonian
+        | TransitionDipoleMoment
+        | ReducedDensityMatrixEvolution,
         op_slice: numpy.ndarray,
         FcProd: numpy.ndarray,
         whole: bool,
