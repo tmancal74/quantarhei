@@ -30,6 +30,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "numpydoc",
     "myst_nb",
+    "sphinxcontrib.mermaid",
 ]
 
 myst_enable_extensions = [
@@ -37,6 +38,8 @@ myst_enable_extensions = [
     "deflist",
     "substitution",
 ]
+
+myst_fence_as_directive = ["mermaid"]
 
 nb_execution_mode = "off"
 nb_output_stderr = "remove"
@@ -82,6 +85,7 @@ html_theme_options = {
     "show_nav_level": 2,
     "show_toc_level": 2,
 }
+html_js_files = ["mermaid-zoom.js"]
 
 # -- LaTeX output --------------------------------------------------------------
 
