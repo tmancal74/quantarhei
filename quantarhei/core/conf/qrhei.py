@@ -39,10 +39,8 @@ configuratio.
 When the script starts, some configuration parameters cannot be
 changed any more (or more precisely, they can be changed, but take no effect).
 However, many options can be changed during the execution of the script from
-the script iself. For instance, one can change settings for the number of MPI
-processes, but as they are set at the start up, this change takes no effect.
-On the other hand, GPU usage can be switched on and off during the
-computation.
+the script iself. For instance, GPU usage can be switched on and off during
+the computation.
 
 """
 
@@ -58,9 +56,6 @@ def configure(manager: Any) -> None:
     ###########################################################################
     conf = manager.num_conf  # DO NOT EDIT THIS LINE
     ###########################################################################
-
-    # usage of mpi
-    conf.mpi_acceleration = False
 
     # here one can prevent competing multithreating if necessary
     conf.cpu_acceleration = True

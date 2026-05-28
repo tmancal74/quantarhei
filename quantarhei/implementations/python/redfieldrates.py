@@ -39,12 +39,6 @@ def ssRedfieldRateMatrix(
         corrM = numpy.identity(Nk)
 
     # loop over components
-
-    # dc = distributed_configuration() # Manager().get_DistributedConfiguration()
-
-    #
-    #  SERIAL VERSION
-    #
     for i in range(Na):
         for j in range(Na):
             # calculate rates, i.e. off diagonal elements
@@ -52,14 +46,6 @@ def ssRedfieldRateMatrix(
                 RR[i, j] += numpy.dot(
                     cc[:, i, j] * KI[:, i, j], numpy.dot(corrM, KI[:, j, i])
                 )
-
-    # FIXME: parallelization ignores werror
-    # dc.allreduce(RR, operation="sum")
-    # close_parallel_region()
-
-    #
-    #  END PARALLELIZED
-    #
 
     # calculate the diagonal elements (the depopulation rates)
     for i in range(Na):

@@ -654,9 +654,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     return (sp1_p_re, sp1_p_nr, sp2_m_re, sp2_m_nr)
 
 
-#qr.start_parallel_region()
-
-config = qr.distributed_configuration()
+rank = 0
 
 ###############################################################################
 ###############################################################################
@@ -848,7 +846,7 @@ for model in models:
                 try:
                     random_state = qr.load_parcel(INP.random_state["file"])
                     numpy.random.set_state(random_state)
-                except:
+                except Exception:
                     raise Exception("Loading random state failed")
             if INP.random_state["save"]:
                 random_state = numpy.random.get_state()
@@ -858,10 +856,7 @@ for model in models:
                 disM[:,ri] = sigma*numpy.random.randn(3)
 
 
-            #
-            # PARALLEL (if ON) LOOP OVER DISORDER
-            #
-            for ds in qr.block_distributed_range(0,Nreal):
+            for ds in range(0,Nreal):
                 # generating random numbers
                 disE = numpy.zeros(3,dtype=qr.REAL)
 
@@ -946,10 +941,7 @@ for model in models:
         #
         else:
 
-            #
-            # PARALLEL (if ON) LOOP OVER PARAMETER RANGE
-            #
-            for (JJ, dE, trimer) in qr.block_distributed_list(ptns):
+            for (JJ, dE, trimer) in ptns:
 
                 print("\nCalculating spectra ... (",kp,"of",Nje,
                       ") [run ",kk,"of",Np,"]")
@@ -991,7 +983,7 @@ for model in models:
                         # we save and release containers after some time
                         print("Saving intermediate results; cleaning memory")
                         cont = (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr)
-                        save_containers(cont, dname, node=config.rank)
+                        save_containers(cont, dname, node=rank)
                         (cont_p_re, cont_p_nr,
                         cont_m_re, cont_m_nr) = init_containers()
 
@@ -1007,13 +999,12 @@ at = f'{datetime.datetime.now():%Y-%m-%d %H:%M:%S}'
 print("\n... finished simulation set at", at, "in", tB-tA,"sec")
 
 if disorder:
-    if config.rank == 0:
+    if rank == 0:
         cont = (av1_p_re, av1_p_nr, av2_m_re, av2_m_nr)
         save_averages(cont, dname)
 
 else:
     if save_it_at_the_end:
-        rank = config.rank
         fname = os.path.join(dname, "cont_p_re_"+str(rank)+".qrp")
         cont_p_re.save(fname)
         fname = os.path.join(dname, "cont_p_nr_"+str(rank)+".qrp")
@@ -1026,10 +1017,7 @@ else:
     else:
         # saving the rest of containers
         cont = (cont_p_re, cont_p_nr, cont_m_re, cont_m_nr)
-        save_containers(cont, dname, node=config.rank)
+        save_containers(cont, dname, node=rank)
 
         # uniting the containers saved in pieces into one file each
-        unite_containers(node=config.rank)
-
-
-#qr.close_parallel_region()
+        unite_containers(node=rank)

@@ -17,25 +17,9 @@ LOG_QUICK = 9
 
 
 def init_logging() -> None:
-    """Initialize the logging subsystem.
-
-    Detects whether the process is running in a serial or MPI-parallel
-    environment and configures the ``Manager.log_conf`` object accordingly.
-    """
+    """Initialize the logging subsystem."""
     manager = Manager().log_conf
-    try:
-        from mpi4py import MPI
-
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        size = comm.Get_size()
-        if size == 1:
-            manager.is_serial = True
-        else:
-            manager.is_serial = False
-            manager.log_file_appendix = "." + str(rank)
-    except ImportError:
-        manager.is_serial = True
+    manager.is_serial = True
     manager.initialized = True
 
 

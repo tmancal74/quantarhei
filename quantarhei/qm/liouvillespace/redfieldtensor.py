@@ -16,12 +16,6 @@ import scipy
 
 from ... import COMPLEX, REAL
 from ...core.managers import energy_units
-from ...core.parallel import (
-    block_distributed_range,
-    close_parallel_region,
-    distributed_configuration,
-    start_parallel_region,
-)
 from ...exceptions import QuantarheiError
 from ...utils.logging import log_detail, log_quick
 
@@ -401,12 +395,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
             Lm = numpy.zeros((Na, Na, 2 * Nb), dtype=numpy.complex128)
             Nex = 2 * Nb
 
-        #######################################################################
-        # PARALLELIZATION
-        #######################################################################
-
-        start_parallel_region()
-        for ms in block_distributed_range(0, Nb):  # range(Nb):
+        for ms in range(Nb):
             log_quick("Calculating bath component", ms, "of", Nb, end="\r")
             # print(ms, "of", Nb)
             # for ns in range(Nb):
@@ -421,14 +410,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             self._guts_Cmplx_Splines(ms, Lm, Km, Na, Om, length, rc1, tm)
 
-        # perform reduction of Lm
         log_quick()
-        distributed_configuration().allreduce(Lm, operation="sum")
-        close_parallel_region()
-
-        #######################################################################
-        #  END PARALLELIZATION
-        #######################################################################
         eexp = numpy.exp(
             -1.0j * Om[:, :, numpy.newaxis] * tm[numpy.newaxis, numpy.newaxis, :]
         )
@@ -602,16 +584,11 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
         RR = numpy.zeros((Na, Na, Na, Na), dtype=numpy.complex128)
 
-        #######################################################################
-        # PARALLELIZATION
-        #######################################################################
-
         # from ...implementations.cython.loopit import loopit
 
-        start_parallel_region()
         # tt1 = time.time()
 
-        for m in block_distributed_range(0, Nb):  # range(Nb):
+        for m in range(Nb):
             Kd = numpy.transpose(Km[m, :, :])
             #            KdLm = numpy.dot(Kd,Lm[m,:,:])
             #            LdKm = numpy.dot(Ld[m,:,:],Km[m,:,:])
@@ -630,14 +607,7 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
             _loopit(Km, Kd, Lm, Ld, Na, RR, m)
 
-        # perform reduction of the RR
-        distributed_configuration().allreduce(RR, operation="sum")
         # tt2 = time.time()
-
-        close_parallel_region()
-        #######################################################################
-        # END PARALLELIZATION
-        #######################################################################
 
         # print(tt2-tt1)
         return RR

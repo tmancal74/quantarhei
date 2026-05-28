@@ -69,9 +69,6 @@ def main() -> None:
     #
     if args.info:
         qr.printlog("\nqrhei: Quantarhei Package Driver\n", verbose=True, loglevel=1)
-        #                   +"\n"
-        #                   +"MPI parallelization enabled: ", flag_parallel,
-        #                    verbose=True, loglevel=0)
         if not args.version:
             qr.printlog(
                 "Package version: ",

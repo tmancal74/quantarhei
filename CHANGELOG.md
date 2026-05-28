@@ -12,6 +12,8 @@ All notable changes to Quantarhei are documented here.
 ### For developers
 - New recommended workflow for contributing
 - Modernization of the toolset (pytest, uv, ...)
+- Removed package-managed parallel execution support. Parallel execution is left
+  to user code.
 
 ## [0.0.68]
 
@@ -106,9 +108,6 @@ All notable changes to Quantarhei are documented here.
 
 ## [0.0.52]
 
-### For users
-- Improved control over parallelization from command line by `qrhei` options
-- Parallelization over multiple nodes
 - Bug fixes
 
 ## [0.0.51]
@@ -244,7 +243,7 @@ All notable changes to Quantarhei are documented here.
 - `RelaxationTensor` now inherits from `SuperOperator` and it is `BasisManaged` through that inheritance
 - `EvolutionSuperOperator` tested, documented and it is `BasisManaged`
 - `EvolutionSuperOperator`'s method `apply()` can be applied with time argument which is of type `TimeAxis`, float or array of floats; returns `DensityMatrix` or `DensityMatrixEvolution`
-- Quantarhei driver `qrhei` changes format: use `qrhei run scriptname` to run scripts and consult the `-h` option of `qrhei run`; parallel runs untested in this version
+- Quantarhei driver `qrhei` changes format: use `qrhei run scriptname` to run scripts and consult the `-h` option of `qrhei run`
 - Documentation contains a description of the concept of "user", "advanced", and "expert" levels of classes in Quantarhei
 - List of classes completely covered by documentation and doctests included in online documentation
 - Classes `Mode`, `SubMode`, `Molecule`, `TwoDSpectrumContainer` completely documented

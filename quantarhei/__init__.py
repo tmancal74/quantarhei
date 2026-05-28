@@ -267,37 +267,6 @@ from .core.managers import (
     units_state as units_state,
 )
 
-#
-# Parallelization
-#
-from .core.parallel import (
-    asynchronous_range as asynchronous_range,
-)
-from .core.parallel import (
-    block_distributed_array as block_distributed_array,
-)
-from .core.parallel import (
-    block_distributed_list as block_distributed_list,
-)
-from .core.parallel import (
-    block_distributed_range as block_distributed_range,
-)
-from .core.parallel import (
-    close_parallel_region as close_parallel_region,
-)
-from .core.parallel import (
-    collect_block_distributed_data as collect_block_distributed_data,
-)
-from .core.parallel import (
-    distributed_configuration as distributed_configuration,
-)
-from .core.parallel import (
-    parallel_function as parallel_function,
-)
-from .core.parallel import (
-    start_parallel_region as start_parallel_region,
-)
-
 ###############################################################################
 # Convenience functions
 ###############################################################################
@@ -812,17 +781,9 @@ __all__ = [
     "ValueAxis",
     "VibrationalSystem",
     "assert_version",
-    # Parallelization
-    "asynchronous_range",
-    "block_distributed_array",
-    "block_distributed_list",
-    "block_distributed_range",
     # Parcel I/O
     "check_parcel",
-    "close_parallel_region",
-    "collect_block_distributed_data",
     "convert",
-    "distributed_configuration",
     # Timing
     "done_in",
     # Unit managers
@@ -850,7 +811,6 @@ __all__ = [
     "norm",
     "normalize2",
     "oscillator_scalled_CorrelationFunction",
-    "parallel_function",
     "part_ABS",
     "part_COMPLEX",
     "part_IMAGINARY",
@@ -875,7 +835,6 @@ __all__ = [
     # Signal constants
     "signal_REPH",
     "signal_TOTL",
-    "start_parallel_region",
     "stop",
     "timeit",
     "tprint",
