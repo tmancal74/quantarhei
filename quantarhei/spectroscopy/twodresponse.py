@@ -25,6 +25,7 @@ from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.saveable import Saveable
 from ..core.valueaxis import ValueAxis
+from ..exceptions import ImplementationError, QuantarheiError
 from ..utils.types import check_numpy_array
 from .twodspect import TwoDSpectrum
 
@@ -98,14 +99,14 @@ def _resolution2number(res: str) -> int:
     """
     if res in _resolutions:
         return _resolutions.index(res)
-    raise Exception("Unknow resolution level in TwoDSpectrum")
+    raise QuantarheiError("Unknow resolution level in TwoDSpectrum")
 
 
 def _get_type_and_tag(obj: Any, storage: dict) -> dict:
 
     if obj.current_dtype not in _ptypes:
         # check the current_type attribute
-        raise Exception("Wrong pathways type")
+        raise QuantarheiError("Wrong pathways type")
 
     try:
         # get the dictionary of pathways with a give type
@@ -116,8 +117,8 @@ def _get_type_and_tag(obj: Any, storage: dict) -> dict:
         piece = storage[obj.current_dtype]
 
     if obj.current_tag in piece.keys():
-        # if the tag exists raise Exception
-        raise Exception("Tag already exists")
+        # if the tag exists raise QuantarheiError
+        raise QuantarheiError("Tag already exists")
 
     return piece
 
@@ -130,7 +131,7 @@ def _pathways_to_processes(obj: Any, process: str) -> numpy.ndarray | None:
         return None  # numpy.zeros((1,1), dtype=COMPLEX)
 
     if process not in _processes:
-        raise Exception("Unknown process: " + process)
+        raise QuantarheiError("Unknown process: " + process)
 
     else:
         # types corresponding to process
@@ -156,7 +157,7 @@ def _pathways_to_signals(obj: Any, signal: str) -> numpy.ndarray | None:
         data = None  # numpy.zeros((1,1), dtype=COMPLEX)
 
     if signal not in _signals:
-        raise Exception("Unknown signal: " + signal)
+        raise QuantarheiError("Unknown signal: " + signal)
 
     else:
         # types corresponding to signal
@@ -362,7 +363,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                 #
                 return _pathways_to_total(self)
 
-            raise Exception(
+            raise QuantarheiError(
                 "Inappropriate data type: "
                 + self.current_dtype
                 + " for storage resolution "
@@ -397,7 +398,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                 #
                 return _types_to_total(self)
 
-            raise Exception(
+            raise QuantarheiError(
                 "Inappropriate data type: "
                 + self.current_dtype
                 + " for storage resolution "
@@ -422,7 +423,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                 #
                 return _processes_to_total(self)
 
-            raise Exception(
+            raise QuantarheiError(
                 "Inappropriate data type: "
                 + self.current_dtype
                 + " for storage resolution "
@@ -447,7 +448,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                 #
                 return _signals_to_total(self)
 
-            raise Exception(
+            raise QuantarheiError(
                 "Inappropriate data type: "
                 + self.current_dtype
                 + " for storage resolution "
@@ -463,7 +464,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
 
                 return ret
 
-            raise Exception(
+            raise QuantarheiError(
                 "Inappropriate data type: "
                 + self.current_dtype
                 + " for storage resolution "
@@ -471,7 +472,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             )
 
         else:
-            raise Exception("not implemented")
+            raise ImplementationError("not implemented")
 
     def prop_setter(self: Any, value: Any) -> None:
 
@@ -489,7 +490,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             if self.storage_resolution == "pathways":
                 if self.current_dtype not in _ptypes:
                     # check the current_type attribute
-                    raise Exception("Wrong pathways type")
+                    raise QuantarheiError("Wrong pathways type")
 
                 try:
                     # get the dictionary of pathways with a give type
@@ -500,7 +501,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
                     piece = storage[self.current_dtype]
 
                 if self.current_tag in piece.keys():
-                    raise Exception("Tag " + self.current_tag + " already exists")
+                    raise QuantarheiError("Tag " + self.current_tag + " already exists")
 
                 piece[self.current_tag] = value
 
@@ -510,7 +511,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             elif self.storage_resolution == "types":
                 if self.current_dtype not in _ptypes:
                     # check the current_type attribute
-                    raise Exception("Wrong pathways type: " + self.current_dtype)
+                    raise QuantarheiError("Wrong pathways type: " + self.current_dtype)
 
                 storage[self.current_dtype] = value
 
@@ -520,7 +521,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             elif self.storage_resolution == "signals":
                 if self.current_dtype not in _signals:
                     # check the current_type attribute
-                    raise Exception("Wrong signal type: " + self.current_dtype)
+                    raise QuantarheiError("Wrong signal type: " + self.current_dtype)
 
                 storage[self.current_dtype] = value
 
@@ -530,7 +531,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             elif self.storage_resolution == "processes":
                 if self.current_dtype not in _processes:
                     # check the current_type attribute
-                    raise Exception("Wrong process type: " + self.current_dtype)
+                    raise QuantarheiError("Wrong process type: " + self.current_dtype)
 
                 storage[self.current_dtype] = value
 
@@ -540,7 +541,7 @@ def twodspectrum_dictionary(name: str, dtype: Any) -> Any:
             elif self.storage_resolution == "off":
                 if self.current_dtype != _total:
                     # check the current_type attribute
-                    raise Exception("Wrong data type: " + +self.current_dtype)
+                    raise QuantarheiError("Wrong data type: " + +self.current_dtype)
 
                 storage[_total] = value
 
@@ -575,7 +576,7 @@ def twod_data_wrapper(dtype: Any) -> Any:
             except (TypeError, ValueError):
                 raise TypeError("Value must be either a list or numpy.array")
         else:
-            raise Exception("`data` property is for reading only")
+            raise QuantarheiError("`data` property is for reading only")
 
     return property(prop_getter, prop_setter)
 
@@ -668,7 +669,7 @@ class TwoDResponseBase(DataSaveable):
         if dtype in self.dtypes:
             self.dtype = dtype
         else:
-            raise Exception("Unknown data type for TwoDSpectrum object")
+            raise QuantarheiError("Unknown data type for TwoDSpectrum object")
 
     # FIXME: to be replaced
     def set_data(
@@ -697,7 +698,7 @@ class TwoDResponseBase(DataSaveable):
                 self.dtype = dtype
         else:
             if dtype != self.dtype:
-                raise Exception("Incorrect data type in TwoDSpectrum")
+                raise QuantarheiError("Incorrect data type in TwoDSpectrum")
 
         if dtype == signal_TOTL:
             self.data = data
@@ -709,7 +710,7 @@ class TwoDResponseBase(DataSaveable):
             self.nonr2D = data
 
         else:
-            raise Exception("Unknow type of data: " + dtype)
+            raise QuantarheiError("Unknow type of data: " + dtype)
 
     # FIMXE: to be relaced
     def add_data(
@@ -721,7 +722,7 @@ class TwoDResponseBase(DataSaveable):
                 self.dtype = dtype
         else:
             if dtype != self.dtype:
-                raise Exception("Incorrect data type in TwoDSpectrum")
+                raise QuantarheiError("Incorrect data type in TwoDSpectrum")
 
         if dtype == signal_TOTL:
             if self.data is None:
@@ -739,7 +740,7 @@ class TwoDResponseBase(DataSaveable):
             self.nonr2D += data
 
         else:
-            raise Exception("Unknow type of data: " + dtype)
+            raise QuantarheiError("Unknow type of data: " + dtype)
 
     def set_data_flag(self, flag: str | list) -> None:
         """Sets a flag by which date will be retrieved and save to `data`
@@ -752,7 +753,7 @@ class TwoDResponseBase(DataSaveable):
             try:
                 self.current_tag = flag[1]
             except IndexError:
-                raise Exception("flag in form of a list must have two elements")
+                raise QuantarheiError("flag in form of a list must have two elements")
             self.address_length = 2
         else:
             self.current_dtype = flag
@@ -826,7 +827,7 @@ class TwoDResponseBase(DataSaveable):
         >>> spect1.set_resolution("signals")
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert resolution for level 2 to level 1
+        quantarhei.exceptions.QuantarheiError: Cannot convert resolution for level 2 to level 1
 
         >>> spect2.set_resolution("signals")
         >>> spect2.storage_resolution
@@ -837,7 +838,7 @@ class TwoDResponseBase(DataSaveable):
         >>> spect1.set_resolution("types")
         Traceback (most recent call last):
             ...
-        Exception: Cannot convert from lower to higher resolution
+        quantarhei.exceptions.QuantarheiError: Cannot convert from lower to higher resolution
 
         From "signals" and "types" you can convert to no resolution, i.e.
         to total spectrum where storage resolution is 'off'
@@ -855,14 +856,14 @@ class TwoDResponseBase(DataSaveable):
             res_old = _resolution2number(self.storage_resolution)
             res_new = _resolution2number(resolution)
             if res_old < res_new:
-                raise Exception("Cannot convert from lower to higher resolution")
+                raise QuantarheiError("Cannot convert from lower to higher resolution")
             elif res_old > res_new:
                 # recalculate data towards lower resolution
                 self._convert_resolution(res_old, res_new)
 
             # self.storage_resolution = resolution
         else:
-            raise Exception("Unknown resolution: " + resolution)
+            raise QuantarheiError("Unknown resolution: " + resolution)
 
     # FIXME: maybe get_storage_resolution
     def get_resolution(self) -> str:
@@ -881,7 +882,7 @@ class TwoDResponseBase(DataSaveable):
         try:
             path = _conversion_paths[old][new]
         except KeyError:
-            raise Exception(
+            raise QuantarheiError(
                 "Cannot convert resolution for level "
                 + str(old)
                 + " to level "
@@ -970,7 +971,7 @@ class TwoDResponseBase(DataSaveable):
             self._d__data = storage
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "Cannot convert resolution for level "
                 + str(old)
                 + " to level "
@@ -1029,7 +1030,7 @@ class TwoDResponseBase(DataSaveable):
                 pass
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "This TwoDSpectrum does not have enough "
                     "resolution to add data with resolution = " + resolution
                 )
@@ -1048,9 +1049,9 @@ class TwoDResponseBase(DataSaveable):
                     else:
                         self.d__data = odata + data
                 else:
-                    raise Exception("Tag for Liouville pathway not specified")
+                    raise QuantarheiError("Tag for Liouville pathway not specified")
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Storage resolution 'pathways': "
                     "Unknown type of Liouville pathway: " + dtype
                 )
@@ -1058,7 +1059,7 @@ class TwoDResponseBase(DataSaveable):
         elif resolution == "types":
             if dtype in _ptypes:
                 if tag is not None:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Tag specified for storage resolutios"
                         " 'types'. Tag would be ignored and"
                         " information lost"
@@ -1075,7 +1076,7 @@ class TwoDResponseBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Storage resolution 'types': "
                     "Unknown type of Liouville pathway: " + dtype
                 )
@@ -1083,7 +1084,7 @@ class TwoDResponseBase(DataSaveable):
         elif resolution == "processes":
             if dtype in _processes:
                 if tag is not None:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Tag specified for storage resolutios"
                         " 'processes'. Tag would be ignored and"
                         " information lost"
@@ -1100,14 +1101,14 @@ class TwoDResponseBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Storage resolution 'processes': Unknown type of signal: " + dtype
                 )
 
         elif resolution == "signals":
             if dtype in _signals:
                 if tag is not None:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Tag specified for storage resolutios"
                         " 'signals'. Tag would be ignored and"
                         " information lost"
@@ -1124,14 +1125,14 @@ class TwoDResponseBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Storage resolution 'signals': Unknown type of signal: " + dtype
                 )
 
         elif resolution == "off":
             if dtype == _total:
                 if tag is not None:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Tag specified for storage resolutios"
                         " 'off'. Tag would be ignored and"
                         " information lost"
@@ -1148,7 +1149,7 @@ class TwoDResponseBase(DataSaveable):
                     self.d__data = odata + data
 
             else:
-                raise Exception(
+                raise QuantarheiError(
                     "Storage has no resolution. "
                     "Only total spectrum can be saved. "
                     "Used data type: " + dtype
@@ -1246,7 +1247,9 @@ class TwoDResponseBase(DataSaveable):
                 data_dict[key] = data
 
         else:
-            raise Exception("Unknown storage resolution: " + self.storage_resolution)
+            raise QuantarheiError(
+                "Unknown storage resolution: " + self.storage_resolution
+            )
 
         return data_dict
 
@@ -1291,10 +1294,10 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
 
         if legacy:
             if self.dtype is None:
-                raise Exception("Data type not set")
+                raise QuantarheiError("Data type not set")
         else:
             if self.current_dtype is None:
-                raise Exception("No data type specified")
+                raise QuantarheiError("No data type specified")
 
         (ix, dist) = self.xaxis.locate(x)
         (iy, dist) = self.yaxis.locate(y)
@@ -1345,7 +1348,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         if area_shape == "square":
             int_fce = integral_square
         else:
-            raise Exception("Unknown area type: " + area_shape)
+            raise QuantarheiError("Unknown area type: " + area_shape)
 
         data = self.data[nx1:nx2, ny1:ny2]
 
@@ -1355,7 +1358,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             return int_fce(x1, x2, y1, y2, numpy.imag(data), dx, dy)
         if dpart == part_ABS:
             return int_fce(x1, x2, y1, y2, numpy.abs(data), dx, dy)
-        raise Exception("Unknown data part")
+        raise QuantarheiError("Unknown data part")
 
     def get_cut_along_x(self, y0: float) -> DFunction:
         """Returns a DFunction with the cut of the spectrum along the x axis"""
@@ -1410,7 +1413,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
             elif wstep == "y":
                 dx = self.yaxis.step
             else:
-                raise Exception("Step along the cut line is not defined")
+                raise QuantarheiError("Step along the cut line is not defined")
 
         else:
             dx = step
@@ -1600,7 +1603,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
                 spect2D = self.nonr2D
 
         else:
-            raise Exception("Undefined spectrum type " + stype)
+            raise QuantarheiError("Undefined spectrum type " + stype)
 
         #
         # What part of the spectrum to plot
@@ -1612,7 +1615,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         elif spart == part_ABS:
             spect2D = numpy.abs(spect2D)
         else:
-            raise Exception("Undefined part of the spectrum: " + spart)
+            raise QuantarheiError("Undefined part of the spectrum: " + spart)
 
         if window is not None:
             axis = window

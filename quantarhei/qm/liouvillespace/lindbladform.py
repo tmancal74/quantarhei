@@ -7,6 +7,7 @@ from typing import Any
 import numpy
 
 from ... import REAL
+from ...exceptions import ImplementationError, QuantarheiError
 from ..hilbertspace.operators import ProjectionOperator
 from .redfieldtensor import RedfieldRelaxationTensor
 from .systembathinteraction import SystemBathInteraction
@@ -129,7 +130,9 @@ class ElectronicLindbladForm(LindbladForm):
                     for mon in agg.monomers:
                         Nel1 += mon.nel - 1  # Add number of excited states in monomer
                 else:
-                    raise Exception("Cannot yet handlethe case of sbi_mult> 1")
+                    raise ImplementationError(
+                        "Cannot yet handlethe case of sbi_mult> 1"
+                    )
 
                 if Nel1 == sbi.KK.shape[1]:
                     # create new interaction operators of higher
@@ -158,12 +161,12 @@ class ElectronicLindbladForm(LindbladForm):
                     )
 
                 else:
-                    raise Exception(
+                    raise QuantarheiError(
                         "Incompatible dimension of system-bath interaction operators"
                     )
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "SystemBathInteraction has to have `system`"
                 " attribute set to an Aggregate"
             )
@@ -300,7 +303,7 @@ class VibrationalDecayLindbladForm(LindbladForm):
             # print("Number of discarted ops", zrs)
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "SystemBathInteraction has to have `system`"
                 " attribute set to an Aggregate"
             )

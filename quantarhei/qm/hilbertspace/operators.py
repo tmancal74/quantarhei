@@ -9,6 +9,7 @@ from ... import COMPLEX, REAL
 from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
+from ...exceptions import QuantarheiError
 from ...utils.types import BasisManagedComplexArray
 from .statevector import StateVector
 
@@ -58,7 +59,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
 
             # set data
             if (dim is None) and (data is None):
-                raise Exception()  # HilbertSpaceException
+                raise QuantarheiError()  # HilbertSpaceException
 
             if data is not None:
                 if isinstance(data, list):
@@ -68,11 +69,11 @@ class Operator(MatrixData, BasisManaged, Saveable):
                         # shape 1 is OK even for time dependent operators
                         # and time dependent StateVector
                         if data.shape[1] != dim:
-                            raise Exception()  # HilbertSpaceException
+                            raise QuantarheiError()  # HilbertSpaceException
                     self.data = data
                     self.dim = self._data.shape[1]
                 else:
-                    raise Exception()  # HilbertSpaceException
+                    raise QuantarheiError()  # HilbertSpaceException
             else:
                 if real:
                     self.data = numpy.zeros((dim, dim), dtype=REAL)
@@ -92,7 +93,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
         if isinstance(obj, StateVector):
             return StateVector(data=numpy.dot(self.data, obj.data))
 
-        raise Exception("Cannot apply operator to the object")
+        raise QuantarheiError("Cannot apply operator to the object")
 
     def transform(self, SS: numpy.ndarray, inv: numpy.ndarray | None = None) -> None:
         """Transformation of the operator by a given matrix
@@ -173,7 +174,7 @@ class SelfAdjointOperator(Operator):
         if not ((dim is None) and (data is None)):
             Operator.__init__(self, dim=dim, data=data, name=name)
             if not self.check_selfadjoint():
-                raise Exception(
+                raise QuantarheiError(
                     "The data of this operator have"
                     "to be represented by a selfadjoint matrix"
                 )
@@ -206,7 +207,7 @@ class SelfAdjointOperator(Operator):
 class UnityOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
-            raise Exception("Dimension parameters 'dim' has to be specified")
+            raise QuantarheiError("Dimension parameters 'dim' has to be specified")
         series: numpy.ndarray = numpy.array([1 for i in range(dim)], dtype=COMPLEX)
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
@@ -215,7 +216,7 @@ class UnityOperator(SelfAdjointOperator):
 class BasisReferenceOperator(SelfAdjointOperator):
     def __init__(self, dim: int | None = None, name: str = "") -> None:
         if dim is None:
-            raise Exception("Dimension parameters 'dim' has to be specified")
+            raise QuantarheiError("Dimension parameters 'dim' has to be specified")
         series: numpy.ndarray = numpy.array([i for i in range(dim)], dtype=REAL)
         data = numpy.diag(series)
         super().__init__(dim=dim, data=data, name=name)
@@ -249,16 +250,16 @@ class ProjectionOperator(Operator):
             ):
                 self.data[to_state, from_state] = 1.0
             # else:
-            #    raise Exception("Indices out of range")
+            #    raise QuantarheiError("Indices out of range")
         else:
-            raise Exception("Wrong operator dimension")
+            raise QuantarheiError("Wrong operator dimension")
 
     def __mult__(self, other: Any) -> numpy.ndarray:
         """Multiplication of operator by scalar"""
         if isinstance(other, numbers.Number):
             self._data = self._data * other
         else:
-            raise Exception("Only multiplication by scalar is allowed")
+            raise QuantarheiError("Only multiplication by scalar is allowed")
         return self._data
 
     def __rmult__(self, other: Any) -> numpy.ndarray:
@@ -321,6 +322,14 @@ class DensityMatrix(SelfAdjointOperator, Saveable):
         """Normalize the trace of the density matrix"""
         tr = numpy.trace(self.data)
         self.data = self.data / tr
+
+    def __repr__(self) -> str:
+        dtype = (
+            self.data.dtype
+            if hasattr(self, "_data") and self.data is not None
+            else None
+        )
+        return f"DensityMatrix(dim={self.dim}, dtype={dtype})"
 
     def __str__(self) -> str:
         out = "\nquantarhei.DensityMatrix object"

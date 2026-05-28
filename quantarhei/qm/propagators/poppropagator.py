@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy
 
+from ...exceptions import QuantarheiError
 from ..liouvillespace.rates.ratematrix import RateMatrix
 
 
@@ -36,10 +37,14 @@ class PopulationPropagator:
         self.dt = self.timeAxis.step
 
         if rate_matrix is not None:
-            if isinstance(rate_matrix, RateMatrix):
+            if isinstance(rate_matrix, RateMatrix) or (
+                hasattr(rate_matrix, "data")
+                and not isinstance(rate_matrix, numpy.ndarray)
+            ):
                 self.KK = rate_matrix.data
             else:
                 self.KK = rate_matrix
+            self.KK = numpy.asarray(self.KK)
 
     def propagate(self, pini: Any) -> numpy.ndarray:
         """Propagates a given initional population vector"""
@@ -69,7 +74,7 @@ class PopulationPropagator:
             for jj in range(0, self.Nref):
                 for ll in range(1, L + 1):
                     pref = self.dt / ll
-                    rho1 = pref * numpy.dot(self.KK.data, rho1)
+                    rho1 = pref * numpy.dot(self.KK, rho1)
 
                     rho2 = rho2 + rho1
                 rho1 = rho2
@@ -113,6 +118,183 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i] * Kbc[0:i])
         return Kab * integ * timeaxis.step
 
+    def _time_indices(self, timeaxis: Any) -> numpy.ndarray:
+        """Returns indices of ``timeaxis`` points on the internal time axis"""
+        if not timeaxis.is_subset_of(self.timeAxis):
+            raise Exception(
+                "TimeAxis is not a subset of the internal TimeAxis of this propagator."
+            )
+
+        indices = numpy.rint(
+            (timeaxis.data - self.timeAxis.start) / self.timeAxis.step
+        ).astype(numpy.int64)
+        times = self.timeAxis.start + indices * self.timeAxis.step
+        if not numpy.allclose(times, timeaxis.data):
+            raise Exception(
+                "TimeAxis is not a subset of the internal TimeAxis of this propagator."
+            )
+
+        return indices
+
+    def _rate_matrix_time_series(self) -> numpy.ndarray:
+        """Returns rate matrices as an array with shape ``(Nt, N, N)``"""
+        KK = numpy.asarray(self.KK)
+
+        if len(KK.shape) == 2:
+            if KK.shape[0] != KK.shape[1]:
+                raise Exception("Rate matrix has to be square")
+            rates = numpy.zeros(
+                (self.timeAxis.length, KK.shape[0], KK.shape[1]), dtype=numpy.float64
+            )
+            rates[:, :, :] = KK
+            return rates
+
+        if len(KK.shape) == 3:
+            if KK.shape[0] != self.timeAxis.length:
+                raise Exception(
+                    "Time-dependent rate matrix has to have the same length "
+                    "as the internal TimeAxis"
+                )
+            if KK.shape[1] != KK.shape[2]:
+                raise Exception("Rate matrix has to be square")
+            return KK.astype(numpy.float64, copy=False)
+
+        raise Exception("Rate matrix has to be an array of rank 2 or 3")
+
+    def _to_matrix_time_order(self, matrix_time: numpy.ndarray) -> numpy.ndarray:
+        """Converts ``(Nt, N, N)`` arrays to the historical ``(N, N, Nt)`` order"""
+        return numpy.transpose(matrix_time, (1, 2, 0))
+
+    def _integrate_matrix_time_series(
+        self, matrix_time: numpy.ndarray
+    ) -> numpy.ndarray:
+        """Integrates a matrix-valued time series by the trapezoidal rule"""
+        Nt = self.timeAxis.length
+        integral = numpy.zeros_like(matrix_time)
+        cumulative = numpy.zeros(matrix_time.shape[1:], dtype=matrix_time.dtype)
+
+        for ii in range(Nt - 1):
+            dt = self.timeAxis.data[ii + 1] - self.timeAxis.data[ii]
+            cumulative += 0.5 * (matrix_time[ii] + matrix_time[ii + 1]) * dt
+            integral[ii + 1] = cumulative.copy()
+
+        return integral
+
+    def _no_jump_propagator(self, rates: numpy.ndarray) -> numpy.ndarray:
+        """Calculates the diagonal no-jump propagator U0(t)"""
+        Nt = self.timeAxis.length
+        N = rates.shape[1]
+        U0 = numpy.zeros((Nt, N, N), dtype=numpy.float64)
+        U0[0] = numpy.eye(N)
+
+        cumulative = numpy.zeros(N, dtype=numpy.float64)
+        for ii in range(Nt - 1):
+            dt = self.timeAxis.data[ii + 1] - self.timeAxis.data[ii]
+            diag_now = numpy.diag(rates[ii])
+            diag_next = numpy.diag(rates[ii + 1])
+            cumulative += 0.5 * (diag_now + diag_next) * dt
+            for jj in range(N):
+                U0[ii + 1, jj, jj] = numpy.exp(cumulative[jj])
+
+        return U0
+
+    def _interaction_picture_rates(
+        self, rates: numpy.ndarray
+    ) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Returns U0(t) and interaction-picture transfer rates"""
+        Nt = self.timeAxis.length
+        N = rates.shape[1]
+        U0 = self._no_jump_propagator(rates)
+
+        K1 = rates.copy()
+        for ii in range(Nt):
+            numpy.fill_diagonal(K1[ii], 0.0)
+
+        U0_inv = numpy.zeros_like(U0)
+        for ii in range(Nt):
+            for jj in range(N):
+                val = U0[ii, jj, jj]
+                U0_inv[ii, jj, jj] = 1.0 / val if val != 0.0 else 0.0
+
+        KI = numpy.zeros_like(rates)
+        for ii in range(Nt):
+            KI[ii] = numpy.dot(U0_inv[ii], numpy.dot(K1[ii], U0[ii]))
+
+        return U0, KI
+
+    def _propagation_matrix_time_dependent(self, timeaxis: Any) -> numpy.ndarray:
+        """Returns propagation matrix for time-dependent rates by RK4."""
+        indices = self._time_indices(timeaxis)
+        rates = self._rate_matrix_time_series()
+        Nt = self.timeAxis.length
+        N = rates.shape[1]
+
+        U = numpy.zeros((Nt, N, N), dtype=numpy.float64)
+        U[0] = numpy.eye(N)
+
+        for ii in range(Nt - 1):
+            dt = self.timeAxis.data[ii + 1] - self.timeAxis.data[ii]
+            K1 = rates[ii]
+            K4 = rates[ii + 1]
+            K23 = 0.5 * (K1 + K4)
+
+            k1 = numpy.dot(K1, U[ii])
+            k2 = numpy.dot(K23, U[ii] + 0.5 * dt * k1)
+            k3 = numpy.dot(K23, U[ii] + 0.5 * dt * k2)
+            k4 = numpy.dot(K4, U[ii] + dt * k3)
+
+            U[ii + 1] = U[ii] + dt * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
+
+        return self._to_matrix_time_order(U[indices])
+
+    def get_JumpExpansion(self, timeaxis: Any = None, max_order: int = 3) -> tuple:
+        """Returns jump-expansion terms of the population propagator.
+
+        The returned tuple contains matrices ``(U0, U1, ..., Un)`` in the
+        historical Quantarhei order ``(N, N, Nt)``. ``U0`` is the no-jump
+        diagonal evolution, and ``Un`` contains paths with ``n`` population
+        transfers. The sum of all orders approximates the full propagator.
+        """
+        if max_order < 0:
+            raise ValueError("max_order must be non-negative")
+
+        if timeaxis is None:
+            timeaxis = self.timeAxis
+
+        indices = self._time_indices(timeaxis)
+        rates = self._rate_matrix_time_series()
+        U0, KI = self._interaction_picture_rates(rates)
+
+        propagators = [self._to_matrix_time_order(U0[indices])]
+        if max_order == 0:
+            return tuple(propagators)
+
+        Nt = self.timeAxis.length
+        N = rates.shape[1]
+        previous_I = numpy.zeros_like(rates)
+        previous_I[:] = numpy.eye(N)
+
+        for _order in range(1, max_order + 1):
+            integrand = numpy.zeros_like(rates)
+            for ii in range(Nt):
+                integrand[ii] = numpy.dot(KI[ii], previous_I[ii])
+
+            current_I = self._integrate_matrix_time_series(integrand)
+            current = numpy.zeros_like(rates)
+            for ii in range(Nt):
+                current[ii] = numpy.dot(U0[ii], current_I[ii])
+
+            propagators.append(self._to_matrix_time_order(current[indices]))
+            previous_I = current_I
+
+        return tuple(propagators)
+
+    def get_KineticDecomposition(
+        self, timeaxis: Any = None, max_order: int = 3
+    ) -> tuple:
+        """Alias for :meth:`get_JumpExpansion`."""
+        return self.get_JumpExpansion(timeaxis=timeaxis, max_order=max_order)
+
     def get_PropagationMatrix(
         self, timeaxis: Any, corrections: int = -1, exact: bool = False
     ) -> Any:
@@ -138,6 +320,12 @@ class PopulationPropagator:
 
         """
         if timeaxis.is_subset_of(self.timeAxis):
+            if len(self.KK.shape) == 3:
+                U = self._propagation_matrix_time_dependent(timeaxis)
+                if corrections > -1:
+                    return U, self.get_JumpExpansion(timeaxis, max_order=corrections)
+                return U
+
             N = self.KK.shape[0]
             U = numpy.zeros((N, N, timeaxis.length), dtype=numpy.float64)
 
@@ -320,6 +508,6 @@ class PopulationPropagator:
                 return U
 
         else:
-            raise Exception(
+            raise QuantarheiError(
                 "TimeAxis is not a subset of the internal TimeAxis of this propagator."
             )

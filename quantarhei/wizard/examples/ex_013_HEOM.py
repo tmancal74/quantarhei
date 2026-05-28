@@ -71,7 +71,7 @@ print("Size of hierarchy of depth", Hy7.depth, "is", Hy7.hsize)
 # testing generation of hierarchy indices
 # print(Hy.generate_indices(4, level=4))
 #
-# raise Exception()
+# raise QuantarheiError()
 
 
 ###############################################################################

@@ -26,6 +26,7 @@ import numpy
 
 import quantarhei as qr
 
+from ...exceptions import QuantarheiError
 from .superoperator import SuperOperator
 
 
@@ -54,7 +55,7 @@ class TestSuperOperator(SuperOperator):
     def __init__(self, name: str | None = None) -> None:
 
         if name is None:
-            raise Exception("Name of the test super operator must be specified")
+            raise QuantarheiError("Name of the test super operator must be specified")
 
         if name == "dim-2-AOA":
             dim = 2
@@ -69,7 +70,7 @@ class TestSuperOperator(SuperOperator):
             self._AOA(dim)
 
         else:
-            raise Exception("Unknown test name")
+            raise QuantarheiError("Unknown test name")
 
     def _def_A(self, dim: int) -> numpy.ndarray:
         """Defines the matrix A for constuction of a super operator"""

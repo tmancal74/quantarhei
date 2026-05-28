@@ -4,6 +4,8 @@ from typing import Any
 
 import numpy
 
+from ..exceptions import QuantarheiError
+
 try:
     import sympy as sp
     from sympy import Function, I, Mul, Pow, S, Wild, conjugate, sympify
@@ -426,7 +428,7 @@ def evaluate_cumulant(
     elif lang == "Python":
         ss = python_code(expr.__str__(), arrays=arrays)
     else:
-        raise Exception("Unknown language")
+        raise QuantarheiError("Unknown language")
 
     return ss
 
@@ -729,7 +731,7 @@ class GFInitiator:
 
         """
         if zero == 0:
-            raise Exception(
+            raise QuantarheiError(
                 "Parameter zero has to be set to 1 or 3. Current value is " + str(zero)
             )
         N1 = t1.shape[0]
@@ -797,14 +799,14 @@ class Uop:
             for key in times:
                 self.times[key] = 1
         except TypeError:
-            raise Exception("'times' argument has to be a dictionary")
+            raise QuantarheiError("'times' argument has to be a dictionary")
 
         if negative is not None:
             try:
                 for key in negative:
                     self.times[key] = -1
             except TypeError:
-                raise Exception("'negative' argument has to be a dictionary")
+                raise QuantarheiError("'negative' argument has to be a dictionary")
 
     def is_unity(self) -> bool:
         """Returns True of the operator represents unity operator"""
@@ -866,7 +868,7 @@ class Uop:
     def merge(self, u: Uop) -> None:
         """Merge two operators of the same type"""
         if self.state != u.state:
-            raise Exception("Cannot merge " + self.state + " with " + u.state)
+            raise QuantarheiError("Cannot merge " + self.state + " with " + u.state)
 
         new_times = {}
         sgn = self.dagger * u.dagger
@@ -896,7 +898,7 @@ class Uop:
             return True
         if self.dagger == 1:
             return False
-        raise Exception("'dagger' property must be +/- 1")
+        raise QuantarheiError("'dagger' property must be +/- 1")
 
 
 class UopEater:
@@ -1038,7 +1040,7 @@ class UopEater:
                     count -= 1
                     pairs.append(pair)
                 else:
-                    raise Exception("This cannot happen")
+                    raise QuantarheiError("This cannot happen")
 
             return pairs
 

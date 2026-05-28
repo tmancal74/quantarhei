@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy
 
 from .. import REAL
+from ..exceptions import ImplementationError
 from ..qm import LindbladForm, ProjectionOperator, SystemBathInteraction
 from ..qm.hilbertspace.dmoment import TransitionDipoleMoment
 from ..qm.hilbertspace.hamiltonian import Hamiltonian
@@ -130,7 +131,7 @@ class HarmonicMode(SubMode, OpenSystem):
     #     if self._built:
     #         return self.HamOp
     #     else:
-    #         raise Exception("The Mode has to be built first.")
+    #         raise BuildError("The Mode has to be built first.")
 
     # def get_TransitionDipoleMoment(self):
     #     """Returns the aggregate transition dipole moment operator
@@ -139,14 +140,14 @@ class HarmonicMode(SubMode, OpenSystem):
     #     if self._built:
     #         return self.TrDMOp # TransitionDipoleMoment(data=self.DD)
     #     else:
-    #         raise Exception("The Mode has to be built first.")
+    #         raise BuildError("The Mode has to be built first.")
 
     # def get_SystemBathInteraction(self):
 
     #     if self._built:
     #         return self.sbi
     #     else:
-    #         raise Exception("The Mode has to be built first.")
+    #         raise BuildError("The Mode has to be built first.")
 
     def set_mode_environment(self, environ: object, pdeph: float | None = None) -> None:
         """ """
@@ -179,7 +180,7 @@ class HarmonicMode(SubMode, OpenSystem):
             self._has_sbi = True
 
         else:
-            raise Exception("Environment not implemented")
+            raise ImplementationError("Environment not implemented")
 
 
 class AnharmonicMode(HarmonicMode):

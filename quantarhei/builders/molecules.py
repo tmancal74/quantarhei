@@ -82,6 +82,7 @@ from ..core.units import (
     conversion_facs_edipole,
     conversion_facs_length,
 )
+from ..exceptions import ImplementationError, QuantarheiError
 from ..qm import Hamiltonian, SystemBathInteraction, TransitionDipoleMoment
 from ..qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
 from ..qm.oscillators.ho import operator_factory
@@ -235,9 +236,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self.el_rwa_indices: Any = None
         self.has_rwa = False
 
-        self.build()
+        # self.build()
 
-    def build(self) -> None:
+    def build(self, mult: int = 1) -> None:
         """Building routine for the molecule
 
 
@@ -245,7 +246,26 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         before we start using the Molecule
 
         """
+        if self._built:
+            return
+
         self.Nel = self.nel
+        Ntot = self.Nel
+
+        self.mult = mult
+
+        # Hamiltonian matrix
+        HH = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
+        # Transition dipole moment matrix
+        DD = numpy.zeros((Ntot, Ntot, 3), dtype=numpy.float64)
+
+        self.HamOp = self.get_Hamiltonian()
+        self.HH = self.HamOp.data
+        self.Ntot = self.HamOp.dim
+
+        # Number of states in individual bands
+        self.Nb = numpy.zeros(self.mult + 1, dtype=int)
+
         self._built = True
 
     #
@@ -321,9 +341,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         else:
             self.has_rwa = False
 
-        if self.HH is not None:
+        if self.HamOp is not None:
             vib_rwa_indices = self._calculate_rwa_indices(rwa_indices)
-            self.HH.set_rwa(vib_rwa_indices)
+            self.HamOp.set_rwa(vib_rwa_indices)
 
     def _calculate_rwa_indices(self, el_rwa_indices: list) -> list:
         """Extends the rwa_indices by vibrational states if necessary"""
@@ -441,13 +461,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.set_egcf_mapping((0,1), cm, 2)
         Traceback (most recent call last):
             ...
-        Exception: Monomer has a correlation function already
+        quantarhei.exceptions.QuantarheiError: Monomer has a correlation function already
 
         >>> m1.set_egcf_mapping((0,2), cm, 2)
         >>> m1.set_egcf_mapping((0,2), cm, 2)
         Traceback (most recent call last):
             ...
-        Exception: Monomer has a correlation function already
+        quantarhei.exceptions.QuantarheiError: Monomer has a correlation function already
 
         """
         if not (self._has_egcf[self.triangle.locate(transition[0], transition[1])]):
@@ -464,7 +484,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Monomer has a correlation function already")
+            raise QuantarheiError("Monomer has a correlation function already")
 
     def set_transition_environment(self, transition: tuple, egcf: object) -> None:
         """Sets a correlation function for a transition on this monomer
@@ -498,7 +518,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m.set_transition_environment((0,1), cf)
         Traceback (most recent call last):
         ...
-        Exception: Correlation function already speficied for this monomer
+        quantarhei.exceptions.QuantarheiError: Correlation function already speficied for this monomer
 
 
         The environment cannot be set when the molecule is mapped on
@@ -513,12 +533,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.set_transition_environment((0,1), cf1)
         Traceback (most recent call last):
             ...
-        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+        quantarhei.exceptions.QuantarheiError: This monomer is mapped on a CorrelationFunctionMatrix
 
 
         """
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This monomer is mapped on a CorrelationFunctionMatrix")
+            raise QuantarheiError(
+                "This monomer is mapped on a CorrelationFunctionMatrix"
+            )
 
         if not (self._has_egcf[self.triangle.locate(transition[0], transition[1])]):
             self.egcf[self.triangle.locate(transition[0], transition[1])] = egcf
@@ -527,7 +549,9 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             self._has_system_bath_coupling = True
 
         else:
-            raise Exception("Correlation function already speficied for this monomer")
+            raise QuantarheiError(
+                "Correlation function already speficied for this monomer"
+            )
 
     def unset_transition_environment(self, transition: tuple) -> None:
         """Unsets correlation function from a transition on this monomer
@@ -577,12 +601,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> m1.unset_transition_environment((0,1))
         Traceback (most recent call last):
             ...
-        Exception: This monomer is mapped on a CorrelationFunctionMatrix
+        quantarhei.exceptions.QuantarheiError: This monomer is mapped on a CorrelationFunctionMatrix
 
 
         """
         if self._is_mapped_on_egcf_matrix:
-            raise Exception("This monomer is mapped on a CorrelationFunctionMatrix")
+            raise QuantarheiError(
+                "This monomer is mapped on a CorrelationFunctionMatrix"
+            )
 
         if self._has_egcf[self.triangle.locate(transition[0], transition[1])]:
             self.egcf[self.triangle.locate(transition[0], transition[1])] = None
@@ -616,7 +642,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> cc = m.get_transition_environment((0,1))
         Traceback (most recent call last):
             ...
-        Exception: No environment set for the transition
+        quantarhei.exceptions.QuantarheiError: No environment set for the transition
 
 
         Environment is characterized by the bath correlation function
@@ -637,7 +663,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> cc = m.get_transition_environment((0,2))
         Traceback (most recent call last):
             ...
-        Exception: Index out of range
+        quantarhei.exceptions.QuantarheiError: Index out of range
 
 
         """
@@ -651,7 +677,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             if iof >= 0:
                 return self.egcf_matrix.cfunc[iof]
 
-        raise Exception("No environment set for the transition")
+        raise QuantarheiError("No environment set for the transition")
 
     # @deprecated
     def get_egcf(self, transition: tuple) -> object:
@@ -740,21 +766,21 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         try:
             return self.dmoments[N, M, :]
         except (IndexError, TypeError):
-            raise Exception()
+            raise QuantarheiError()
 
     def get_velocity_dipole(self, N: int, M: int) -> numpy.ndarray:
         try:
             if self._has_transition_velocity:
                 return self.dvmoments[N, M, :]
-            raise Exception()
+            raise QuantarheiError()
         except (IndexError, TypeError, AttributeError):
-            raise Exception()
+            raise QuantarheiError()
 
     def get_magnetic_dipole(self, N: int, M: int) -> numpy.ndarray:
         try:
             return self.mmoments[N, M, :]
         except (IndexError, TypeError):
-            raise Exception()
+            raise QuantarheiError()
 
     def set_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         if vec is None:
@@ -766,12 +792,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             m = M
             vc = vec
         if n == m:
-            raise Exception("M must not be equal to N")
+            raise QuantarheiError("M must not be equal to N")
         try:
             self.dmoments[n, m, :] = vc
             self.dmoments[m, n, :] = numpy.conj(vc)
         except (IndexError, ValueError):
-            raise Exception()
+            raise QuantarheiError()
 
     def set_velocity_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
 
@@ -786,13 +812,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         # FIXME: use complex dipole velocity moment (pure imaginary quantity)
         if n == m:
-            raise Exception("M must not be equal to N")
+            raise QuantarheiError("M must not be equal to N")
         try:
             self.dvmoments[n, m, :] = vc
             self.dvmoments[m, n, :] = numpy.conj(vc)
             self._has_transition_velocity = True
         except (IndexError, ValueError):
-            raise Exception()
+            raise QuantarheiError()
 
     def set_velocity_dipole_from_dipole(self) -> None:
         # FIXME: use complex dipole velocity moment (pure imaginary qunatity)
@@ -805,7 +831,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         self._has_transition_velocity = True
 
     # except:
-    # raise Exception()
+    # raise QuantarheiError()
 
     def set_magnetic_dipole(self, N: Any, M: Any = None, vec: Any = None) -> None:
         # vec is probably in atomic units and our units are [Angstrom*1/fs*Debye]
@@ -829,12 +855,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         # magnetic dipole moment stored in internal units
         if n == m:
-            raise Exception("M must not be equal to N")
+            raise QuantarheiError("M must not be equal to N")
         try:
             self.mmoments[n, m, :] = vec_int
             self.mmoments[m, n, :] = numpy.conj(vec_int)
         except (IndexError, ValueError):
-            raise Exception()
+            raise QuantarheiError()
 
     def set_magnetic_dipoleR(self, N: Any, M: Any, vec: Any, RR: Any = None) -> None:
 
@@ -911,12 +937,12 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #         vc = vec
 
     #     if n == m:
-    #         raise Exception("M must not be equal to N")
+    #         raise QuantarheiError("M must not be equal to N")
     #     try:
     #         self.dmoments[n, m, :] = vc
     #         self.dmoments[m, n, :] = numpy.conj(vc)
     #     except:
-    #         raise Exception()
+    #         raise QuantarheiError()
 
     # def get_dipole(self, N, M=None):
     #     """Returns the dipole vector for a given electronic transition
@@ -955,7 +981,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
     #     try:
     #         return self.dmoments[n, m, :]
     #     except:
-    #         raise Exception()
+    #         raise QuantarheiError()
 
     def set_transition_width(self, transition: tuple, width: float) -> None:
         """Sets the width of a given transition
@@ -1059,7 +1085,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         try:
             return self.convert_energy_2_current_u(self.elenergies[N])
         except (IndexError, TypeError):
-            raise Exception()
+            raise QuantarheiError()
 
     def set_energy(self, N: int, en: float) -> None:
         """Sets the energy of the Nth state of the molecule
@@ -1136,7 +1162,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 return 0.0
             return egcf.get_temperature()
 
-        raise Exception("Molecular environment has an inconsisten temperature")
+        raise QuantarheiError("Molecular environment has an inconsisten temperature")
 
     def check_temperature_consistent(self) -> bool:
         """Checks that the temperature is the same for all components
@@ -1166,7 +1192,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         >>> print(m.get_temperature())
         Traceback (most recent call last):
         ...
-        Exception: Molecular environment has an inconsisten temperature
+        quantarhei.exceptions.QuantarheiError: Molecular environment has an inconsisten temperature
 
 
         """
@@ -1196,7 +1222,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         factor[0] = val
 
         if faclength != Nm:
-            raise Exception(
+            raise QuantarheiError(
                 "Expected " + str(Nm) + " mode, found " + str(faclength) + "."
             )
 
@@ -1265,7 +1291,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             other_modes = [0.0] * self.nmod
 
         if len(other_modes) != self.nmod:
-            raise Exception(
+            raise QuantarheiError(
                 "Argument 'other_modes' has to have the lenth"
                 " equal to the number of modes"
             )
@@ -1301,7 +1327,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             other_modes = [0.0] * self.nmod
 
         if len(other_modes) != self.nmod:
-            raise Exception(
+            raise QuantarheiError(
                 "Argument 'other_modes' has to have the lenth"
                 " equal to the number of modes"
             )
@@ -1427,7 +1453,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         import matplotlib.pyplot as plt
 
         if dfce is None:
-            raise Exception("Dressing function must be defined")
+            raise QuantarheiError("Dressing function must be defined")
 
         HH = self.get_Hamiltonian()
         dip = self.get_TransitionDipoleMoment()
@@ -1480,7 +1506,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
     def get_diabatic_shifts(self, order: int = 1) -> None:
 
-        raise Exception("Shifts not implemented")
+        raise ImplementationError("Shifts not implemented")
 
     def set_adiabatic_coupling(self, state1: int, state2: int, coupl: float) -> None:
         """Sets adiabatic coupling between two states"""
@@ -1569,8 +1595,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         True
 
         """
-        if (self.HH is not None) and (not recalculate):
-            return self.HH
+        if (self.HamOp is not None) and (not recalculate):
+            return self.HamOp
 
         if multi:
             # create vibrational signatures for each electronic state
@@ -1751,7 +1777,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             #
             self.coor_operators = coor_ops
 
-            if (self.HH is None) or recalculate:
+            if (self.HamOp is None) or recalculate:
                 with energy_units("int"):
                     HH = Hamiltonian(data=ham)
 
@@ -1769,11 +1795,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
                         HH.set_rwa(vib_rwa_indices)
 
-                self.HH = HH
+                self.HamOp = HH
+                self.HH = HH.data
+                self.Ntot = HH.dim
 
                 # set information about Rotating Wave Approximation
 
-            return self.HH
+            return self.HamOp
 
         raise NotImplementedError("get_Hamiltonian with multi=False is not implemented")
 
@@ -1796,7 +1824,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
                     # FIXME: enable more than one mode
                     if j > 0: # limits the number of modes to 1
-                        raise Exception("Not yet implemented")
+                        raise ImplementationError("Not yet implemented")
 
                     # number of vibrational states in this electronic state
                     Nvib = self.modes[j].get_nmax(i)
@@ -1941,7 +1969,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             for j in range(self.nmod):
                 # FIXME: enable more than one mode
                 # if j > 0: # limits the number of modes to 1
-                #    raise Exception("Not yet implemented")
+                #    raise ImplementationError("Not yet implemented")
 
                 # number of vibrational states in this electronic state
                 Nvib = Nvib * self.modes[j].get_nmax(i)
@@ -2156,6 +2184,13 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         return sbi
 
+    def get_RelaxationTensor(self, *args: Any, **kwargs: Any) -> Any:
+        """Returns relaxation tensor, building the molecule if necessary."""
+        if not self._built:
+            self.build()
+
+        return super().get_RelaxationTensor(*args, **kwargs)
+
     def set_mode_environment(
         self, mode: int = 0, elstate: int | str = 0, corfunc: object = None
     ) -> None:
@@ -2179,7 +2214,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
         """
         if corfunc is None:
-            raise Exception("Correlation function not specified.")
+            raise QuantarheiError("Correlation function not specified.")
 
         if not self._mode_env_initialized:
             self._has_mode_env = numpy.zeros((self.nmod, self.nel), dtype=bool)
@@ -2199,7 +2234,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
                 self._mode_env.set_element(mode, kk, corfunc)
                 self._has_mode_env[mode, kk] = True
         else:
-            raise Exception("Unknown elstate.")
+            raise QuantarheiError("Unknown elstate.")
 
     def get_mode_environment(self, mode: int, elstate: int) -> object:
         """Returns mode environment
@@ -2240,6 +2275,8 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             HH = self.HH.copy()
         else:
             HH = HH_in.copy()
+            if not isinstance(HH, numpy.ndarray):
+                HH = HH.data.copy()
 
         if self._diagonalized:
             raise OSError(
@@ -2261,15 +2298,18 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             for kk in range(self.Ntot):
                 HH[kk, kk] -= reorg_site[kk]
 
-            ee, ss = numpy.linalg.eigh(HH.data)
+            ee, ss = numpy.linalg.eigh(HH)
 
             reorg_excit = self._excitonic_reorg_diag(ss, subtract_bath=adiabatic_noBath)
 
             ee += reorg_excit
         else:
-            ee, ss = numpy.linalg.eigh(HH.data)
+            ee, ss = numpy.linalg.eigh(HH)
 
         return ee, ss
+
+    def __repr__(self) -> str:
+        return f"Molecule(name={self.name!r}, nel={self.nel})"
 
     def __str__(self) -> str:
         """String representation of the Molecule object"""
@@ -2377,14 +2417,14 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
             sec = True
 
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         lst: list[Any] = []
 
         if sec:
             generate_1orderP_sec(self, lst, pop_tol, dip_tol, verbose)
         else:
-            raise Exception("Not implemented yet")
+            raise ImplementationError("Not implemented yet")
 
         if lab is not None:
             for l in lst:

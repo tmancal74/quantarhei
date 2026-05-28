@@ -6,6 +6,7 @@ from typing import Any
 
 import numpy
 
+from ..exceptions import QuantarheiError
 from .molecules import Molecule
 
 _resSeq_min = 22
@@ -158,7 +159,7 @@ class PDBFile:
             cid = line_chainId(l)
             if save is not None:
                 if save != cid:
-                    raise Exception("No unique chainId")
+                    raise QuantarheiError("No unique chainId")
             else:
                 save = cid
         return save

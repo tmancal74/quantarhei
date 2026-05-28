@@ -7,6 +7,8 @@ from typing import Any
 
 import numpy
 
+from ..exceptions import QuantarheiError
+
 
 class MatrixData:
     """MatrixData type
@@ -132,7 +134,7 @@ class MatrixData:
         filename, extension = os.path.splitext(name)
 
         if extension not in [".dat", ".txt", ".npy", ".npz"]:
-            raise Exception("Unknown data format")
+            raise QuantarheiError("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._exportDataToText(name)
@@ -155,7 +157,7 @@ class MatrixData:
         filename, extension = os.path.splitext(name)
 
         if extension not in [".dat", ".txt", ".npy", ".npz"]:
-            raise Exception("Unknown data format")
+            raise QuantarheiError("Unknown data format")
 
         if (extension == ".dat") or (extension == ".txt"):
             self._importDataFromText(name)

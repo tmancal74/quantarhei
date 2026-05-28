@@ -197,6 +197,7 @@ from scipy.linalg import expm
 from ... import COMPLEX
 from ...core.saveable import Saveable
 from ...core.time import TimeAxis, TimeDependent
+from ...exceptions import QuantarheiError
 from ..hilbertspace.operators import ReducedDensityMatrix
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
@@ -398,7 +399,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
         """
         if self.mode != "all":
-            raise Exception(
+            raise QuantarheiError(
                 "This method (calculate()) can be used only with mode='all'"
             )
         Nt = self.time.length
@@ -573,7 +574,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
     def calculate_next(self, save: bool = False) -> None:
         """Calculates one point of data of the superopetor"""
         if self.mode != "jit":
-            raise Exception(
+            raise QuantarheiError(
                 "This method (calculate_next()) can be used only with mode='jit'"
             )
 
@@ -718,7 +719,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             if isinstance(time, str):
                 if time != "all":
-                    raise Exception(
+                    raise QuantarheiError(
                         "When argument time is a string, it must be equal to 'all'"
                     )
 
@@ -755,7 +756,7 @@ class MockEvolutionSuperOperator(SuperOperator, TimeDependent, Saveable):
 
             return rhot
 
-        raise Exception("Invalid argument: time")
+        raise QuantarheiError("Invalid argument: time")
 
     def plot_element(self, elem: Any, show: bool = True) -> None:
         """Plots a selected element of the evolution superoperator

@@ -99,6 +99,7 @@ from __future__ import annotations
 import numpy
 
 from .. import REAL
+from ..exceptions import QuantarheiError
 from ..utils import Float, Integer
 from .saveable import Saveable
 
@@ -177,7 +178,7 @@ class ValueAxis(Saveable):
         if (nsni >= 0) and (nsni < self.length):
             dval = val - self.data[nsni]
             return nsni, dval
-        raise Exception("Value out of bounds")
+        raise QuantarheiError("Value out of bounds")
 
     def nearest(self, val: float) -> int:
         """Return the index of the nearest axis point to ``val``.
@@ -225,7 +226,7 @@ class ValueAxis(Saveable):
             # return the lower one
             return nsni
 
-        raise Exception("Value out of bounds")
+        raise QuantarheiError("Value out of bounds")
 
     def is_equal_to(self, axis: ValueAxis) -> bool:
         """Returns True if the axis is equal to this ValueAxis"""
