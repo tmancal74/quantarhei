@@ -368,7 +368,6 @@ def _integrate_kernel_to_t(
 
     """
     import numpy
-    import scipy.interpolate as interp
 
     ti_min = margin
     ti_eff = max(ti_min, ti) + 1
@@ -376,14 +375,6 @@ def _integrate_kernel_to_t(
     tt_ti = tt[0:ti_eff]
 
     return numpy.sum(fce_ti) * (tt_ti[1] - tt_ti[0])
-
-    preal = numpy.real(fce_ti)
-    pimag = numpy.imag(fce_ti)
-    splr = interp.UnivariateSpline(tt_ti, preal, s=0).antiderivative()(tt_ti)
-    spli = interp.UnivariateSpline(tt_ti, pimag, s=0).antiderivative()(tt_ti)
-    inte = splr + 1j * spli
-
-    return inte
 
 
 def _integrate_three_to_t(
