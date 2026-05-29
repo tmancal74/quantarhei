@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import tempfile
+import types
 
 # non-standard imports
 from importlib.resources import files
@@ -139,7 +140,12 @@ class testdir:
         self.context.cwd = os.getcwd()
         os.chdir(self.context.tempdir.name)
 
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None:
         os.chdir(self.context.cwd)
         if exc_type is not None:
             cleanup_temp_dir(self.context)
