@@ -497,7 +497,7 @@ class LabSetup:
 
         self.detection_polarization = detection_polarization
 
-    def get_pulse_polarizations(self) -> list[Any]:  # type: ignore[explicit-any]
+    def get_pulse_polarizations(self) -> list[numpy.ndarray]:  # type: ignore[explicit-any]
         """Returns polarizations of the laser pulses
 
 
@@ -519,7 +519,7 @@ class LabSetup:
 
         return pols
 
-    def get_detection_polarization(self) -> Any:  # type: ignore[explicit-any]
+    def get_detection_polarization(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns detection polarizations
 
 
@@ -889,7 +889,7 @@ class LabSetup:
                 + " required"
             )
 
-    def get_pulse_frequency(self, k: int) -> Any:  # type: ignore[explicit-any]
+    def get_pulse_frequency(self, k: int) -> float:
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -943,7 +943,7 @@ class LabSetup:
                 + " required"
             )
 
-    def get_pulse_arrival_times(self) -> Any:  # type: ignore[explicit-any]
+    def get_pulse_arrival_times(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
 
@@ -957,7 +957,7 @@ class LabSetup:
         """
         return self.pulse_centers
 
-    def get_pulse_arrival_time(self, k: int) -> Any:  # type: ignore[explicit-any]
+    def get_pulse_arrival_time(self, k: int) -> float:
         """Returns frequency of the pulse with index k
 
         Parameters
@@ -1007,7 +1007,7 @@ class LabSetup:
                 "Wrong number of phases: " + str(self.number_of_pulses) + " required"
             )
 
-    def get_pulse_phases(self) -> Any:  # type: ignore[explicit-any]
+    def get_pulse_phases(self) -> numpy.ndarray:  # type: ignore[explicit-any]
         """Returns frequency of the pulse with index k
 
 
@@ -1021,7 +1021,7 @@ class LabSetup:
         """
         return self.phases
 
-    def get_pulse_phase(self, k: int) -> Any:  # type: ignore[explicit-any]
+    def get_pulse_phase(self, k: int) -> float:
         """Returns frequency of the pulse with index k
 
         Parameters

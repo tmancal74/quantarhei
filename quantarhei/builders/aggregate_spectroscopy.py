@@ -267,7 +267,7 @@ class AggregateSpectroscopy(AggregateBase):
 
 
 def generate_R1g(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -332,7 +332,7 @@ def generate_R1g(  # type: ignore[explicit-any]
 
 
 def _generate_R1g(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     i1g: int,
     i2e: int,
     i3e: int,
@@ -391,7 +391,7 @@ def _generate_R1g(  # type: ignore[explicit-any]
 
 
 def generate_R1gE(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -528,7 +528,7 @@ def generate_R1gE(  # type: ignore[explicit-any]
 
 
 def generate_R2g(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -660,7 +660,7 @@ def generate_R2g(  # type: ignore[explicit-any]
 
 
 def generate_R2gE(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -801,7 +801,7 @@ def generate_R2gE(  # type: ignore[explicit-any]
 
 
 def generate_R3g(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -911,7 +911,7 @@ def generate_R3g(  # type: ignore[explicit-any]
 
 
 def generate_R4g(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1021,7 +1021,7 @@ def generate_R4g(  # type: ignore[explicit-any]
 
 
 def generate_R1f(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1162,7 +1162,7 @@ def generate_R1f(  # type: ignore[explicit-any]
 
 
 def generate_R2f(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1303,7 +1303,7 @@ def generate_R2f(  # type: ignore[explicit-any]
 
 
 def generate_R1fE(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1438,7 +1438,7 @@ def generate_R1fE(  # type: ignore[explicit-any]
 
 
 def generate_R2fE(  # type: ignore[explicit-any]
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1572,7 +1572,11 @@ def generate_R2fE(  # type: ignore[explicit-any]
 
 
 def generate_1orderP_sec(  # type: ignore[explicit-any]
-    self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int = 0
+    self: AggregateSpectroscopy,
+    lst: list,
+    pop_tol: float,
+    dip_tol: float,
+    verbose: int = 0,
 ) -> None:
 
     ngs = self.get_electronic_groundstate()

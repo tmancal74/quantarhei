@@ -2434,7 +2434,7 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
 
 
 def generate_1orderP_sec(  # type: ignore[explicit-any]
-    self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int
+    self: Molecule, lst: list, pop_tol: float, dip_tol: float, verbose: int
 ) -> None:
     from ..spectroscopy import diagramatics as diag
 

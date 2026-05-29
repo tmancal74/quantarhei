@@ -42,7 +42,7 @@ class Operator(MatrixData, BasisManaged, Saveable):
     def __init__(  # type: ignore[explicit-any]
         self,
         dim: int | None = None,
-        data: Any = None,
+        data: numpy.ndarray | None = None,
         real: bool = False,
         name: str = "",
     ) -> None:

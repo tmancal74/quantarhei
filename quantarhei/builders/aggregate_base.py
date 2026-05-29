@@ -2854,7 +2854,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         raise Exception("Incompatible operator dimension")
 
-    def _accumulate_fc_trace(
+    def _accumulate_fc_trace(  # type: ignore[explicit-any]
         self,
         nop: ReducedDensityMatrix
         | Hamiltonian
