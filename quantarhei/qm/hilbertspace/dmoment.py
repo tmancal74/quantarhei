@@ -13,9 +13,9 @@ from .operators import SelfAdjointOperator
 
 
 class TransitionDipoleMoment(SelfAdjointOperator, BasisManaged):
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, dim: int | None = None, data: numpy.ndarray | None = None
-    ) -> None:  # type: ignore[explicit-any]
+    ) -> None:
 
         if not ((dim is None) and (data is None)):
             # Set the currently used basis

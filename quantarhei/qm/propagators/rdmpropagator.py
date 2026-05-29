@@ -82,9 +82,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
     def __init__(  # type: ignore[explicit-any]
         self,
         timeaxis: Any = None,
-        Ham: Any = None,
-        RTensor: Any = None,
-        Iterm: Any = None,
+        Ham: Hamiltonian | None = None,
+        RTensor: RelaxationTensor | None = None,
+        Iterm: numpy.ndarray | None = None,
         Efield: Any = None,
         Trdip: Any = None,
         PDeph: Any = None,
@@ -541,7 +541,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         return pr
 
-    def _INIT_EXP(self, rhoi: Any) -> tuple:  # type: ignore[explicit-any]
+    def _INIT_EXP(self, rhoi: ReducedDensityMatrix) -> tuple:  # type: ignore[explicit-any]
         """Parameters
         ----------
         rhoi : TYPE
@@ -587,7 +587,7 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         return HH
 
-    def _CLOSE_RWA(self, pr: Any) -> None:  # type: ignore[explicit-any]
+    def _CLOSE_RWA(self, pr: ReducedDensityMatrixEvolution) -> None:
         """Closes the RWA treatment
 
         Parameters
@@ -1192,7 +1192,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         return pr
 
-    def __propagate_short_exp_TDrelax_field_oper(self, rhoi: Any, L: int = 4) -> Any:  # type: ignore[explicit-any]
+    def __propagate_short_exp_TDrelax_field_oper(
+        self, rhoi: ReducedDensityMatrix, L: int = 4
+    ) -> ReducedDensityMatrixEvolution:  # type: ignore[explicit-any]
         """ """
         debug("(7)")
         return None
@@ -1312,7 +1314,9 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
 
         return pr
 
-    def __propagate_short_exp_TDrelax_EField_oper(self, rhoi: Any, L: int = 4) -> Any:  # type: ignore[explicit-any]
+    def __propagate_short_exp_TDrelax_EField_oper(
+        self, rhoi: ReducedDensityMatrix, L: int = 4
+    ) -> ReducedDensityMatrixEvolution:  # type: ignore[explicit-any]
         """ """
         debug("(9)")
         return None

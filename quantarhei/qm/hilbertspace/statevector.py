@@ -45,9 +45,9 @@ class StateVector(BasisManaged):
     data = BasisManagedComplexArray("data")
     _data: numpy.ndarray  # type: ignore[explicit-any]
 
-    def __init__(
+    def __init__(  # type: ignore[explicit-any]
         self, dim: int | None = None, data: numpy.ndarray | None = None
-    ) -> None:  # type: ignore[explicit-any]
+    ) -> None:
 
         self._initialized = False
 

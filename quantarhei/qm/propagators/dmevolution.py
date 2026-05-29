@@ -8,10 +8,10 @@ import numpy
 from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
+from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
-
-# from ...core.time import TimeAxis
 from ...utils.types import BasisManagedComplexArray
+from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import DensityMatrix, ReducedDensityMatrix
 
 
@@ -43,7 +43,9 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
 
         self.is_in_rwa = is_in_rwa
 
-    def set_initial_condition(self, rhoi: Any) -> None:  # type: ignore[explicit-any]
+    def set_initial_condition(
+        self, rhoi: ReducedDensityMatrix | DensityMatrix | numpy.ndarray
+    ) -> None:  # type: ignore[explicit-any]
         """ """
         self.dim = rhoi.data.shape[1]
         self._data = numpy.zeros(
@@ -99,11 +101,11 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         tr = numpy.trace(self.data[0, :, :])
         self.data = self.data / tr
 
-    def get_TimeAxis(self) -> Any:  # type: ignore[explicit-any]
+    def get_TimeAxis(self) -> TimeAxis:
         """Returns the TimeAxis of the present evolution"""
         return self.TimeAxis
 
-    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:  # type: ignore[explicit-any]
+    def convert_from_RWA(self, ham: Hamiltonian, sgn: int = 1) -> None:
         """Converts density matrix evolution from RWA to standard repre
 
 
@@ -130,7 +132,7 @@ class DensityMatrixEvolution(MatrixData, BasisManaged, Saveable):
         if sgn == 1:
             self.is_in_rwa = False
 
-    def convert_to_RWA(self, ham: Any) -> None:  # type: ignore[explicit-any]
+    def convert_to_RWA(self, ham: Hamiltonian) -> None:
         """Converts density matrix evolution from standard repre to RWA
 
 
