@@ -7,19 +7,25 @@ from typing import Any
 
 import numpy as np
 from matplotlib import pyplot as plt
-from qutip import (
-    Qobj,
-    basis,
-    expect,
-    liouvillian,
-)
-from qutip.core.dimensions import (
-    to_tensor_rep,
-)
-from qutip.solver.heom import (
-    DrudeLorentzBath,
-    HEOMSolver,
-)
+
+try:
+    from qutip import (
+        Qobj,
+        basis,
+        expect,
+        liouvillian,
+    )
+    from qutip.core.dimensions import (
+        to_tensor_rep,
+    )
+    from qutip.solver.heom import (
+        DrudeLorentzPadeBath,
+        HEOMSolver,
+    )
+
+    _QUTIP_AVAILABLE = True
+except ImportError:
+    _QUTIP_AVAILABLE = False
 
 import quantarhei as qr
 
@@ -54,6 +60,11 @@ fmo_ham = numpy.array([
 
 
 def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
+    if not _QUTIP_AVAILABLE:
+        raise ImportError(
+            "QuTiP is required for the HEOM bridge but is not installed. "
+            "Install it with: pip install quantarhei[qutip]"
+        )
 
     qutip_data: dict[str, Any] = dict(depth=depth)
 
@@ -100,7 +111,7 @@ def prepare_simulation(Ham: Any, sbi: Any, depth: int) -> dict[str, Any]:
         lam = lam_qr  # cm^-1
 
         baths.append(
-            DrudeLorentzBath(Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk, tag=str(m))
+            DrudeLorentzPadeBath(Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk, tag=str(m))
         )
         _, terminator = baths[-1].terminator()
         Ltot += terminator
@@ -209,7 +220,7 @@ def run_simulation(
         lam = lam_qr # cm^-1
 
         baths.append(
-            DrudeLorentzBath(
+            DrudeLorentzPadeBath(
                 Qalt, lam=lam, gamma=gamma, T=T, Nk=Nk,
                 tag=str(m)
             )
