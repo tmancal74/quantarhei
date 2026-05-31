@@ -4,6 +4,7 @@ from typing import Any
 
 import numpy
 
+from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
 from ..liouvillespace.rates.ratematrix import RateMatrix
 
@@ -29,7 +30,7 @@ class PopulationPropagator:
 
     """
 
-    def __init__(self, timeaxis: Any, rate_matrix: Any = None) -> None:
+    def __init__(self, timeaxis: TimeAxis, rate_matrix: Any = None) -> None:
 
         self.timeAxis = timeaxis
         self.Nref = 1
@@ -95,7 +96,7 @@ class PopulationPropagator:
         return KKD, KKT
 
     def _integrateK0(
-        self, timeaxis: Any, Kab: float, Ka: float, Kb: float
+        self, timeaxis: TimeAxis, Kab: float, Ka: float, Kb: float
     ) -> numpy.ndarray:
         """Returns an integral of transfer matrix element"""
         expK = numpy.exp((Ka - Kb) * timeaxis.data)
@@ -105,7 +106,7 @@ class PopulationPropagator:
         return Kab * integ * timeaxis.step
 
     def _integrateKn(
-        self, timeaxis: Any, Kab: float, Ka: float, Kb: float, Kbc: numpy.ndarray
+        self, timeaxis: TimeAxis, Kab: float, Ka: float, Kb: float, Kbc: numpy.ndarray
     ) -> numpy.ndarray:
         """Returns an integral of transfer matrix element multiplied by
         a result of previous order of expansion
@@ -118,7 +119,7 @@ class PopulationPropagator:
             integ[i] = numpy.sum(expK[0:i] * Kbc[0:i])
         return Kab * integ * timeaxis.step
 
-    def _time_indices(self, timeaxis: Any) -> numpy.ndarray:
+    def _time_indices(self, timeaxis: TimeAxis) -> numpy.ndarray:
         """Returns indices of ``timeaxis`` points on the internal time axis"""
         if not timeaxis.is_subset_of(self.timeAxis):
             raise Exception(
@@ -222,7 +223,7 @@ class PopulationPropagator:
 
         return U0, KI
 
-    def _propagation_matrix_time_dependent(self, timeaxis: Any) -> numpy.ndarray:
+    def _propagation_matrix_time_dependent(self, timeaxis: TimeAxis) -> numpy.ndarray:
         """Returns propagation matrix for time-dependent rates by RK4."""
         indices = self._time_indices(timeaxis)
         rates = self._rate_matrix_time_series()
@@ -247,7 +248,7 @@ class PopulationPropagator:
 
         return self._to_matrix_time_order(U[indices])
 
-    def get_JumpExpansion(self, timeaxis: Any = None, max_order: int = 3) -> tuple:
+    def get_JumpExpansion(self, timeaxis: TimeAxis = None, max_order: int = 3) -> tuple:
         """Returns jump-expansion terms of the population propagator.
 
         The returned tuple contains matrices ``(U0, U1, ..., Un)`` in the
@@ -290,13 +291,13 @@ class PopulationPropagator:
         return tuple(propagators)
 
     def get_KineticDecomposition(
-        self, timeaxis: Any = None, max_order: int = 3
+        self, timeaxis: TimeAxis = None, max_order: int = 3
     ) -> tuple:
         """Alias for :meth:`get_JumpExpansion`."""
         return self.get_JumpExpansion(timeaxis=timeaxis, max_order=max_order)
 
     def get_PropagationMatrix(
-        self, timeaxis: Any, corrections: int = -1, exact: bool = False
+        self, timeaxis: TimeAxis, corrections: int = -1, exact: bool = False
     ) -> Any:
         """Returns propagation matrix corresponding to the present propagator
 

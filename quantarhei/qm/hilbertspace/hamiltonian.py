@@ -36,7 +36,9 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
 
     data = ManagedRealArray("data")
 
-    def __init__(self, dim: int | None = None, data: Any = None) -> None:
+    def __init__(
+        self, dim: int | None = None, data: numpy.ndarray | None = None
+    ) -> None:
         # self.data = data
         # FIXME: how to avoid the Operator breaking the EnergyUnits management ????
         if not ((dim is None) and (data is None)):
@@ -48,14 +50,16 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
                 )
 
         self.rwa_indices: numpy.ndarray | None = None
-        self.rwa_energies: Any = None
+        self.rwa_energies: numpy.ndarray | None = None
         self.has_rwa = False
         # In future, the Hamiltonian should have a block structure
         # reflected in the data storage, for now we are fine just with
         # knowing that the blocks are there
         self.Nblocks = 1
 
-    def set_rwa(self, rwa_indices: Any, rwa_energy: float | None = None) -> None:
+    def set_rwa(
+        self, rwa_indices: list[int] | numpy.ndarray, rwa_energy: float | None = None
+    ) -> None:
         """Set the block indices for the Rotating Wave Approximation (RWA).
 
         Parameters

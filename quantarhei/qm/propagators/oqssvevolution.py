@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
-
 import numpy
 
 from ... import REAL
+from ...core.time import TimeAxis
 from ...exceptions import ImplementationError
+from ..hilbertspace.oqsstatevector import OQSStateVector
 from ..propagators.dmevolution import ReducedDensityMatrixEvolution
 
 
@@ -26,7 +26,9 @@ class OQSStateVectorEvolution:
         Default is ``None``.
     """
 
-    def __init__(self, timeaxis: Any = None, psii: Any = None) -> None:
+    def __init__(
+        self, timeaxis: TimeAxis | None = None, psii: OQSStateVector | None = None
+    ) -> None:
 
         if timeaxis is not None:
             self.TimeAxis = timeaxis
@@ -38,7 +40,7 @@ class OQSStateVectorEvolution:
             else:
                 self.dim = 0
 
-    def set_initial_condition(self, psii: Any) -> None:
+    def set_initial_condition(self, psii: OQSStateVector) -> None:
         """ """
         self.dim = psii.data.shape[0]
         self.data = numpy.zeros((self.TimeAxis.length, self.dim), dtype=numpy.float64)

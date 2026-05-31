@@ -10,7 +10,9 @@ from ...core.matrixdata import MatrixData
 from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
 from ...utils.types import BasisManagedComplexArray
+from ..hilbertspace.hamiltonian import Hamiltonian
 from ..hilbertspace.operators import DensityMatrix
+from ..hilbertspace.statevector import StateVector
 from .dmevolution import DensityMatrixEvolution
 
 
@@ -19,7 +21,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
     _data: numpy.ndarray
     is_in_rwa: bool = False
 
-    def __init__(self, timeaxis: Any, psii: Any) -> None:
+    def __init__(self, timeaxis: TimeAxis, psii: StateVector) -> None:
 
         if not isinstance(timeaxis, TimeAxis):
             raise QuantarheiError
@@ -32,7 +34,7 @@ class StateVectorEvolution(MatrixData, BasisManaged):
         self.dim = psii.data.shape[0]
         self.data[0, :] = psii.data
 
-    def convert_from_RWA(self, ham: Any, sgn: int = 1) -> None:
+    def convert_from_RWA(self, ham: Hamiltonian, sgn: int = 1) -> None:
         """Converts density matrix evolution from RWA to standard repre
 
 

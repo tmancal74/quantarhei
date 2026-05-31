@@ -53,6 +53,7 @@ property needs to be basis managed, one should use a predefined type
 from __future__ import annotations
 
 import os
+import types
 import warnings
 from typing import Any
 
@@ -577,7 +578,9 @@ class Manager(metaclass=Singleton):
         raise UnitsError("Unknown type of units")
 
     #    @deprecated
-    def cu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
+    def cu_energy(  # type: ignore[return]
+        self, val: float | numpy.ndarray, units: str = "1/cm"
+    ) -> float | numpy.ndarray | None:
         """Converst to current energy units"""
         if units in self.units["energy"]:
             x = conversion_facs_energy[units]
@@ -591,7 +594,9 @@ class Manager(metaclass=Singleton):
             return i_val
 
     #    @deprecated
-    def iu_energy(self, val: float | numpy.ndarray, units: str = "1/cm") -> Any:
+    def iu_energy(  # type: ignore[return]
+        self, val: float | numpy.ndarray, units: str = "1/cm"
+    ) -> float | numpy.ndarray | None:
         """Converst to internal energy units"""
         if units in self.units["energy"]:
             x = conversion_facs_energy[units]
@@ -906,7 +911,12 @@ class units_context_manager:
     def __enter__(self) -> None:
         pass
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(
+        self,
+        ext_ty: type[BaseException] | None,
+        exc_val: BaseException | None,
+        tb: types.TracebackType | None,
+    ) -> None:
         pass
 
 
@@ -943,7 +953,12 @@ class energy_units(units_context_manager):
         self.manager._in_energy_units_context = True
         self.manager._in_eu_count += 1
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(
+        self,
+        ext_ty: type[BaseException] | None,
+        exc_val: BaseException | None,
+        tb: types.TracebackType | None,
+    ) -> None:
         if exc_val is not None and self.units != self.units_backup:
             warnings.warn(
                 f"An exception exited a 'with energy_units(\"{self.units}\")' block. "
@@ -999,7 +1014,12 @@ class length_units(units_context_manager):
         self.units_backup = self.manager.get_current_units("length")
         self.manager.set_current_units(self.utype, self.units)
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(
+        self,
+        ext_ty: type[BaseException] | None,
+        exc_val: BaseException | None,
+        tb: types.TracebackType | None,
+    ) -> None:
         if exc_val is not None and self.units != self.units_backup:
             warnings.warn(
                 f"An exception exited a 'with length_units(\"{self.units}\")' block. "
@@ -1019,7 +1039,12 @@ class basis_context_manager:
     def __enter__(self) -> None:
         pass
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(
+        self,
+        ext_ty: type[BaseException] | None,
+        exc_val: BaseException | None,
+        tb: types.TracebackType | None,
+    ) -> None:
         pass
 
 
@@ -1063,7 +1088,12 @@ class eigenbasis_of(basis_context_manager):
         if self.manager.warn_about_basis_change:
             print("\nQr >>>  ... setting context done")
 
-    def __exit__(self, ext_ty: Any, exc_val: Any, tb: Any) -> None:
+    def __exit__(
+        self,
+        ext_ty: type[BaseException] | None,
+        exc_val: BaseException | None,
+        tb: types.TracebackType | None,
+    ) -> None:
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")
