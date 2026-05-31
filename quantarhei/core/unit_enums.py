@@ -5,8 +5,8 @@ import enum
 
 class EnergyUnit(str, enum.Enum):
     INT = "int"
-    PER_FS = "1/fs"
-    PER_CM = "1/cm"
+    INV_FS = "1/fs"
+    INV_CM = "1/cm"
     EV = "eV"
     MEV = "meV"
     THZ = "THz"
@@ -19,8 +19,8 @@ class EnergyUnit(str, enum.Enum):
 
 class FrequencyUnit(str, enum.Enum):
     INT = "int"
-    PER_FS = "1/fs"
-    PER_CM = "1/cm"
+    INV_FS = "1/fs"
+    INV_CM = "1/cm"
     THZ = "THz"
     HZ = "Hz"
     SI = "SI"
@@ -53,10 +53,10 @@ class TimeUnit(str, enum.Enum):
 
 class TemperatureUnit(str, enum.Enum):
     INT = "int"
-    PER_FS = "1/fs"
+    INV_FS = "1/fs"
     KELVIN = "Kelvin"
     CELSIUS = "Celsius"
-    PER_CM = "1/cm"
+    INV_CM = "1/cm"
     EV = "eV"
     MEV = "meV"
     THZ = "Thz"
