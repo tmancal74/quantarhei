@@ -62,6 +62,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
     def __init__(self, molecules: list | None = None, name: str = "") -> None:
 
+        if molecules is not None:
+            if not isinstance(molecules, (list, tuple)):
+                raise TypeError(
+                    "'molecules' must be a list of Molecule instances, "
+                    f"got {type(molecules).__name__}."
+                )
+
         # OpenSystem.__init__(self)
 
         self.mnames: dict[str, int] = {}  #
