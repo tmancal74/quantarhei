@@ -847,14 +847,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                     Del[ii - Ng, jj - Ng, :] = numpy.einsum("ij->j", mpx[sts[:], :])
 
-                    # if len(sts) == 1:
-                    #    # one site is shared
-                    #    Del[ii-Ng,jj-Ng,:] = mpx[sts[0],:]
-                    #
-                    # elif len(sts) == 2:
-                    #    # two sites shared (for two-excitons states are equal)
-                    #    Del[ii-Ng,jj-Ng,:] = mpx[sts[0],:] + mpx[sts[1],:]
-
             WPM = numpy.einsum(
                 "nmk,an,bm->abk", Del, ss[Ng:Ne2, Ng:Ne2] ** 2, ss[Ng:Ne2, Ng:Ne2] ** 2
             )
@@ -971,15 +963,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     exindx = self._get_exindx(state1, state2)
                     exct = state1.elstate.elsignature[exindx]
                     width = self.monomers[exindx].get_transition_width((0, exct))
-
-                    # --------------------- My version is more general and takes the width defined externaly
-                    #                sig1 = state1.elstate.get_signature()
-                    #                sig2 = state2.elstate.get_signature()
-                    #                if (2 in sig1) or (2 in sig2):
-                    #                    exindx = self._get_exindx(state1, state2)
-                    #                    width = \
-                    #                    2.0*self.monomers[exindx].get_transition_width((0,1))
-                    # -------------------------------------------------------------------------------
 
                     return width
                 twoex = self._get_twoexindx(state1, state2)
@@ -2110,13 +2093,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         ):
             self.all_states.append((a, s1))
 
-        # if el_blocks:
-        #    self.electronic_blocks = dict()
-        #    for sig in self.elsigs:
-        #        self.electronic_blocks[sig] = "ciao"
-        #
-        #
-
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.all_states:
             if a == 0:
@@ -2215,23 +2191,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
                 if a != b:
                     HH[a, b] = self.coupling_vec(s1, s2)
-        # TODO: ADD FULL Frenkel exciton model
-        # HH[a,b] = numpy.real(self.coupling(s1, s2, full=fem_full))
-
-        ####### New               !!!!CHECK!!!!!
-        #                nz1 = numpy.nonzero(s1.elstate.elsignature)[0]
-        #                nz2 = numpy.nonzero(s2.elstate.elsignature)[0]
-        #                if (nz1.size == 1) and (nz2.size == 1) and (nz1 == nz2) and (a!=b):
-        #                    if s1.elstate.elsignature[nz1[0]] < s2.elstate.elsignature[nz2[0]]:
-        #                        trwidth = self.get_transition_width(s2, s1)
-        #                    else:
-        #                        trwidth = 0.0
-        #
-        #                    if trwidth >= 0:
-        #                        Wd[b,a] = numpy.sqrt(trwidth)
-        #                    else:
-        #                        Wd[b,a] = 0.0
-
         self.twoex_state = twoex_state
 
         ####### End new
@@ -2383,13 +2342,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # except for ground state, all electronic states have EGCF
                     Ncf = self.Nel - Nelg
                 else:
-                    # in single exciton, two-level molecule picture, there is
-                    # a single correlation function per monomer
-                    # ASSUMPTION: Two-level molecules
-                    # Ncf = self.nmono
-
-                    # Ncf = self.Nel - Nelg   # We construct bigger correlation
-                    # matrix, but fill only part
                     Ncf = self.Nbe[1]
 
                 # instantiate the EGCF matrix object
@@ -2406,7 +2358,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # in single exciton band
                     if self.which_band[i] == 1 or nnzr == 1:
                         j = i - Nelg
-                        # mon = self.monomers[j]
                         mon = self.monomers[nzr[0]]
                         exct = elsig[nzr[0]]
                         # get correlation for a monomer
@@ -2422,12 +2373,6 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                     # in two-exciton band
                     elif (self.which_band[i] == 2) and sbi_for_higher_ex and nnzr != 1:
                         egcf_idx = i - Nelg
-                        # monomers of a two-exciton state are obtaines
-                        # FIXME: is this correct???
-                        #                        j = self.elsigs[i][0]
-                        #                        k = self.elsigs[i][1]
-                        #                        mon1 = self.monomers[j]
-                        #                        mon2 = self.monomers[k]
                         mon1 = self.monomers[nzr[0]]
                         mon2 = self.monomers[nzr[1]]
                         exct1 = elsig[nzr[0]]
