@@ -741,16 +741,6 @@ class Manager(metaclass=Singleton):
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
 
-    def register_implementation(
-        self, imp_point: str, prefix: str, asint: Any = None
-    ) -> None:
-        pass
-
-    def commit_implementation(
-        self, imp_point: str, prefix: str, asint: Any = None
-    ) -> None:
-        pass
-
     def get_current_basis(self) -> int:
         """Returns the current basis id"""
         l = len(self.basis_stack)
