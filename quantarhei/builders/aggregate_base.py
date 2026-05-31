@@ -904,6 +904,37 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return WPM
 
+    def _band_transition_lineshape(
+        self,
+        transition: tuple[int, int],
+        matrix: numpy.ndarray,
+        default: float = 0.0,
+        square_interband: bool = True,
+    ) -> float:
+        Nf = transition[0]
+        Ni = transition[1]
+
+        eli = self.elinds[Ni]
+        elf = self.elinds[Nf]
+
+        bi = self.which_band[eli]
+        bf = self.which_band[elf]
+
+        if (bi == 0 and bf == 1) or (bi == 1 and bf == 0):
+            idx = Nf if bi == 0 else Ni
+            return matrix[idx, idx] ** 2
+
+        if (bi == 1 and bf == 2) or (bi == 2 and bf == 1):
+            if square_interband:
+                return (
+                    matrix[Ni, Ni] ** 2
+                    + matrix[Nf, Nf] ** 2
+                    - 2.0 * (matrix[Nf, Ni] ** 2)
+                )
+            return matrix[Ni, Ni] ** 2 + matrix[Nf, Nf] - 2.0 * matrix[Nf, Ni]
+
+        return default
+
     def get_transition_width(self, state1: Any, state2: Any | None = None) -> float:
         """Returns phenomenological width of a given transition
 
@@ -965,42 +996,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return -1.0
 
         transition = state1
-
-        Nf = transition[0]
-        Ni = transition[1]
-
-        eli = self.elinds[Ni]
-        elf = self.elinds[Nf]
-
-        # g -> 1 exciton band transitions
-        if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
-            # this simulates bath correlation function
-            return self.Wd[Nf, Nf] ** 2
-
-        if (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
-            # this simulates bath correlation function
-            return self.Wd[Ni, Ni] ** 2
-
-        # 1 exciton -> 2 exciton transitions
-        if (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
-            # this simulates the term  g_ff + g_ee - 2Re g_fe
-            ret = (
-                self.Wd[Ni, Ni] ** 2
-                + self.Wd[Nf, Nf] ** 2
-                - 2.0 * (self.Wd[Nf, Ni] ** 2)
-            )
-            return ret
-
-        if (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
-            # this simulates the term  g_ff + g_ee - 2Re g_fe
-            ret = (
-                self.Wd[Ni, Ni] ** 2
-                + self.Wd[Nf, Nf] ** 2
-                - 2.0 * (self.Wd[Nf, Ni] ** 2)
-            )
-            return ret
-
-        return 0.0
+        return self._band_transition_lineshape(transition, self.Wd, default=0.0)
 
     def get_transition_dephasing(self, state1: Any, state2: Any | None = None) -> float:
         """Returns phenomenological dephasing of a given transition
@@ -1030,30 +1026,9 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             return deph
 
         transition = state1
-
-        Nf = transition[0]
-        Ni = transition[1]
-
-        eli = self.elinds[Ni]
-        elf = self.elinds[Nf]
-
-        # g -> 1 exciton band transitions
-        if (self.which_band[eli] == 0) and (self.which_band[elf] == 1):
-            return self.Dr[Nf, Nf] ** 2
-
-        if (self.which_band[eli] == 1) and (self.which_band[elf] == 0):
-            return self.Dr[Ni, Ni] ** 2
-
-        # 1 exciton -> 2 exciton band transitions
-        if (self.which_band[eli] == 1) and (self.which_band[elf] == 2):
-            # this simulates the term  g_ff + g_ee - 2Re g_fe
-            return self.Dr[Ni, Ni] ** 2 + self.Dr[Nf, Nf] - 2.0 * self.Dr[Nf, Ni]
-
-        if (self.which_band[eli] == 2) and (self.which_band[elf] == 1):
-            # this simulates the term  g_ff + g_ee - 2Re g_fe
-            return self.Dr[Ni, Ni] ** 2 + self.Dr[Nf, Nf] - 2.0 * self.Dr[Nf, Ni]
-
-        return -1.0
+        return self._band_transition_lineshape(
+            transition, self.Dr, default=-1.0, square_interband=False
+        )
 
     def transition_dipole(self, state1: Any, state2: Any) -> numpy.ndarray | float:
         """Transition dipole moment between two states
