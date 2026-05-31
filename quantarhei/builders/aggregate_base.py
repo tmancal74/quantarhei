@@ -3005,38 +3005,32 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 reorg_bath += parm["reorg"]
         return reorg_bath
 
+    def _accumulate_site_reorg(
+        self,
+        reorg_site: numpy.ndarray,
+        cfm: CorrelationFunctionMatrix,
+        band: int,
+        subtract_bath: bool,
+    ) -> None:
+        elst = numpy.where(self.which_band == band)[0]
+        for el1 in elst:
+            reorgB = self._bath_reorg(cfm, el1 - 1) if subtract_bath else 0.0
+            reorg = cfm.get_reorganization_energy(el1 - 1, el1 - 1) - reorgB
+            for kk in self.vibindices[el1]:
+                reorg_site[kk] += reorg
+
     def _site_reorg_diag(self, subtract_bath: bool = True) -> numpy.ndarray:
         """Returns the reorganisation energy of an exciton state"""
-        # SystemBathInteraction
         sbi = self.get_SystemBathInteraction()
-        # CorrelationFunctionMatrix
         cfm = sbi.CC
 
         reorg_site = numpy.zeros(self.Ntot)
-
-        # electronic states corresponding to single excited states
-        elst = numpy.where(self.which_band == 1)[0]
-        for el1 in elst:
-            if subtract_bath:
-                reorgB = self._bath_reorg(cfm, el1 - 1)
-            else:
-                reorgB = 0.0
-
-            reorg = cfm.get_reorganization_energy(el1 - 1, el1 - 1) - reorgB
-            for kk in self.vibindices[el1]:
-                reorg_site[kk] += reorg
-
-        elst_dbl1 = numpy.where(self.which_band == 2)[0]
-        for el1 in elst_dbl1:
-            if subtract_bath:
-                reorgB = self._bath_reorg(cfm, el1 - 1)
-            else:
-                reorgB = 0.0
-
-            reorg = cfm.get_reorganization_energy(el1 - 1, el1 - 1) - reorgB
-
-            for kk in self.vibindices[el1]:
-                reorg_site[kk] += reorg
+        self._accumulate_site_reorg(
+            reorg_site, cfm, band=1, subtract_bath=subtract_bath
+        )
+        self._accumulate_site_reorg(
+            reorg_site, cfm, band=2, subtract_bath=subtract_bath
+        )
         return reorg_site
 
     def _excitonic_reorg_diag(
