@@ -446,6 +446,126 @@ class TestPumpProbe(unittest.TestCase):
             self.assertEqual(spectrum.get_t2(), tau)
             self.assertTrue(numpy.all(numpy.isfinite(spectrum.data)))
 
+    def test_pump_probe_complete_frequency_axis_matches_2d_axis(self):
+        """Direct PP can opt into the same detection axis as 2D."""
+        t1_axis = qr.TimeAxis(0.0, 32, 5.0)
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        lab = _MagicAngleLab()
+
+        pp_calc = qr.PumpProbeSpectrumCalculator(
+            t2_axis,
+            t3_axis,
+            system=agg,
+            frequency_axis_type="complete",
+        )
+        twod_calc = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis, system=agg)
+        with qr.energy_units("1/cm"):
+            pp_calc.bootstrap(rwa=12100.0, lab=lab)
+            twod_calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
+
+        npt.assert_allclose(pp_calc.oa3.data, twod_calc.oa3.data)
+
+    def test_pump_probe_default_frequency_axis_keeps_upper_half_window(self):
+        """The default PP frequency axis keeps the existing behavior."""
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t3_axis.length)
+        lab = _MagicAngleLab()
+
+        default_calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
+        complete_calc = qr.PumpProbeSpectrumCalculator(
+            t2_axis,
+            t3_axis,
+            system=agg,
+            frequency_axis_type="complete",
+        )
+        with qr.energy_units("1/cm"):
+            default_calc.bootstrap(rwa=12100.0, lab=lab)
+            complete_calc.bootstrap(rwa=12100.0, lab=lab)
+
+        self.assertEqual(default_calc.oa3.length, complete_calc.oa3.length)
+        self.assertNotAlmostEqual(default_calc.oa3.step, complete_calc.oa3.step)
+
+    def test_pump_probe_complete_axis_response_backend_matches_2d_axis(self):
+        """Complete-axis direct PP spectra land on the projected 2D PP axis."""
+        t1_axis = qr.TimeAxis(0.0, 32, 5.0)
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        lab = _MagicAngleLab()
+
+        rdmt = SimpleNamespace()
+        rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))
+        lengths = _ground_exciton_dipole_lengths(agg)
+        for aa in range(agg.Nb[1]):
+            for bb in range(agg.Nb[1]):
+                rdmt.data[:, aa + 1, bb + 1] = lengths[aa] * lengths[bb]
+
+        pp_calc = qr.PumpProbeSpectrumCalculator(
+            t2_axis,
+            t3_axis,
+            system=agg,
+            density_matrix_trajectory=rdmt,
+            frequency_axis_type="complete",
+        )
+        twod_calc = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis, system=agg)
+        with qr.energy_units("1/cm"):
+            pp_calc.bootstrap(rwa=12100.0, lab=lab)
+            twod_calc.bootstrap(rwa=12100.0, pad=0, lab=lab)
+
+        direct = pp_calc.calculate(method="response", lab=lab, spec=["Full"])
+        projected = twod_calc.calculate().get_PumpProbeSpectrumContainer()
+
+        tau = t2_axis.data[0]
+        npt.assert_allclose(
+            direct.spectra[tau].axis.data, projected.spectra[tau].axis.data
+        )
+        self.assertTrue(numpy.all(numpy.isfinite(direct.spectra[tau].data)))
+
+    def test_pump_probe_complete_axis_transform_samples_hfft_grid(self):
+        """Complete-axis PP samples every other point of the 2N hfft grid."""
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 64, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t3_axis.length)
+        lab = _MagicAngleLab()
+
+        calc = qr.PumpProbeSpectrumCalculator(
+            t2_axis,
+            t3_axis,
+            system=agg,
+            frequency_axis_type="complete",
+        )
+        with qr.energy_units("1/cm"):
+            calc.bootstrap(rwa=12100.0, lab=lab)
+
+        response = numpy.exp(-t3_axis.data / 75.0) * numpy.exp(
+            -1j * 0.04 * t3_axis.data
+        )
+
+        spectrum = calc._response_backend_to_pump_probe(response, tau=0.0)
+        ppspec = -response
+        fine_grid = numpy.fft.hfft(ppspec, n=2 * t3_axis.length) * t3_axis.step
+        fine_grid = numpy.flipud(numpy.fft.fftshift(fine_grid))
+        expected = calc.oa3.data * numpy.real(fine_grid[0 : 2 * t3_axis.length : 2])
+
+        npt.assert_allclose(spectrum.data, expected)
+
+    def test_pump_probe_rejects_unknown_frequency_axis_type(self):
+        """PP frequency axis type is explicitly validated."""
+        t2_axis = qr.TimeAxis(0.0, 1, 10.0)
+        t3_axis = qr.TimeAxis(0.0, 32, 5.0)
+        agg = _reference_pump_probe_aggregate(env_length=t3_axis.length)
+
+        with self.assertRaises(ValueError):
+            qr.PumpProbeSpectrumCalculator(
+                t2_axis,
+                t3_axis,
+                system=agg,
+                frequency_axis_type="lower-half",
+            )
+
     def test_pump_probe_response_gsb_mode_uses_r3g_r4g(self):
         """The alternative GSB mode uses unweighted R3g/R4g pathways."""
         t2_axis = qr.TimeAxis(0.0, 3, 10.0)
