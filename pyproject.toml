@@ -46,6 +46,9 @@ dependencies = [
 symbolic = [
   "sympy>=1.12,<2",
 ]
+qutip = [
+  "qutip>=5.0",
+]
 docs = [
   "sphinx>=7.0",
   "pydata-sphinx-theme>=0.16",

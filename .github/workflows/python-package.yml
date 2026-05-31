@@ -106,7 +106,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: uv sync --extra dev --extra qutip
 
     - name: Select unit test paths
       id: paths
@@ -206,7 +206,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: uv sync --extra dev --extra qutip
 
     - name: Select behave features
       id: features
@@ -296,7 +296,7 @@ jobs:
       with:
         python-version: "3.12"
     - name: Install dependencies
-      run: uv sync --extra dev
+      run: uv sync --extra dev --extra qutip
     - name: Run examples
       working-directory: examples
       run: |
@@ -332,7 +332,7 @@ jobs:
       with:
         python-version: "3.12"
     - name: Install dependencies
-      run: uv sync --extra docs
+      run: uv sync --extra docs --extra qutip
     - name: Execute notebooks with papermill
       run: |
         for nb in examples/notebooks/*.ipynb; do
