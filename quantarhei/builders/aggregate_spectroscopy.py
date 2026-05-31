@@ -267,7 +267,7 @@ class AggregateSpectroscopy(AggregateBase):
 
 
 def generate_R1g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -332,7 +332,7 @@ def generate_R1g(
 
 
 def _generate_R1g(
-    self: Any,
+    self: AggregateSpectroscopy,
     i1g: int,
     i2e: int,
     i3e: int,
@@ -391,7 +391,7 @@ def _generate_R1g(
 
 
 def generate_R1gE(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -528,7 +528,7 @@ def generate_R1gE(
 
 
 def generate_R2g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -660,7 +660,7 @@ def generate_R2g(
 
 
 def generate_R2gE(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -801,7 +801,7 @@ def generate_R2gE(
 
 
 def generate_R3g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -911,7 +911,7 @@ def generate_R3g(
 
 
 def generate_R4g(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1021,7 +1021,7 @@ def generate_R4g(
 
 
 def generate_R1f(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1162,7 +1162,7 @@ def generate_R1f(
 
 
 def generate_R2f(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1303,7 +1303,7 @@ def generate_R2f(
 
 
 def generate_R1fE(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1438,7 +1438,7 @@ def generate_R1fE(
 
 
 def generate_R2fE(
-    self: Any,
+    self: AggregateSpectroscopy,
     lst: list,
     eUt2: numpy.ndarray,
     pop_tol: float,
@@ -1572,7 +1572,11 @@ def generate_R2fE(
 
 
 def generate_1orderP_sec(
-    self: Any, lst: list, pop_tol: float, dip_tol: float, verbose: int = 0
+    self: AggregateSpectroscopy,
+    lst: list,
+    pop_tol: float,
+    dip_tol: float,
+    verbose: int = 0,
 ) -> None:
 
     ngs = self.get_electronic_groundstate()

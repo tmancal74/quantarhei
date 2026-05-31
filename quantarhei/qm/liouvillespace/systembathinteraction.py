@@ -16,7 +16,7 @@ from ...core.saveable import Saveable
 from ...core.time import TimeAxis
 from ...exceptions import QuantarheiError
 from ...qm.corfunctions.cfmatrix import CorrelationFunctionMatrix
-from ...qm.corfunctions.correlationfunctions import c2g
+from ...qm.corfunctions.correlationfunctions import CorrelationFunction, c2g
 from ...qm.corfunctions.functionstorage import FunctionStorage
 
 if TYPE_CHECKING:
@@ -207,7 +207,7 @@ class SystemBathInteraction(Saveable):
             self.orates = orates
             self.osites = osites
 
-    def set_system(self, system: Any) -> None:
+    def set_system(self, system: Aggregate | Molecule | OpenSystem | None) -> None:
         """Sets the system attribute"""
         from ...builders.aggregates import Aggregate
         from ...builders.molecules import Molecule
@@ -254,15 +254,15 @@ class SystemBathInteraction(Saveable):
                     "Operators in the list are not of the same dimension"
                 )
 
-    def get_time_axis(self) -> Any:
+    def get_time_axis(self) -> TimeAxis:
         """Returns the time axis of the storred correlation functions"""
         return self.TimeAxis
 
-    def get_correlation_function(self, where: Any) -> Any:
+    def get_correlation_function(self, where: tuple[int, int]) -> CorrelationFunction:
         """Returns the bath correlation function object defined by a pair of sites (tuple)"""
         return self.CC.get_correlation_function(where[0], where[1])
 
-    def get_coft(self, n: int, m: int) -> Any:
+    def get_coft(self, n: int, m: int) -> numpy.ndarray:
         """Returns bath correlation function corresponding to sites n and m"""
         if self.sbitype != "Linear_Coupling":
             raise QuantarheiError(
@@ -421,7 +421,9 @@ class SystemBathInteraction(Saveable):
         """Returns temperature associated with the bath"""
         return self.CC.get_temperature()
 
-    def get_reorganization_energy(self, i: int, j: int | None = None) -> Any:
+    def get_reorganization_energy(
+        self, i: int, j: int | None = None
+    ) -> float | numpy.ndarray | None:
         """Returns reorganization energy associated with a given site
 
         If one index `i` is specified, the function returns reorganization
@@ -439,7 +441,9 @@ class SystemBathInteraction(Saveable):
             j = i
         return self.CC.get_reorganization_energy(i, j)
 
-    def get_correlation_time(self, i: int, j: int | None = None) -> Any:
+    def get_correlation_time(
+        self, i: int, j: int | None = None
+    ) -> float | numpy.ndarray | None:
 
         if (
             self.sbitype == "Lindblad_Form"
