@@ -369,10 +369,12 @@ class PumpProbeSpectrumCalculator:
         include_nonsecular_remainder: bool = True,
         include_remainder: bool = True,
         dipole_normalization_tol: float = 1.0e-12,
+        frequency_axis_type: str = "upper-half",
     ) -> None:
 
         self.t2axis = t2axis
         self.t3axis = t3axis
+        self.frequency_axis_type = frequency_axis_type
 
         external_count = sum(
             item is not None
@@ -434,6 +436,34 @@ class PumpProbeSpectrumCalculator:
 
         self.tc = 0
 
+        self._validate_frequency_axis_type()
+
+    def _validate_frequency_axis_type(self) -> None:
+        if self.frequency_axis_type not in ("upper-half", "complete"):
+            raise ValueError("frequency_axis_type has to be 'upper-half' or 'complete'")
+
+    def _make_frequency_axis(self) -> FrequencyAxis:
+        """Create detection-frequency axis from the selected PP convention."""
+        if self.frequency_axis_type == "complete":
+            atype = self.t3axis.atype
+            self.t3axis.atype = "complete"
+            try:
+                axis = self.t3axis.get_FrequencyAxis()
+                axis.data += self.rwa
+                axis.start += self.rwa
+            finally:
+                self.t3axis.atype = atype
+            return axis
+
+        # Historical PP behavior: use the upper-half FFT axis and retain
+        # the central half as the detection-frequency window.
+        freq = self.t3axis.get_FrequencyAxis()
+        freq.data += self.rwa
+        Nt = len(freq.data) // 2
+        do = freq.data[1] - freq.data[0]
+        st = freq.data[Nt // 2]
+        return FrequencyAxis(st, Nt, do)
+
     def bootstrap(
         self,
         rwa: float = 0.0,
@@ -465,21 +495,7 @@ class PumpProbeSpectrumCalculator:
                 self._adiabatic_noBath = True
 
         with energy_units("int"):
-            # atype = self.t3axis.atype
-            # self.t3axis.atype = 'complete'
-            # self.oa3 = self.t3axis.get_FrequencyAxis()
-            # self.oa3.data += self.rwa
-            # self.oa3.start += self.rwa
-            # self.t3axis.atype = atype
-
-            # we only want to retain the upper half of the spectrum
-            freq = self.t3axis.get_FrequencyAxis()
-            freq.data += self.rwa
-            Nt = len(freq.data) // 2
-            do = freq.data[1] - freq.data[0]
-            st = freq.data[Nt // 2]
-            # we represent the Frequency axis anew
-            self.oa3 = FrequencyAxis(st, Nt, do)
+            self.oa3 = self._make_frequency_axis()
 
         self.tc = 0
         self.lab = lab
@@ -792,12 +808,19 @@ class PumpProbeSpectrumCalculator:
         onepp.set_axis(self.oa3)
 
         ppspec = -numpy.asarray(response, dtype=numpy.complex128)
-        ft = numpy.fft.hfft(ppspec) * self.t3axis.step
-        ft = numpy.fft.fftshift(ft)
-        ft = numpy.flipud(ft)
-        Nt = self.t3axis.length
+        if self.frequency_axis_type == "complete":
+            Nt = self.t3axis.length
+            ft = numpy.fft.hfft(ppspec, n=2 * Nt) * self.t3axis.step
+            ft = numpy.fft.fftshift(ft)
+            ft = numpy.flipud(ft)
+            data = numpy.real(ft[0 : 2 * Nt : 2])
+        else:
+            ft = numpy.fft.hfft(ppspec) * self.t3axis.step
+            ft = numpy.fft.fftshift(ft)
+            ft = numpy.flipud(ft)
+            Nt = self.t3axis.length
 
-        data = numpy.real(ft[Nt // 2 : Nt + Nt // 2])
+            data = numpy.real(ft[Nt // 2 : Nt + Nt // 2])
         data = self.oa3.data * data
 
         onepp._add_data(data)
