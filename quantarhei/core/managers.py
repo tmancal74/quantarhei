@@ -55,6 +55,7 @@ from __future__ import annotations
 import os
 import types
 import warnings
+from abc import ABC, abstractmethod
 from typing import Any
 
 from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
@@ -898,7 +899,7 @@ class BasisManaged(Managed):
         self._current_basis = bb
 
 
-class units_context_manager:
+class units_context_manager(ABC):
     """General context manager to manage physical units of values"""
 
     def __init__(self, utype: str = "energy") -> None:
@@ -908,16 +909,16 @@ class units_context_manager:
         else:
             raise UnitsError("Unknown units type")
 
-    def __enter__(self) -> None:
-        pass
+    @abstractmethod
+    def __enter__(self) -> None: ...
 
+    @abstractmethod
     def __exit__(
         self,
         ext_ty: type[BaseException] | None,
         exc_val: BaseException | None,
         tb: types.TracebackType | None,
-    ) -> None:
-        pass
+    ) -> None: ...
 
 
 class energy_units(units_context_manager):
@@ -1030,22 +1031,22 @@ class length_units(units_context_manager):
         self.manager.set_current_units("length", self.units_backup)
 
 
-class basis_context_manager:
+class basis_context_manager(ABC):
     """General context manager to manage basis"""
 
     def __init__(self) -> None:
         self.manager = Manager()
 
-    def __enter__(self) -> None:
-        pass
+    @abstractmethod
+    def __enter__(self) -> None: ...
 
+    @abstractmethod
     def __exit__(
         self,
         ext_ty: type[BaseException] | None,
         exc_val: BaseException | None,
         tb: types.TracebackType | None,
-    ) -> None:
-        pass
+    ) -> None: ...
 
 
 class eigenbasis_of(basis_context_manager):
