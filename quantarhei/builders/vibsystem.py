@@ -378,6 +378,10 @@ def group_energies_by_gap(
         Number of energies in each band.
     gap_indices : list of int
         Indices at which bands start (for reference).
+
+    Note: changed by Pavel to fraction of the maximum gap instead of median gap
+    to avoid issues for +- equally spaced ladders (e.g., vibrational).
+
     """
     import numpy as np
 
@@ -385,8 +389,8 @@ def group_energies_by_gap(
     gaps = np.diff(energies)
 
     if threshold is None:
-        median_gap = np.median(gaps)
-        threshold = gap_factor * median_gap
+        max_gap = np.max(gaps)
+        threshold = max_gap / gap_factor
 
     # Find gap positions
     band_breaks = np.where(gaps > threshold)[0]
