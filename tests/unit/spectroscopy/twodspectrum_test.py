@@ -116,15 +116,15 @@ class TestTwoDSpectrum(unittest.TestCase):
             if prepare_underdamped:
                 mode_params = {
                     "ftype": "UnderdampedBrownian",
-                    "reorg": 70.0,
-                    "freq": 500.0,
-                    "gamma": 100.0,
+                    # Huang-Rhys factor S = reorg / freq = 0.1.
+                    "reorg": 150.0,
+                    "freq": 1500.0,
+                    # Oscillation envelope exp(-gamma*t/2): 3 ps damping time.
+                    "gamma": qr.convert(2.0 / 3000.0, "int", "1/cm"),
                     "T": temperature,
                 }
                 c1_under = qr.CorrelationFunction(t1_axis, mode_params)
-                c2_under = qr.CorrelationFunction(
-                    t1_axis, dict(mode_params, reorg=60.0)
-                )
+                c2_under = qr.CorrelationFunction(t1_axis, mode_params.copy())
 
                 cfce1 += c1_under
                 cfce2 += c2_under
@@ -342,6 +342,12 @@ class TestTwoDSpectrum(unittest.TestCase):
 
         twod1 = scont.get_spectrum(0.0)
         twod2 = scont.get_spectrum(T2)
+
+        for spectrum in (twod1, twod2):
+            self.assertTrue(
+                numpy.all(numpy.isfinite(spectrum.data)),
+                f"Non-finite 2D spectrum at t2 = {spectrum.get_t2()} fs",
+            )
 
         if _show_spectra_:
             # plot_window = [11000,13000,11000,13000]
