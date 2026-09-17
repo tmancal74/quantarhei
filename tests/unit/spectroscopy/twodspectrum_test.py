@@ -38,6 +38,9 @@ class TestTwoDSpectrum(unittest.TestCase):
     """Tests for the response package"""
 
     def setUp(self, verbose=False):
+        self._setup_system()
+
+    def _setup_system(self, prepare_underdamped=False):
         #
         #  Chlorophyll parameters
         #
@@ -97,12 +100,6 @@ class TestTwoDSpectrum(unittest.TestCase):
             "matsubara": 20,
         }
 
-        # md01_params = {"ftype":  "UnderdampedBrownian",
-        #               "reorg": 70.0,
-        #               "freq":  500.0,
-        #               "gamma": 100.0,
-        #               "T": temperature}
-
         cf02_params = {
             "ftype": "OverdampedBrownian",
             "reorg": 140.0,
@@ -111,21 +108,29 @@ class TestTwoDSpectrum(unittest.TestCase):
             "matsubara": 20,
         }
 
-        # md02_params = {"ftype":  "UnderdampedBrownian",
-        #               "reorg": 60.0,
-        #               "freq":  500.0,
-        #               "gamma": 100.0,
-        #               "T": temperature}
-
         # Build the correlation function
         with qr.energy_units("1/cm"):
             cfce1 = qr.CorrelationFunction(t1_axis, cf01_params)
-            # c1_under = qr.CorrelationFunction(t1_axis, md01_params)
             cfce2 = qr.CorrelationFunction(t1_axis, cf02_params)
-            # c2_under = qr.CorrelationFunction(t1_axis, md02_params)
 
-        # cfce1 += c1_under
-        # cfce2 += c2_under
+            if prepare_underdamped:
+                mode_params = {
+                    "ftype": "UnderdampedBrownian",
+                    "reorg": 70.0,
+                    "freq": 500.0,
+                    "gamma": 100.0,
+                    "T": temperature,
+                }
+                c1_under = qr.CorrelationFunction(t1_axis, mode_params)
+                c2_under = qr.CorrelationFunction(
+                    t1_axis, dict(mode_params, reorg=60.0)
+                )
+
+                # Enable these additions when investigating the vibrational
+                # calculation. Until then, retain the overdamped references.
+                # cfce1 += c1_under
+                # cfce2 += c2_under
+
         cfce3 = cfce1
 
         from quantarhei.core.managers import UnitsManaged
@@ -258,6 +263,14 @@ class TestTwoDSpectrum(unittest.TestCase):
         self.dt2 = dt2
 
     def test_twod_1(self):
+        self._check_twod_reference_spectra()
+
+    def test_twod_with_underdamped_component_prepared(self):
+        """Prepare vibrational components without adding them to the bath."""
+        self._setup_system(prepare_underdamped=True)
+        self._check_twod_reference_spectra()
+
+    def _check_twod_reference_spectra(self):
 
         Nt1 = self.Nt
         dt1 = self.dt
