@@ -3,6 +3,10 @@
 .spyproject
 .vscode/**
 !.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.venv/
 __pycache__
 
 build
@@ -32,7 +36,7 @@ cover/
 env/
 .coverage
 coverage.xml
-covwrage*.xml
+coverage*.xml
 results-unit.xml
 results-doctest.xml
 .coverage.*

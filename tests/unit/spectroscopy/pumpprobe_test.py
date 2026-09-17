@@ -606,7 +606,7 @@ class TestPumpProbe(unittest.TestCase):
         calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)
         lab = _MagicAngleLab()
         with qr.energy_units("1/cm"):
-            calc.bootstrap(rwa=12100.0, lab=lab)
+            calc.bootstrap(rwa=agg.get_RWA_suggestion(), lab=lab)
 
         rdmt = SimpleNamespace()
         rdmt.data = numpy.zeros((t2_axis.length, agg.Ntot, agg.Ntot))

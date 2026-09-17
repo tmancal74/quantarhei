@@ -71,16 +71,12 @@ class PumpProbeSpectrum(DFunction):
     # FIXME: Add function _add_data (if data None = set_data, else add)
 
 
-class _RWAOverrideSystem:
-    """Delegates to a system while overriding the response-backend RWA."""
+class _LineshapeTimeAxisSystem:
+    """Delegates to a system while selecting response lineshape time axes."""
 
-    def __init__(self, system: Any, rwa: Any, lineshape_timeaxis: Any = None) -> None:
+    def __init__(self, system: Any, lineshape_timeaxis: Any = None) -> None:
         self._system = system
-        self._rwa = rwa
         self._lineshape_timeaxis = lineshape_timeaxis
-
-    def get_RWA_suggestion(self) -> Any:
-        return self._rwa
 
     def get_lineshape_functions(self, config: dict | int | None = None) -> Any:
         return self._system.get_lineshape_functions(
@@ -754,15 +750,15 @@ class PumpProbeSpectrumCalculator:
     def _response_backend_trace(self, diagrams: list[str], tau: float, lab: Any) -> Any:
         """Calculate selected response-backend diagrams as a t3 trace at t1 = 0."""
         t1axis = TimeAxis(0.0, 1, self.t3axis.step)
-        backend_system = _RWAOverrideSystem(
-            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        lineshape_system = _LineshapeTimeAxisSystem(
+            self.system, lineshape_timeaxis=[t1axis, self.t3axis]
         )
 
         response = numpy.zeros(self.t3axis.length, dtype=numpy.complex128)
         for diagram in diagrams:
             rsp = NonLinearResponse(
                 lab,
-                backend_system,
+                lineshape_system,
                 diagram,
                 t1axis,
                 self.t2axis,
@@ -874,8 +870,8 @@ class PumpProbeSpectrumCalculator:
             self.system.diagonalize()
 
         t1axis = TimeAxis(0.0, 1, self.t3axis.step)
-        backend_system = _RWAOverrideSystem(
-            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        lineshape_system = _LineshapeTimeAxisSystem(
+            self.system, lineshape_timeaxis=[t1axis, self.t3axis]
         )
         response_types = []
         if "Full" in spec or "SE" in spec:
@@ -912,7 +908,7 @@ class PumpProbeSpectrumCalculator:
         responses = [
             NonLinearResponse(
                 lab,
-                backend_system,
+                lineshape_system,
                 diagram,
                 t1axis,
                 self.t2axis,
