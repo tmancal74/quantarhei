@@ -126,10 +126,8 @@ class TestTwoDSpectrum(unittest.TestCase):
                     t1_axis, dict(mode_params, reorg=60.0)
                 )
 
-                # Enable these additions when investigating the vibrational
-                # calculation. Until then, retain the overdamped references.
-                # cfce1 += c1_under
-                # cfce2 += c2_under
+                cfce1 += c1_under
+                cfce2 += c2_under
 
         cfce3 = cfce1
 
@@ -266,11 +264,11 @@ class TestTwoDSpectrum(unittest.TestCase):
         self._check_twod_reference_spectra()
 
     def test_twod_with_underdamped_component_prepared(self):
-        """Prepare vibrational components without adding them to the bath."""
+        """Calculate with vibrational components added to the overdamped bath."""
         self._setup_system(prepare_underdamped=True)
-        self._check_twod_reference_spectra()
+        self._check_twod_reference_spectra(underdamped=True)
 
-    def _check_twod_reference_spectra(self):
+    def _check_twod_reference_spectra(self, underdamped=False):
 
         Nt1 = self.Nt
         dt1 = self.dt
@@ -358,8 +356,9 @@ class TestTwoDSpectrum(unittest.TestCase):
 
             plt.show()
 
-        file_path_1 = TEST_DIR / "twodspectrum_test_data_0.dat"
-        file_path_2 = TEST_DIR / "twodspectrum_test_data_100.dat"
+        prefix = "twodspectrum_underdamped" if underdamped else "twodspectrum_test"
+        file_path_1 = TEST_DIR / f"{prefix}_data_0.dat"
+        file_path_2 = TEST_DIR / f"{prefix}_data_100.dat"
 
         if _save_data_:
             twod1.save_data(file_path_1)
@@ -394,7 +393,8 @@ class TestTwoDSpectrum(unittest.TestCase):
         # The stored references were generated before 2D FFTs carried explicit
         # integral factors.  Keep this compatibility scaling until the
         # reference data are regenerated; then remove this factor.
-        fft_integral_scale = Nt1 * dt1 * dt3
+        # New underdamped references already contain the integral factors.
+        fft_integral_scale = 1.0 if underdamped else Nt1 * dt1 * dt3
         npt.assert_allclose(twod01.data * fft_integral_scale, twod1.data)
         npt.assert_allclose(twod02.data * fft_integral_scale, twod2.data)
 
