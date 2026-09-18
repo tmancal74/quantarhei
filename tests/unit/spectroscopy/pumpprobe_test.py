@@ -451,7 +451,10 @@ class TestPumpProbe(unittest.TestCase):
         t1_axis = qr.TimeAxis(0.0, 32, 5.0)
         t2_axis = qr.TimeAxis(0.0, 1, 10.0)
         t3_axis = qr.TimeAxis(0.0, 32, 5.0)
-        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        bath_axis = qr.TwoDResponseCalculator(
+            t1_axis, t2_axis, t3_axis
+        ).get_joint_time_axis()
+        agg = _reference_pump_probe_aggregate(env_length=bath_axis.length)
         lab = _MagicAngleLab()
 
         pp_calc = qr.PumpProbeSpectrumCalculator(
@@ -493,7 +496,10 @@ class TestPumpProbe(unittest.TestCase):
         t1_axis = qr.TimeAxis(0.0, 32, 5.0)
         t2_axis = qr.TimeAxis(0.0, 1, 10.0)
         t3_axis = qr.TimeAxis(0.0, 32, 5.0)
-        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        bath_axis = qr.TwoDResponseCalculator(
+            t1_axis, t2_axis, t3_axis
+        ).get_joint_time_axis()
+        agg = _reference_pump_probe_aggregate(env_length=bath_axis.length)
         lab = _MagicAngleLab()
 
         rdmt = SimpleNamespace()
@@ -801,7 +807,10 @@ class TestPumpProbe(unittest.TestCase):
         t1_axis = qr.TimeAxis(0.0, 64, 5.0)
         t2_axis = qr.TimeAxis(0.0, 1, 10.0)
         t3_axis = qr.TimeAxis(0.0, 64, 5.0)
-        agg = _reference_pump_probe_aggregate(env_length=t1_axis.length)
+        bath_axis = qr.TwoDResponseCalculator(
+            t1_axis, t2_axis, t3_axis
+        ).get_joint_time_axis()
+        agg = _reference_pump_probe_aggregate(env_length=bath_axis.length)
         lab = _MagicAngleLab()
 
         pp_calc = qr.PumpProbeSpectrumCalculator(t2_axis, t3_axis, system=agg)

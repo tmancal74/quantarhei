@@ -11,6 +11,9 @@ import quantarhei as qr
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--system", choices=["chlorophyll", "tlm"], default="chlorophyll"
+    )
+    parser.add_argument(
         "--bath", choices=["overdamped", "underdamped"], default="underdamped"
     )
     parser.add_argument("--t2", type=int, choices=[0, 100], default=0)
@@ -22,6 +25,8 @@ def main():
         if args.bath == "underdamped"
         else "twodspectrum_test"
     )
+    if args.system == "tlm":
+        prefix = f"twod_tlm_{args.bath}"
     path = (
         Path(__file__).parent / "unit" / "spectroscopy" / f"{prefix}_data_{args.t2}.dat"
     )
@@ -36,11 +41,9 @@ def main():
     spectrum.set_axis_1(axis)
     spectrum.set_axis_3(axis)
     spectrum.set_t2(args.t2)
-    if args.bath == "overdamped":
-        spectrum.data[:] *= 50 * 5.0 * 5.0
     with qr.energy_units("1/cm"):
         spectrum.plot(window=[15000, 18500, 15000, 18500], show=False)
-    plt.title(f"{args.bath}, t₂ = {args.t2} fs (real part)")
+    plt.title(f"{args.system}: {args.bath}, t₂ = {args.t2} fs (real total signal)")
     if args.save:
         plt.savefig(args.save, bbox_inches="tight")
     else:

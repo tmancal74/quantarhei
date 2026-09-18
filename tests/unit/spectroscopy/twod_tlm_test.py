@@ -12,15 +12,16 @@ from quantarhei.utils.vectors import X
 TEST_DIR = Path(__file__).parent
 
 
-def calculate_tlm_spectra(underdamped=False):
-    """Calculate the same bath/time-grid cases as the Chlorophyll regression."""
+def make_tlm_calculator(underdamped=False):
+    """Prepare TLM regression cases with an optional S=1 vibrational mode."""
     t1 = qr.TimeAxis(0.0, 50, 5.0)
     t2 = qr.TimeAxis(0.0, 2, 100.0)
     t3 = qr.TimeAxis(0.0, 50, 5.0)
+    bath_axis = qr.TwoDResponseCalculator(t1, t2, t3).get_joint_time_axis()
     with qr.energy_units("1/cm"):
         molecule = qr.Molecule([0.0, 16807.0])
         bath = qr.CorrelationFunction(
-            t1,
+            bath_axis,
             dict(
                 ftype="OverdampedBrownian",
                 reorg=140.0,
@@ -30,13 +31,13 @@ def calculate_tlm_spectra(underdamped=False):
             ),
         )
         if underdamped:
-            # S = lambda / omega = 0.1; amplitude damping time = 3 ps.
+            # S = lambda / omega = 1.0; amplitude damping time = 3 ps.
             bath += qr.CorrelationFunction(
-                t1,
+                bath_axis,
                 dict(
                     ftype="UnderdampedBrownian",
-                    reorg=150.0,
-                    freq=1500.0,
+                    reorg=1000.0,
+                    freq=1000.0,
                     gamma=qr.convert(2.0 / 3000.0, "int", "1/cm"),
                     T=300.0,
                 ),
@@ -50,8 +51,13 @@ def calculate_tlm_spectra(underdamped=False):
     lab.set_pulse_polarizations(pulse_polarizations=(X, X, X), detection_polarization=X)
     calc = qr.TwoDResponseCalculator(t1, t2, t3, system=system)
     with qr.energy_units("1/cm"):
-        calc.bootstrap(rwa=16807.0, pad=0, lab=lab)
-    return calc.calculate().get_TwoDSpectrumContainer()
+        calc.bootstrap(rwa=16807.0, pad=0, lab=lab, keep_resp=True)
+    return calc
+
+
+def calculate_tlm_spectra(underdamped=False):
+    """Calculate the total TLM spectra for regression comparisons."""
+    return make_tlm_calculator(underdamped).calculate().get_TwoDSpectrumContainer()
 
 
 @pytest.fixture(scope="module", params=[False, True], ids=["overdamped", "underdamped"])

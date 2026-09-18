@@ -87,6 +87,9 @@ class TestTwoDSpectrum(unittest.TestCase):
         t3_axis = qr.TimeAxis(0.0, Nt, dt)
 
         t2_axis = qr.TimeAxis(0.0, Nt2, dt2)
+        bath_axis = qr.TwoDResponseCalculator(
+            t1_axis, t2_axis, t3_axis
+        ).get_joint_time_axis()
 
         #
         # Bath correlation functions for the molecular transitions
@@ -110,21 +113,21 @@ class TestTwoDSpectrum(unittest.TestCase):
 
         # Build the correlation function
         with qr.energy_units("1/cm"):
-            cfce1 = qr.CorrelationFunction(t1_axis, cf01_params)
-            cfce2 = qr.CorrelationFunction(t1_axis, cf02_params)
+            cfce1 = qr.CorrelationFunction(bath_axis, cf01_params)
+            cfce2 = qr.CorrelationFunction(bath_axis, cf02_params)
 
             if prepare_underdamped:
                 mode_params = {
                     "ftype": "UnderdampedBrownian",
-                    # Huang-Rhys factor S = reorg / freq = 0.1.
-                    "reorg": 150.0,
-                    "freq": 1500.0,
+                    # Huang-Rhys factor S = reorg / freq = 0.3.
+                    "reorg": 300.0,
+                    "freq": 1000.0,
                     # Oscillation envelope exp(-gamma*t/2): 3 ps damping time.
                     "gamma": qr.convert(2.0 / 3000.0, "int", "1/cm"),
                     "T": temperature,
                 }
-                c1_under = qr.CorrelationFunction(t1_axis, mode_params)
-                c2_under = qr.CorrelationFunction(t1_axis, mode_params.copy())
+                c1_under = qr.CorrelationFunction(bath_axis, mode_params)
+                c2_under = qr.CorrelationFunction(bath_axis, mode_params.copy())
 
                 cfce1 += c1_under
                 cfce2 += c2_under
@@ -396,13 +399,9 @@ class TestTwoDSpectrum(unittest.TestCase):
         #
         #    plt.show()
 
-        # The stored references were generated before 2D FFTs carried explicit
-        # integral factors.  Keep this compatibility scaling until the
-        # reference data are regenerated; then remove this factor.
-        # New underdamped references already contain the integral factors.
-        fft_integral_scale = 1.0 if underdamped else Nt1 * dt1 * dt3
-        npt.assert_allclose(twod01.data * fft_integral_scale, twod1.data)
-        npt.assert_allclose(twod02.data * fft_integral_scale, twod2.data)
+        # Regenerated references include the FFT integral normalization.
+        npt.assert_allclose(twod01.data, twod1.data)
+        npt.assert_allclose(twod02.data, twod2.data)
 
     def test_get_cut_along_line_uses_correct_y_coordinate(self):
         """get_cut_along_line must use point2[1] not point2[0] for vy2"""
