@@ -603,6 +603,17 @@ class Manager(metaclass=Singleton):
             i_val = x * val
             return i_val
 
+    @staticmethod
+    def _convert_nm(val: float | numpy.ndarray, cfact: float) -> float | numpy.ndarray:
+        tiny = numpy.finfo(float).tiny
+        try:
+            nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
+            ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
+            ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
+            return ret / cfact
+        except (AttributeError, TypeError):
+            return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
+
     def convert_energy_2_internal_u(
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
@@ -615,22 +626,11 @@ class Manager(metaclass=Singleton):
 
         """
         units = self.current_units["energy"]
-        cfact = conversion_facs_energy[self.current_units["energy"]]
+        cfact = conversion_facs_energy[units]
 
-        # special handling for nano meters
         if units == "nm":
-            # zero is interpreted as zero energy; use tiny threshold to guard
-            # against subnormals that would overflow 1/val to inf
-            tiny = numpy.finfo(float).tiny
-            try:
-                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
-                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
-                return ret / cfact
-            except (AttributeError, TypeError):
-                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
-        else:
-            return val * cfact
+            return self._convert_nm(val, cfact)
+        return val * cfact
 
     def convert_energy_2_current_u(
         self, val: float | numpy.ndarray
@@ -646,20 +646,9 @@ class Manager(metaclass=Singleton):
         units = self.current_units["energy"]
         cfact = conversion_facs_energy[units]
 
-        # special handling for nanometers
         if units == "nm":
-            # zero is interpreted as zero energy; use tiny threshold to guard
-            # against subnormals that would overflow 1/val to inf
-            tiny = numpy.finfo(float).tiny
-            try:
-                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
-                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
-                return ret / cfact
-            except (AttributeError, TypeError):
-                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
-        else:
-            return val / cfact
+            return self._convert_nm(val, cfact)
+        return val / cfact
 
     def convert_frequency_2_internal_u(
         self, val: float | numpy.ndarray
@@ -850,40 +839,37 @@ class UnitsManaged(Managed):
         return self.manager.unit_repr_latex(utype)
 
 
-class EnergyUnitsManaged(Managed):
+class _TypedUnitsManaged(Managed):
+    _utype: str = ""
+    _internal_unit: str = ""
+
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+        converter = getattr(self.manager, f"convert_{self._utype}_2_internal_u")
+        return converter(val)
+
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+        converter = getattr(self.manager, f"convert_{self._utype}_2_current_u")
+        return converter(val)
+
+    def unit_repr(self) -> str:
+        return self.manager.unit_repr(self._utype)
+
+    def unit_repr_latex(self) -> str:
+        return self.manager.unit_repr_latex(self._utype)
+
+
+class EnergyUnitsManaged(_TypedUnitsManaged):
+    _utype = "energy"
+    _internal_unit = "1/fs"
     utype = "energy"
     units = "1/fs"
 
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_energy_2_current_u(val)
-
-    def unit_repr(self) -> str:
-        return self.manager.unit_repr("energy")
-
-    def unit_repr_latex(self, utype: str = "energy") -> str:
-        return self.manager.unit_repr_latex(utype)
-
-
-class LengthUnitsManaged(Managed):
-    """Class providing functions for length units conversion"""
-
+class LengthUnitsManaged(_TypedUnitsManaged):
+    _utype = "length"
+    _internal_unit = "A"
     utype = "length"
     units = "A"
-
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_length_2_internal_u(val)
-
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_length_2_current_u(val)
-
-    def unit_repr(self) -> str:
-        return self.manager.unit_repr(self.utype)
-
-    def unit_repr_latex(self) -> str:
-        return self.manager.unit_repr_latex(self.utype)
 
 
 class BasisManaged(Managed):
