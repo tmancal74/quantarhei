@@ -74,6 +74,48 @@ CI runs all three suites on Python 3.10, 3.11, and 3.12. Please verify unit test
 
 ## Developer tools
 
+### VS Code and Codex
+
+Open the repository root in VS Code and install the workspace's recommended
+extensions. Run **Python: Select Interpreter** and select `.venv/bin/python`
+(Windows: `.venv/Scripts/python.exe`). An existing interpreter selection takes
+precedence over the workspace default. The current local environment can be
+kept; for a new environment matching PR CI, use
+`uv sync --extra dev --extra qutip --python 3.12`.
+
+Workspace settings enable Ruff format-on-save and pytest in the Testing sidebar.
+Ruff uses the environment's version when available; rules remain in
+`pyproject.toml`. Mypy remains the project's type checker; Pylance provides
+navigation and completion without a second set of type-checking diagnostics.
+Automatic test discovery on save is disabled to avoid repeated imports of the
+scientific stack; use **Test: Refresh Tests** after adding tests.
+
+Use **Tasks: Run Task** for the existing Makefile tasks. For quick feedback
+without environment synchronization or coverage reports:
+
+```bash
+MPLBACKEND=Agg uv run --no-sync pytest tests/unit/spectroscopy/twod_test.py -x
+```
+
+The **Python: TwoD calculator tests** launch profile runs focused calculator
+tests under the debugger; set breakpoints in `twodcalculator.py` and press F5.
+The Testing sidebar also supports debugging individual tests. **Python: Current
+file** runs scripts from the repository root; examples requiring data files may
+need a different working directory. Test debug profiles use the noninteractive
+Matplotlib backend; current-file debugging keeps interactive plotting available.
+
+Codex project instructions live in `AGENTS.md`. Start Codex in the repository
+root and give each task a concrete behavior, relevant files, and acceptance
+criteria. For example: "Investigate this TwoDResponseCalculator behavior, add a
+focused numerical regression test, and run the affected spectroscopy tests."
+Use planning for scientific or architectural changes and review numerical
+assumptions and tolerances in the resulting diff. Keep model and personal
+permission preferences in your Codex user settings.
+
+Official references: [Codex IDE extension](https://learn.chatgpt.com/docs/codex/ide),
+[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md), and
+[Ruff editor setup](https://docs.astral.sh/ruff/editors/setup/).
+
 All developer tools are installed as part of the `dev` extra (`uv sync --extra dev`).
 
 ### pre-commit (optional)

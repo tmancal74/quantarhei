@@ -220,7 +220,7 @@ class TwoDResponseCalculator:
         self.dipole_normalization_tol = dipole_normalization_tol
         self.response_diagnostics: list[dict[str, Any]] = []
 
-        # FIXME: check the compatibility of the axes
+        self.get_joint_time_axis()
 
         if system is not None:
             self.system = system
@@ -280,6 +280,77 @@ class TwoDResponseCalculator:
 
         self.tc = 0
 
+    def get_joint_time_axis(self) -> TimeAxis:
+        """Return the zero-based bath grid covering all response time sums.
+
+        Spectroscopy steps must be integer multiples of the smallest step.
+        All samples must lie on that common grid; t1 and t3 start at zero.
+
+        Returns
+        -------
+        TimeAxis
+            Grid from zero through t1_max + t2_max + t3_max, inclusive.
+
+        Raises
+        ------
+        ValueError
+            If spectroscopy axes are incompatible or contain invalid times.
+
+        Notes
+        -----
+        Grid alignment is checked to an absolute tolerance of 1e-8 grid steps.
+        The system may be built after calling this method, before bootstrap.
+        """
+        axes = (self.t1axis, self.t2axis, self.t3axis)
+        for name, axis in zip(("t1", "t2", "t3"), axes):
+            if axis.length < 1 or not numpy.isfinite(axis.step) or axis.step <= 0:
+                raise ValueError(f"{name} must have samples and a positive finite step")
+            if not numpy.all(numpy.isfinite(axis.data)):
+                raise ValueError(f"{name} must contain finite times")
+        step = min(axis.step for axis in axes)
+        for name, axis in zip(("t1", "t2", "t3"), axes):
+            ratio = axis.step / step
+            points = axis.data / step
+            if not numpy.isclose(ratio, round(ratio), rtol=0, atol=1.0e-8):
+                raise ValueError(f"{name} step must be a multiple of the smallest step")
+            if not numpy.allclose(points, numpy.rint(points), rtol=0, atol=1.0e-8):
+                raise ValueError(f"{name} points must lie on the joint time grid")
+            if name != "t2" and not numpy.isclose(points[0], 0, rtol=0, atol=1.0e-8):
+                raise ValueError(f"{name} must start at zero")
+            if points[0] < -1.0e-8:
+                raise ValueError(f"{name} must contain nonnegative times")
+        end = sum(axis.data[-1] for axis in axes)
+        return TimeAxis(0.0, round(end / step) + 1, step)
+
+    def _check_bath_time_axis(self) -> None:
+        """Require bath samples to cover and align with the joint response grid."""
+        joint = self.get_joint_time_axis()
+        if not self._has_system:
+            return
+        sbi = self.system.get_SystemBathInteraction()
+        if sbi.CC is None:
+            raise ValueError("2D calculation requires bath correlation functions")
+        axis = sbi.TimeAxis
+        if (
+            axis.length < 2
+            or not numpy.isfinite(axis.step)
+            or axis.step <= 0
+            or not numpy.all(numpy.isfinite(axis.data))
+        ):
+            raise ValueError(
+                "Bath time axis must have at least two finite samples and a positive step"
+            )
+        if not numpy.isclose(axis.data[0] / joint.step, 0, rtol=0, atol=1.0e-8):
+            raise ValueError("Bath time axis must start at zero")
+        ratio = joint.step / axis.step
+        if not numpy.isclose(ratio, round(ratio), rtol=0, atol=1.0e-8) or ratio < 1:
+            raise ValueError("Bath step must divide the joint time step")
+        if axis.data[-1] < joint.data[-1] - joint.step * 1.0e-8:
+            raise ValueError(
+                "Bath time axis must cover t1_max + t2_max + t3_max "
+                f"({joint.data[-1]} fs); use get_joint_time_axis()"
+            )
+
     def _detection_weight(self, resp: Any) -> float:
         """Returns the detection weight for a response contribution."""
         if self.twodtype == "2DES":
@@ -322,6 +393,7 @@ class TwoDResponseCalculator:
         list goes through the time points in t2.
 
         """
+        self._check_bath_time_axis()
         self.verbose = verbose
         self.pad = pad
         self.write_resp = write_resp
@@ -412,7 +484,11 @@ class TwoDResponseCalculator:
                 sbi = sys.get_SystemBathInteraction()
                 cfm = sbi.CC
                 cfm.create_double_integral()
-                sys.get_lineshape_functions(self.jump_order)
+                sbi.GG = sys.get_lineshape_functions(
+                    self.jump_order, timeaxis=[self.t1axis, self.t3axis]
+                )
+                sbi._has_gg_storage = True
+                sbi._gg_storage_config = self.jump_order
 
                 #
                 #  This section will also be removed - It goes to the new Response class
@@ -481,6 +557,7 @@ class TwoDResponseCalculator:
 
     def calculate_one(self, tc: int) -> Any:
         """Calculate one population time"""
+        self._check_bath_time_axis()
         try:
             tt2 = self.t2axis.data[tc]
         except (IndexError, AttributeError):

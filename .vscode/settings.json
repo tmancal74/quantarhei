@@ -1,0 +1,27 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "python.terminal.activateEnvironment": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": ["tests/unit"],
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.testing.autoTestDiscoverOnSaveEnabled": false,
+  "python.analysis.typeCheckingMode": "off",
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "ruff.importStrategy": "fromEnvironment",
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+  },
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/.worktrees/**": true,
+    "**/docs/sphinx/_build/**": true
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "**/.worktrees": true,
+    "**/htmlcov": true,
+    "**/docs/sphinx/_build": true
+  }
+}

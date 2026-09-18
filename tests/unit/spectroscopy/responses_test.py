@@ -145,9 +145,9 @@ class TestResponses(unittest.TestCase):
         # Lineshape function
         #
         Nt1 = 100
-        dt1 = 11
+        dt1 = 10
         Nt3 = 100
-        dt3 = 12
+        dt3 = 20
 
         Nt2 = 50
         dt2 = 10.0
@@ -267,11 +267,7 @@ class TestResponses(unittest.TestCase):
         twod0.set_axis_1(t1_axis)
         twod0.set_axis_3(t3_axis)
 
-        # The stored reference was generated before 2D FFTs carried explicit
-        # integral factors.  Keep this compatibility scaling until the
-        # reference data are regenerated; then remove this factor.
-        fft_integral_scale = Nt1 * dt1 * dt3
-        npt.assert_allclose(twod0.data * fft_integral_scale, twod.data)
+        npt.assert_allclose(twod0.data, twod.data)
 
     def test_LouvillePathway(self):
         """Testing basic functions of the TwoDSpectrumCalculator class"""

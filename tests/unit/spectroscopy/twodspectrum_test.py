@@ -38,6 +38,9 @@ class TestTwoDSpectrum(unittest.TestCase):
     """Tests for the response package"""
 
     def setUp(self, verbose=False):
+        self._setup_system()
+
+    def _setup_system(self, prepare_underdamped=False):
         #
         #  Chlorophyll parameters
         #
@@ -84,6 +87,9 @@ class TestTwoDSpectrum(unittest.TestCase):
         t3_axis = qr.TimeAxis(0.0, Nt, dt)
 
         t2_axis = qr.TimeAxis(0.0, Nt2, dt2)
+        bath_axis = qr.TwoDResponseCalculator(
+            t1_axis, t2_axis, t3_axis
+        ).get_joint_time_axis()
 
         #
         # Bath correlation functions for the molecular transitions
@@ -97,12 +103,6 @@ class TestTwoDSpectrum(unittest.TestCase):
             "matsubara": 20,
         }
 
-        # md01_params = {"ftype":  "UnderdampedBrownian",
-        #               "reorg": 70.0,
-        #               "freq":  500.0,
-        #               "gamma": 100.0,
-        #               "T": temperature}
-
         cf02_params = {
             "ftype": "OverdampedBrownian",
             "reorg": 140.0,
@@ -111,21 +111,27 @@ class TestTwoDSpectrum(unittest.TestCase):
             "matsubara": 20,
         }
 
-        # md02_params = {"ftype":  "UnderdampedBrownian",
-        #               "reorg": 60.0,
-        #               "freq":  500.0,
-        #               "gamma": 100.0,
-        #               "T": temperature}
-
         # Build the correlation function
         with qr.energy_units("1/cm"):
-            cfce1 = qr.CorrelationFunction(t1_axis, cf01_params)
-            # c1_under = qr.CorrelationFunction(t1_axis, md01_params)
-            cfce2 = qr.CorrelationFunction(t1_axis, cf02_params)
-            # c2_under = qr.CorrelationFunction(t1_axis, md02_params)
+            cfce1 = qr.CorrelationFunction(bath_axis, cf01_params)
+            cfce2 = qr.CorrelationFunction(bath_axis, cf02_params)
 
-        # cfce1 += c1_under
-        # cfce2 += c2_under
+            if prepare_underdamped:
+                mode_params = {
+                    "ftype": "UnderdampedBrownian",
+                    # Huang-Rhys factor S = reorg / freq = 0.3.
+                    "reorg": 300.0,
+                    "freq": 1000.0,
+                    # Oscillation envelope exp(-gamma*t/2): 3 ps damping time.
+                    "gamma": qr.convert(2.0 / 3000.0, "int", "1/cm"),
+                    "T": temperature,
+                }
+                c1_under = qr.CorrelationFunction(bath_axis, mode_params)
+                c2_under = qr.CorrelationFunction(bath_axis, mode_params.copy())
+
+                cfce1 += c1_under
+                cfce2 += c2_under
+
         cfce3 = cfce1
 
         from quantarhei.core.managers import UnitsManaged
@@ -258,6 +264,14 @@ class TestTwoDSpectrum(unittest.TestCase):
         self.dt2 = dt2
 
     def test_twod_1(self):
+        self._check_twod_reference_spectra()
+
+    def test_twod_with_underdamped_component_prepared(self):
+        """Calculate with vibrational components added to the overdamped bath."""
+        self._setup_system(prepare_underdamped=True)
+        self._check_twod_reference_spectra(underdamped=True)
+
+    def _check_twod_reference_spectra(self, underdamped=False):
 
         Nt1 = self.Nt
         dt1 = self.dt
@@ -332,6 +346,12 @@ class TestTwoDSpectrum(unittest.TestCase):
         twod1 = scont.get_spectrum(0.0)
         twod2 = scont.get_spectrum(T2)
 
+        for spectrum in (twod1, twod2):
+            self.assertTrue(
+                numpy.all(numpy.isfinite(spectrum.data)),
+                f"Non-finite 2D spectrum at t2 = {spectrum.get_t2()} fs",
+            )
+
         if _show_spectra_:
             # plot_window = [11000,13000,11000,13000]
             plot_window = [3.07, 3.27, 3.07, 3.27]
@@ -345,8 +365,9 @@ class TestTwoDSpectrum(unittest.TestCase):
 
             plt.show()
 
-        file_path_1 = TEST_DIR / "twodspectrum_test_data_0.dat"
-        file_path_2 = TEST_DIR / "twodspectrum_test_data_100.dat"
+        prefix = "twodspectrum_underdamped" if underdamped else "twodspectrum_test"
+        file_path_1 = TEST_DIR / f"{prefix}_data_0.dat"
+        file_path_2 = TEST_DIR / f"{prefix}_data_100.dat"
 
         if _save_data_:
             twod1.save_data(file_path_1)
@@ -378,12 +399,9 @@ class TestTwoDSpectrum(unittest.TestCase):
         #
         #    plt.show()
 
-        # The stored references were generated before 2D FFTs carried explicit
-        # integral factors.  Keep this compatibility scaling until the
-        # reference data are regenerated; then remove this factor.
-        fft_integral_scale = Nt1 * dt1 * dt3
-        npt.assert_allclose(twod01.data * fft_integral_scale, twod1.data)
-        npt.assert_allclose(twod02.data * fft_integral_scale, twod2.data)
+        # Regenerated references include the FFT integral normalization.
+        npt.assert_allclose(twod01.data, twod1.data)
+        npt.assert_allclose(twod02.data, twod2.data)
 
     def test_get_cut_along_line_uses_correct_y_coordinate(self):
         """get_cut_along_line must use point2[1] not point2[0] for vy2"""
