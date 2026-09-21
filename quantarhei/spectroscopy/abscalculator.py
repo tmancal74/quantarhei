@@ -267,7 +267,8 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                     spect = self._calculate_monomer(raw=raw)
 
                 elif isinstance(self.system, OpenSystem):
-                    spect = self._calculate_open_system(raw=raw)
+                    # spect = self._calculate_open_system(raw=raw)
+                    spect = self._calculate_monomer(raw=raw)
 
             else:
                 raise QuantarheiError("System to calculate spectrum for not defined")
@@ -800,6 +801,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         if self.system._has_system_bath_coupling:
             # correlation function
             ct = self.system.get_egcf((0, 1))
+
             gt = _c2g(ta, ct.data)
             tr = {
                 "ta": ta,
@@ -1241,7 +1243,8 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                         raw=raw,
                     )["abs"]
                 elif isinstance(self.system, OpenSystem):
-                    spect = self._calculate_open_system(raw=raw)
+                    # spect = self._calculate_open_system(raw=raw)
+                    spect = self._calculate_monomer(raw=raw)
                 else:
                     raise QuantarheiError(
                         "System to calculate spectrum for not defined"
@@ -1398,9 +1401,20 @@ def _c2g(timeaxis: Any, coft: numpy.ndarray) -> numpy.ndarray:
     ta = timeaxis
     rr = numpy.real(coft)
     ri = numpy.imag(coft)
-    sr = scipy.interpolate.UnivariateSpline(ta.data, rr, s=0).antiderivative()(ta.data)
-    sr = scipy.interpolate.UnivariateSpline(ta.data, sr, s=0).antiderivative()(ta.data)
-    si = scipy.interpolate.UnivariateSpline(ta.data, ri, s=0).antiderivative()(ta.data)
-    si = scipy.interpolate.UnivariateSpline(ta.data, si, s=0).antiderivative()(ta.data)
+    lngth_t = len(ta.data)
+    lngth_d = len(rr)
+    lngth = min(lngth_t, lngth_d)
+    sr = scipy.interpolate.UnivariateSpline(
+        ta.data[:lngth], rr[:lngth], s=0
+    ).antiderivative()(ta.data[:lngth])
+    sr = scipy.interpolate.UnivariateSpline(
+        ta.data[:lngth], sr[:lngth], s=0
+    ).antiderivative()(ta.data[:lngth])
+    si = scipy.interpolate.UnivariateSpline(
+        ta.data[:lngth], ri[:lngth], s=0
+    ).antiderivative()(ta.data[:lngth])
+    si = scipy.interpolate.UnivariateSpline(
+        ta.data[:lngth], si[:lngth], s=0
+    ).antiderivative()(ta.data[:lngth])
     gt = sr + 1j * si
     return gt
