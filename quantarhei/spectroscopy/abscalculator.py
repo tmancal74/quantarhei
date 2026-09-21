@@ -1210,6 +1210,12 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                         relaxation_hamiltonian=self._relaxation_hamiltonian,
                         raw=raw,
                     )["abs"]
+                elif isinstance(self.system, OpenSystem):
+                    spect = self._calculate_monomer(raw=raw)
+                else:
+                    raise QuantarheiError(
+                        "System to calculate spectrum for not defined"
+                    )
             else:
                 raise QuantarheiError("System to calculate spectrum for not defined")
 
