@@ -285,6 +285,11 @@ from .core.saveable import Saveable as Saveable
 # Core classes
 #
 from .core.time import TimeAxis as TimeAxis
+from .core.unit_enums import EnergyUnit as EnergyUnit
+from .core.unit_enums import FrequencyUnit as FrequencyUnit
+from .core.unit_enums import LengthUnit as LengthUnit
+from .core.unit_enums import TemperatureUnit as TemperatureUnit
+from .core.unit_enums import TimeUnit as TimeUnit
 from .core.units import convert as convert
 from .core.units import in_current_units as in_current_units
 from .core.valueaxis import ValueAxis as ValueAxis
