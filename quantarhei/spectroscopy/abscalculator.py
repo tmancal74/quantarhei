@@ -262,14 +262,44 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                         raw=raw,
                     )
 
-                elif isinstance(self.system, (Molecule, OpenSystem)):
+                elif isinstance(self.system, Molecule):
                     # self._calculate_Molecule(rwa)
                     spect = self._calculate_monomer(raw=raw)
+
+                elif isinstance(self.system, OpenSystem):
+                    spect = self._calculate_open_system(raw=raw)
 
             else:
                 raise QuantarheiError("System to calculate spectrum for not defined")
 
         return spect
+
+    def _calculate_open_system(self, raw: bool = False) -> AbsSpectrum:
+        """Return an empty absorption spectrum for a general open system.
+
+        Parameters
+        ----------
+        raw : bool, optional
+            Omit the frequency prefactor. Both choices currently return zeros.
+
+        Returns
+        -------
+        AbsSpectrum
+            Zero-valued placeholder on the same frequency grid used for
+            monomer absorption. Bootstrap must have initialized the grid.
+
+        Notes
+        -----
+        The general OpenSystem response is not implemented yet.
+        """
+        with energy_units("int"):
+            length = self.frequencyAxis.length // 2
+            axis = FrequencyAxis(
+                self.frequencyAxis.data[length // 2],
+                length,
+                self.frequencyAxis.step,
+            )
+            return AbsSpectrum(axis=axis, data=numpy.zeros(length))
 
     def _calculateMolecule(self, rwa: float) -> None:
 
@@ -1211,7 +1241,7 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
                         raw=raw,
                     )["abs"]
                 elif isinstance(self.system, OpenSystem):
-                    spect = self._calculate_monomer(raw=raw)
+                    spect = self._calculate_open_system(raw=raw)
                 else:
                     raise QuantarheiError(
                         "System to calculate spectrum for not defined"
@@ -1337,7 +1367,8 @@ def _spect_from_dyn_single(
             for ig in range(HH.rwa_indices[1]):
                 print("ig=", ig)
                 for ll in range(rhot.data.shape[2]):
-                    plt.plot(time.data, rhot.data[:, ig, ll])
+                    lngth = rhot.data.shape[0]
+                    plt.plot(time.data[:lngth], rhot.data[:, ig, ll])
                 plt.title("kk=" + str(kk))
                 plt.show()
 
