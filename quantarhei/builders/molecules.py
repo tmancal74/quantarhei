@@ -130,6 +130,19 @@ class Molecule(UnitsManaged, Saveable, OpenSystem):
         if elenergies is None:
             elenergies = [0.0, 1.0]
 
+        if not isinstance(elenergies, (list, tuple, numpy.ndarray)):
+            raise TypeError(
+                "'elenergies' must be a list or array of numbers, "
+                f"got {type(elenergies).__name__}. "
+                "Example: Molecule(elenergies=[0.0, 12000.0])"
+            )
+        if len(elenergies) < 2:
+            raise ValueError(
+                "'elenergies' must have at least 2 elements "
+                "(ground state + one excited state), "
+                f"got {len(elenergies)}."
+            )
+
         OpenSystem.__init__(self, elenergies)
         # self.manager = Manager()
 

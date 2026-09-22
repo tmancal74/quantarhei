@@ -55,6 +55,7 @@ from __future__ import annotations
 import os
 import types
 import warnings
+from abc import ABC, abstractmethod
 from typing import Any
 
 from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
@@ -603,6 +604,17 @@ class Manager(metaclass=Singleton):
             i_val = x * val
             return i_val
 
+    @staticmethod
+    def _convert_nm(val: float | numpy.ndarray, cfact: float) -> float | numpy.ndarray:
+        tiny = numpy.finfo(float).tiny
+        try:
+            nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
+            ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
+            ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
+            return ret / cfact
+        except (AttributeError, TypeError):
+            return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
+
     def convert_energy_2_internal_u(
         self, val: float | numpy.ndarray
     ) -> float | numpy.ndarray:
@@ -615,22 +627,11 @@ class Manager(metaclass=Singleton):
 
         """
         units = self.current_units["energy"]
-        cfact = conversion_facs_energy[self.current_units["energy"]]
+        cfact = conversion_facs_energy[units]
 
-        # special handling for nano meters
         if units == "nm":
-            # zero is interpreted as zero energy; use tiny threshold to guard
-            # against subnormals that would overflow 1/val to inf
-            tiny = numpy.finfo(float).tiny
-            try:
-                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
-                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
-                return ret / cfact
-            except (AttributeError, TypeError):
-                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
-        else:
-            return val * cfact
+            return self._convert_nm(val, cfact)
+        return val * cfact
 
     def convert_energy_2_current_u(
         self, val: float | numpy.ndarray
@@ -646,20 +647,9 @@ class Manager(metaclass=Singleton):
         units = self.current_units["energy"]
         cfact = conversion_facs_energy[units]
 
-        # special handling for nanometers
         if units == "nm":
-            # zero is interpreted as zero energy; use tiny threshold to guard
-            # against subnormals that would overflow 1/val to inf
-            tiny = numpy.finfo(float).tiny
-            try:
-                nonzero = numpy.abs(val) > tiny  # type: ignore[operator]
-                ret = numpy.zeros(val.shape, dtype=val.dtype)  # type: ignore[union-attr]
-                ret[nonzero] = 1.0 / val[nonzero]  # type: ignore[index]
-                return ret / cfact
-            except (AttributeError, TypeError):
-                return (0.0 if abs(val) <= tiny else 1.0 / val) / cfact  # type: ignore[arg-type]
-        else:
-            return val / cfact
+            return self._convert_nm(val, cfact)
+        return val / cfact
 
     def convert_frequency_2_internal_u(
         self, val: float | numpy.ndarray
@@ -740,16 +730,6 @@ class Manager(metaclass=Singleton):
     def set_current_implementation(self, imp: str, choice: str) -> None:
         imp_id = self.implementation_points[imp]
         self.current_implementations[imp_id] = choice
-
-    def register_implementation(
-        self, imp_point: str, prefix: str, asint: Any = None
-    ) -> None:
-        pass
-
-    def commit_implementation(
-        self, imp_point: str, prefix: str, asint: Any = None
-    ) -> None:
-        pass
 
     def get_current_basis(self) -> int:
         """Returns the current basis id"""
@@ -850,40 +830,37 @@ class UnitsManaged(Managed):
         return self.manager.unit_repr_latex(utype)
 
 
-class EnergyUnitsManaged(Managed):
+class _TypedUnitsManaged(Managed):
+    _utype: str = ""
+    _internal_unit: str = ""
+
+    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+        converter = getattr(self.manager, f"convert_{self._utype}_2_internal_u")
+        return converter(val)
+
+    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
+        converter = getattr(self.manager, f"convert_{self._utype}_2_current_u")
+        return converter(val)
+
+    def unit_repr(self) -> str:
+        return self.manager.unit_repr(self._utype)
+
+    def unit_repr_latex(self) -> str:
+        return self.manager.unit_repr_latex(self._utype)
+
+
+class EnergyUnitsManaged(_TypedUnitsManaged):
+    _utype = "energy"
+    _internal_unit = "1/fs"
     utype = "energy"
     units = "1/fs"
 
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_energy_2_internal_u(val)
 
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_energy_2_current_u(val)
-
-    def unit_repr(self) -> str:
-        return self.manager.unit_repr("energy")
-
-    def unit_repr_latex(self, utype: str = "energy") -> str:
-        return self.manager.unit_repr_latex(utype)
-
-
-class LengthUnitsManaged(Managed):
-    """Class providing functions for length units conversion"""
-
+class LengthUnitsManaged(_TypedUnitsManaged):
+    _utype = "length"
+    _internal_unit = "A"
     utype = "length"
     units = "A"
-
-    def convert_2_internal_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_length_2_internal_u(val)
-
-    def convert_2_current_u(self, val: float | numpy.ndarray) -> float | numpy.ndarray:
-        return self.manager.convert_length_2_current_u(val)
-
-    def unit_repr(self) -> str:
-        return self.manager.unit_repr(self.utype)
-
-    def unit_repr_latex(self) -> str:
-        return self.manager.unit_repr_latex(self.utype)
 
 
 class BasisManaged(Managed):
@@ -898,7 +875,7 @@ class BasisManaged(Managed):
         self._current_basis = bb
 
 
-class units_context_manager:
+class units_context_manager(ABC):
     """General context manager to manage physical units of values"""
 
     def __init__(self, utype: str = "energy") -> None:
@@ -908,16 +885,16 @@ class units_context_manager:
         else:
             raise UnitsError("Unknown units type")
 
-    def __enter__(self) -> None:
-        pass
+    @abstractmethod
+    def __enter__(self) -> None: ...
 
+    @abstractmethod
     def __exit__(
         self,
         ext_ty: type[BaseException] | None,
         exc_val: BaseException | None,
         tb: types.TracebackType | None,
-    ) -> None:
-        pass
+    ) -> None: ...
 
 
 class energy_units(units_context_manager):
@@ -1030,22 +1007,22 @@ class length_units(units_context_manager):
         self.manager.set_current_units("length", self.units_backup)
 
 
-class basis_context_manager:
+class basis_context_manager(ABC):
     """General context manager to manage basis"""
 
     def __init__(self) -> None:
         self.manager = Manager()
 
-    def __enter__(self) -> None:
-        pass
+    @abstractmethod
+    def __enter__(self) -> None: ...
 
+    @abstractmethod
     def __exit__(
         self,
         ext_ty: type[BaseException] | None,
         exc_val: BaseException | None,
         tb: types.TracebackType | None,
-    ) -> None:
-        pass
+    ) -> None: ...
 
 
 class eigenbasis_of(basis_context_manager):
