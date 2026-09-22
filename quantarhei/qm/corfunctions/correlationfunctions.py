@@ -88,6 +88,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         "Underdamped",
         "B777",
         "CP29",
+        "M-defined",
         "Value-defined",
     )
 
@@ -211,6 +212,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
                     elif ftype == "CP29":
                         self._make_CP29_spectral_density(params, values=values)
+
+                    elif ftype == "M-defined":
+                        self._make_m_defined(prms)
 
                     elif ftype == "Value-defined":
                         self._make_value_defined(prms, values)
@@ -455,6 +459,89 @@ class CorrelationFunction(DFunction, UnitsManaged):
 
         # check temperature and update cutoff time
         self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
+
+    def _make_m_defined(self, params: dict) -> None:
+        """Create a correlation function from a normalized relaxation M(t).
+
+        The parameter dictionary must contain ``M`` with values sampled on
+        this correlation function's time axis.  The legacy convention is
+
+        ``J(omega) = 2*reorg*omega*int_0^inf M(t)*cos(omega*t) dt``.
+
+        The resulting numerical spectral density is converted to a
+        correlation function through the existing value-defined pathway.
+        """
+        from scipy.fft import dct
+        from scipy.interpolate import interp1d
+
+        from .spectraldensities import SpectralDensity
+
+        temperature = params["T"]
+        lamb = params["reorg"]
+
+        if not numpy.isclose(self.axis.start, 0.0):
+            raise QuantarheiError(
+                "M-defined correlation function requires a time axis starting at zero"
+            )
+        if self.axis.atype != "upper-half" or self.axis.length < 2:
+            raise QuantarheiError(
+                "M-defined correlation function requires an upper-half time axis with at least two points"
+            )
+
+        try:
+            mvals = numpy.asarray(params["M"])
+        except KeyError:
+            raise QuantarheiError(
+                "M-defined correlation function requires the `M` parameter"
+            )
+
+        if mvals.ndim != 1 or mvals.size != self.axis.length:
+            raise QuantarheiError(
+                "The `M` values must be a one-dimensional array matching the time axis"
+            )
+        if numpy.iscomplexobj(mvals) or not numpy.all(numpy.isfinite(mvals)):
+            raise QuantarheiError("The `M` values must be finite and real")
+        if not numpy.isclose(mvals[0], 1.0, rtol=1.0e-7, atol=1.0e-10):
+            raise QuantarheiError("M-defined correlation function requires M(0) = 1")
+        if lamb <= 0.0:
+            raise QuantarheiError(
+                "M-defined correlation function requires positive reorganization energy"
+            )
+        if temperature <= 0.0:
+            raise QuantarheiError(
+                "M-defined correlation function requires positive temperature"
+            )
+
+        # A type-I DCT gives twice the trapezoidal cosine integral on the
+        # uniform interval [0, tmax].  Interpolation places it on the FFT
+        # frequency axis used by Quantarhei.
+        dt = self.axis.step
+        tmax = self.axis.max
+        omega_dct = numpy.pi * numpy.arange(mvals.size) / tmax
+        cosine_integral = 0.5 * dt * dct(mvals, type=1)
+        cint = interp1d(
+            omega_dct,
+            cosine_integral,
+            kind="linear",
+            bounds_error=False,
+            fill_value=0.0,
+        )
+
+        with energy_units("int"):
+            faxis = self.axis.get_FrequencyAxis()
+            omega = faxis.data
+            sdvals = 2.0 * lamb * omega * cint(numpy.abs(omega))
+            sdparams = [{"ftype": "Value-defined", "reorg": lamb, "T": temperature}]
+            sd = SpectralDensity(faxis, sdparams, values=sdvals)
+            cf = sd.get_CorrelationFunction(temperature=temperature, ta=self.axis)
+
+        self._add_me(self.axis, cf.data)
+        self.lamb += lamb
+        if "cutoff-time" in params:
+            ctime = params["cutoff-time"]
+        else:
+            ctime = self.axis.max
+        self._set_temperature_and_cutoff_time(temperature, ctime)
 
     def _make_value_defined(self, params: dict, values: Any) -> None:
 
