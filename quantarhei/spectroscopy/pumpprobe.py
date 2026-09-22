@@ -71,16 +71,12 @@ class PumpProbeSpectrum(DFunction):
     # FIXME: Add function _add_data (if data None = set_data, else add)
 
 
-class _RWAOverrideSystem:
-    """Delegates to a system while overriding the response-backend RWA."""
+class _LineshapeTimeAxisSystem:
+    """Delegates to a system while selecting response lineshape time axes."""
 
-    def __init__(self, system: Any, rwa: Any, lineshape_timeaxis: Any = None) -> None:
+    def __init__(self, system: Any, lineshape_timeaxis: Any = None) -> None:
         self._system = system
-        self._rwa = rwa
         self._lineshape_timeaxis = lineshape_timeaxis
-
-    def get_RWA_suggestion(self) -> Any:
-        return self._rwa
 
     def get_lineshape_functions(self, config: dict | int | None = None) -> Any:
         return self._system.get_lineshape_functions(
@@ -369,10 +365,12 @@ class PumpProbeSpectrumCalculator:
         include_nonsecular_remainder: bool = True,
         include_remainder: bool = True,
         dipole_normalization_tol: float = 1.0e-12,
+        frequency_axis_type: str = "upper-half",
     ) -> None:
 
         self.t2axis = t2axis
         self.t3axis = t3axis
+        self.frequency_axis_type = frequency_axis_type
 
         external_count = sum(
             item is not None
@@ -434,6 +432,34 @@ class PumpProbeSpectrumCalculator:
 
         self.tc = 0
 
+        self._validate_frequency_axis_type()
+
+    def _validate_frequency_axis_type(self) -> None:
+        if self.frequency_axis_type not in ("upper-half", "complete"):
+            raise ValueError("frequency_axis_type has to be 'upper-half' or 'complete'")
+
+    def _make_frequency_axis(self) -> FrequencyAxis:
+        """Create detection-frequency axis from the selected PP convention."""
+        if self.frequency_axis_type == "complete":
+            atype = self.t3axis.atype
+            self.t3axis.atype = "complete"
+            try:
+                axis = self.t3axis.get_FrequencyAxis()
+                axis.data += self.rwa
+                axis.start += self.rwa
+            finally:
+                self.t3axis.atype = atype
+            return axis
+
+        # Historical PP behavior: use the upper-half FFT axis and retain
+        # the central half as the detection-frequency window.
+        freq = self.t3axis.get_FrequencyAxis()
+        freq.data += self.rwa
+        Nt = len(freq.data) // 2
+        do = freq.data[1] - freq.data[0]
+        st = freq.data[Nt // 2]
+        return FrequencyAxis(st, Nt, do)
+
     def bootstrap(
         self,
         rwa: float = 0.0,
@@ -465,21 +491,7 @@ class PumpProbeSpectrumCalculator:
                 self._adiabatic_noBath = True
 
         with energy_units("int"):
-            # atype = self.t3axis.atype
-            # self.t3axis.atype = 'complete'
-            # self.oa3 = self.t3axis.get_FrequencyAxis()
-            # self.oa3.data += self.rwa
-            # self.oa3.start += self.rwa
-            # self.t3axis.atype = atype
-
-            # we only want to retain the upper half of the spectrum
-            freq = self.t3axis.get_FrequencyAxis()
-            freq.data += self.rwa
-            Nt = len(freq.data) // 2
-            do = freq.data[1] - freq.data[0]
-            st = freq.data[Nt // 2]
-            # we represent the Frequency axis anew
-            self.oa3 = FrequencyAxis(st, Nt, do)
+            self.oa3 = self._make_frequency_axis()
 
         self.tc = 0
         self.lab = lab
@@ -738,15 +750,15 @@ class PumpProbeSpectrumCalculator:
     def _response_backend_trace(self, diagrams: list[str], tau: float, lab: Any) -> Any:
         """Calculate selected response-backend diagrams as a t3 trace at t1 = 0."""
         t1axis = TimeAxis(0.0, 1, self.t3axis.step)
-        backend_system = _RWAOverrideSystem(
-            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        lineshape_system = _LineshapeTimeAxisSystem(
+            self.system, lineshape_timeaxis=[t1axis, self.t3axis]
         )
 
         response = numpy.zeros(self.t3axis.length, dtype=numpy.complex128)
         for diagram in diagrams:
             rsp = NonLinearResponse(
                 lab,
-                backend_system,
+                lineshape_system,
                 diagram,
                 t1axis,
                 self.t2axis,
@@ -792,12 +804,19 @@ class PumpProbeSpectrumCalculator:
         onepp.set_axis(self.oa3)
 
         ppspec = -numpy.asarray(response, dtype=numpy.complex128)
-        ft = numpy.fft.hfft(ppspec) * self.t3axis.step
-        ft = numpy.fft.fftshift(ft)
-        ft = numpy.flipud(ft)
-        Nt = self.t3axis.length
+        if self.frequency_axis_type == "complete":
+            Nt = self.t3axis.length
+            ft = numpy.fft.hfft(ppspec, n=2 * Nt) * self.t3axis.step
+            ft = numpy.fft.fftshift(ft)
+            ft = numpy.flipud(ft)
+            data = numpy.real(ft[0 : 2 * Nt : 2])
+        else:
+            ft = numpy.fft.hfft(ppspec) * self.t3axis.step
+            ft = numpy.fft.fftshift(ft)
+            ft = numpy.flipud(ft)
+            Nt = self.t3axis.length
 
-        data = numpy.real(ft[Nt // 2 : Nt + Nt // 2])
+            data = numpy.real(ft[Nt // 2 : Nt + Nt // 2])
         data = self.oa3.data * data
 
         onepp._add_data(data)
@@ -851,8 +870,8 @@ class PumpProbeSpectrumCalculator:
             self.system.diagonalize()
 
         t1axis = TimeAxis(0.0, 1, self.t3axis.step)
-        backend_system = _RWAOverrideSystem(
-            self.system, self.rwa, lineshape_timeaxis=[t1axis, self.t3axis]
+        lineshape_system = _LineshapeTimeAxisSystem(
+            self.system, lineshape_timeaxis=[t1axis, self.t3axis]
         )
         response_types = []
         if "Full" in spec or "SE" in spec:
@@ -889,7 +908,7 @@ class PumpProbeSpectrumCalculator:
         responses = [
             NonLinearResponse(
                 lab,
-                backend_system,
+                lineshape_system,
                 diagram,
                 t1axis,
                 self.t2axis,

@@ -6,6 +6,7 @@ systembathinteraction module
 
 from __future__ import annotations
 
+from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import numpy
@@ -23,6 +24,18 @@ if TYPE_CHECKING:
     from ...builders.aggregates import Aggregate
     from ...builders.molecules import Molecule
     from ...builders.opensystem import OpenSystem
+
+
+def _bounded_lineshape(function: DFunction, time: Any) -> Any:
+    """Interpolate g(t), continuing its final secant line beyond the time grid.
+
+    The last two sampled complex values determine the tail slope. Anchor the
+    continuation at the final value to keep g(t) continuous at the boundary.
+    """
+    end = function.axis.data[-1]
+    slope = (function.data[-1] - function.data[-2]) / (end - function.axis.data[-2])
+    values = function.at(numpy.minimum(time, end), approx="spline")
+    return values + numpy.maximum(numpy.asarray(time) - end, 0.0) * slope
 
 
 class SystemBathInteraction(Saveable):
@@ -382,7 +395,9 @@ class SystemBathInteraction(Saveable):
                 gf = c2g(self.TimeAxis, cf)
                 # make it into spline function
                 df = DFunction(self.TimeAxis, gf)
-                gfunc = df.as_spline_function()
+                # Response time sums can exceed the supplied bath time axis.
+                # Continue its final secant line rather than extrapolating a spline.
+                gfunc = partial(_bounded_lineshape, df)
                 # save for later
                 fcions[ii] = gfunc
 
