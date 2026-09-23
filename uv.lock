@@ -2959,7 +2959,7 @@ wheels = [
 
 [[package]]
 name = "quantarhei"
-version = "0.0.70"
+version = "0.0.71"
 source = { editable = "." }
 dependencies = [
     { name = "dill" },

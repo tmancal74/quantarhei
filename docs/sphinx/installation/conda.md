@@ -30,7 +30,7 @@ Use `pip` inside your conda environment as shown above.
 
 ```bash
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.70
+0.0.71
 ```
 
 [anaconda]: https://www.anaconda.com

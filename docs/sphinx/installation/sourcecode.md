@@ -57,7 +57,7 @@ Verify the package:
 
 ```bash
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.70
+0.0.71
 ```
 
 [releases page]: https://github.com/tmancal74/quantarhei/releases
