@@ -1517,28 +1517,18 @@ class ReducedDensityMatrixPropagator(MatrixData, Saveable):
             except TypeError:
                 Nfields = 1
 
-            if Nfields > 1:
-                # rotating wave frequency is set to all of the fields globally
-                self.EField[0].set_rwa(om)
-
-            else:
-                self.EField.set_rwa(om)
+            rwa_frequency = Manager().convert_energy_2_current_u(om)
 
             # the two complex components of the field
             if Nfields > 1:
                 Epls = []
                 Emin = []
                 for kk in range(Nfields):
-                    Epls.append(self.EField[kk].field_p)
-                    Emin.append(self.EField[kk].field_m)
+                    Epls.append(self.EField[kk].field_p_at(rwa_frequency=rwa_frequency))
+                    Emin.append(self.EField[kk].field_m_at(rwa_frequency=rwa_frequency))
             else:
-                Epls = self.EField.field_p
-                Emin = self.EField.field_m
-
-            if Nfields > 1:
-                self.EField[0].restore_rwa()
-            else:
-                self.EField.restore_rwa()
+                Epls = self.EField.field_p_at(rwa_frequency=rwa_frequency)
+                Emin = self.EField.field_m_at(rwa_frequency=rwa_frequency)
 
             # upper and lower triagle
             N = self.Hamiltonian.dim

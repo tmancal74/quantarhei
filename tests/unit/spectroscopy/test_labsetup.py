@@ -195,6 +195,82 @@ class TestLabSetup(unittest.TestCase):
             )
         self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.2)
 
+    def test_field_phase_is_defined_at_pulse_center(self):
+        """Translation preserves the configured carrier phase at the peak."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+
+        expected = 0.3 * numpy.exp(1j * 0.4)
+        npt.assert_allclose(field.field_p_at(12.0), expected)
+
+        field.set_center(-17.0)
+        npt.assert_allclose(field.field_p_at(-17.0), expected)
+
+    def test_field_components_follow_the_analytic_signal_convention(self):
+        """Negative-frequency and real fields derive from the analytic field."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([95.0, 100.0, 105.0])
+
+        field_p = field.field_p_at(times)
+        field_m = field.field_m_at(times)
+        real_field = field.real_field_at(times)
+
+        npt.assert_allclose(field_m, numpy.conj(field_p))
+        npt.assert_allclose(real_field, (field_p + field_m) / 2.0)
+        self.assertTrue(numpy.isrealobj(real_field))
+
+    def test_rwa_field_evaluation_is_local_and_non_mutating(self):
+        """RWA evaluation changes only the local carrier detuning."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+        times = numpy.array([10.0, 12.0, 14.0])
+        omega_before = lab.omega.copy()
+
+        actual = field.field_p_at(times, rwa_frequency=0.1)
+        envelope = lab.pulse_t[0].at(times)
+        expected = envelope * numpy.exp(-1j * (0.25 - 0.1) * (times - 12.0) + 1j * 0.4)
+
+        npt.assert_allclose(actual, expected)
+        npt.assert_allclose(lab.omega, omega_before)
+        npt.assert_allclose(
+            lab.get_field(0, rwa_frequency=0.1),
+            field.field_p_at(rwa_frequency=0.1),
+        )
+
+    def test_delay_phase_storage_does_not_affect_the_field(self):
+        """Legacy delay-phase storage is not part of field evaluation."""
+        field = self.lab.get_labfield(2)
+        original = field.field_p_at()
+
+        self.lab.delay_phases[2] += 10.0
+
+        npt.assert_allclose(field.field_p_at(), original)
+
+    def test_mutating_rwa_methods_are_deprecated(self):
+        """Legacy mutating RWA methods remain available during migration."""
+        lab = self.lab
+        omega_before = lab.omega.copy()
+
+        with self.assertWarns(DeprecationWarning):
+            lab.set_rwa(0.1)
+        npt.assert_allclose(lab.omega, omega_before - 0.1)
+
+        with self.assertWarns(DeprecationWarning):
+            lab.restore_rwa()
+        npt.assert_allclose(lab.omega, omega_before)
+
     def test_dm_propagation_with_fields(self):
         """(LabSetup) Time evolution with explicit electric field"""
         from quantarhei.qm import LindbladForm, Operator, SystemBathInteraction

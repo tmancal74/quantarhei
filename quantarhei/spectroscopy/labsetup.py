@@ -1149,6 +1149,19 @@ class LabSetup:
         return fields
 
     def set_rwa(self, om: float) -> None:
+        """Subtract a frequency from all carriers in place.
+
+        .. deprecated:: 0.0.71
+            Use ``LabField.field_p_at(..., rwa_frequency=...)`` or
+            ``LabSetup.get_field(..., rwa_frequency=...)`` for non-mutating
+            rotating-frame evaluation.
+        """
+        warnings.warn(
+            "LabSetup.set_rwa() mutates pulse frequencies and is deprecated; "
+            "pass rwa_frequency when evaluating a field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         self.saved_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
 
@@ -1156,6 +1169,12 @@ class LabSetup:
         self.omega[:] -= om
 
     def restore_rwa(self) -> None:
+        """Restore carriers saved by the deprecated :meth:`set_rwa`."""
+        warnings.warn(
+            "LabSetup.restore_rwa() is deprecated with LabSetup.set_rwa()",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         if self.saved_omega is None:
             raise QuantarheiError("RWA has to be set first")
@@ -1163,27 +1182,26 @@ class LabSetup:
         self.omega[:] = self.saved_omega[:]
 
     def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:
-        """Returns the total field of the lab or a single field"""
+        """Return a positive-frequency field on the configured time axis.
+
+        When ``kk`` is ``None``, fields from all pulses are summed. The
+        optional ``rwa_frequency`` is applied during evaluation and does not
+        modify stored carrier frequencies.
+        """
         if kk is None:
             flds = self.get_labfields()
 
             kk = 0
             for fl in flds:
                 if kk == 0:
-                    fld = fl.get_field()
+                    fld = fl.field_p_at(rwa_frequency=rwa_frequency)
                 else:
-                    fld += fl.get_field()
+                    fld += fl.field_p_at(rwa_frequency=rwa_frequency)
                 kk += 1
 
         else:
             fl = self.get_labfield(kk)
-            fld = fl.get_field()
-
-        if rwa_frequency is not None:
-            ome = Manager().convert_energy_2_internal_u(rwa_frequency)
-            tt = self.timeaxis.data
-            arg = 1j * ome * tt
-            fld = fld * numpy.exp(arg)
+            fld = fl.field_p_at(rwa_frequency=rwa_frequency)
 
         return fld
 
@@ -1254,12 +1272,11 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
     def prop_getter(self: Any) -> Any:
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
-                return self.get_field()
+                return self.field_p_at()
             if cmplx_sign == -1:
-                return numpy.conj(self.get_field())
+                return self.field_m_at()
             if cmplx_sign == 0:
-                fld = self.get_field()
-                return (fld + numpy.conj(fld)) / 2.0
+                return self.real_field_at()
             raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
         else:
             raise QuantarheiError("The property '" + name + "' is not initialited.")
@@ -1480,12 +1497,16 @@ class LabField:
         return self.labsetup.phases[self.index]
 
     def get_delay_phase(self) -> Any:
-        """Returns the phase caused by the pulse delay"""
+        """Return the legacy laboratory-time delay phase.
+
+        This compatibility value is not used to construct electric fields.
+        New code should use the carrier phase defined at the pulse center.
+        """
         return self.labsetup.delay_phases[self.index]
 
     def get_total_phase(self) -> Any:
-
-        return self.labsetup.delay_phases[self.index] + self.labsetup.phases[self.index]
+        """Return the legacy sum of configured and delay phases."""
+        return self.get_delay_phase() + self.get_phase()
 
     def set_phase(self, val: float) -> None:
         """Sets the phase of the pulse
@@ -1536,6 +1557,7 @@ class LabField:
 
     def set_frequency(self, val: float) -> None:
         self.labsetup.omega[self.index] = val
+        self.set_delay_phase(self.tc)
 
     def get_polarization(self) -> Any:
         return self.labsetup.e[self.index, :]
@@ -1546,29 +1568,82 @@ class LabField:
     def get_fwhm(self) -> Any:
         return self.labsetup.saved_params[self.index]["FWHM"]
 
-    def get_field(self, time: Any = None, sign: int = 1) -> Any:
-        """Returns the electric field of the pulses"""
+    def _envelope_at(self, time: Any = None) -> Any:
+        """Return the stored pulse envelope at supplied times."""
         if self._center_changed:
-            # recalculate pulses
             self.labsetup.reset_pulse_shape()
-            # FIXME: might require reseting the phase too!!!
+            self._center_changed = False
 
         if time is None:
-            tt = self.labsetup.timeaxis.data
-            env = self.labsetup.pulse_t[self.index].data
-            om = self.om
-            phi = self.phi
-            delay_phi = self.delay_phi
-            # print(phi, delay_phi)
-            fld = (
-                env
-                * numpy.exp(-1j * sign * om * tt)
-                * numpy.exp(1j * sign * phi)
-                * numpy.exp(1j * sign * delay_phi)
-            )
-            return fld
+            return self.labsetup.pulse_t[self.index].data
 
         return self.labsetup.pulse_t[self.index].at(time)
+
+    def field_p_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
+        """Return the positive-frequency field at supplied times.
+
+        The configured phase is the carrier phase at the pulse center. The
+        rotating-frame frequency is applied non-mutatingly, so that
+
+        .. math::
+
+            E^{(+)}(t; \\Omega) = A(t-t_c)
+            \\exp[-i(\\omega-\\Omega)(t-t_c) + i\\phi].
+
+        Parameters
+        ----------
+        time : float or array-like, optional
+            Evaluation time. When omitted, the complete configured time axis
+            is used.
+        rwa_frequency : float, optional
+            Rotating-frame frequency in the active energy units.
+        """
+        if time is None:
+            times = self.labsetup.timeaxis.data
+        else:
+            times = numpy.asarray(time)
+
+        envelope = self._envelope_at(time)
+        omega = self.om
+        if rwa_frequency is not None:
+            omega -= Manager().convert_energy_2_internal_u(rwa_frequency)
+
+        local_time = times - self.tc
+        return envelope * numpy.exp(-1j * omega * local_time + 1j * self.phi)
+
+    def field_m_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
+        """Return the negative-frequency field at supplied times."""
+        return numpy.conj(self.field_p_at(time, rwa_frequency=rwa_frequency))
+
+    def real_field_at(self, time: Any = None) -> Any:
+        """Return the physical real field under the analytic-signal convention."""
+        return numpy.real(self.field_p_at(time))
+
+    def get_field(self, time: Any = None, sign: int = 1) -> Any:
+        """Return a field component using the historical interface.
+
+        Without ``time``, ``sign`` selects the positive-frequency (``1``),
+        negative-frequency (``-1``), or real (``0``) field on the configured
+        axis. Supplying ``time`` retains the historical envelope-only behavior
+        and is deprecated; use :meth:`field_p_at`, :meth:`field_m_at`, or
+        :meth:`real_field_at` instead.
+        """
+        if time is not None:
+            warnings.warn(
+                "LabField.get_field(time) returns only the envelope and is "
+                "deprecated; use field_p_at(), field_m_at(), or real_field_at()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return self._envelope_at(time)
+
+        if sign == 1:
+            return self.field_p_at()
+        if sign == -1:
+            return self.field_m_at()
+        if sign == 0:
+            return self.real_field_at()
+        raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
 
     def get_time_axis(self) -> Any:
         return self.labsetup.timeaxis
