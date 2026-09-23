@@ -2,6 +2,12 @@
 
 All notable changes to Quantarhei are documented here.
 
+## [0.0.70]
+
+### For users
+- Added correlation functions defined through an M(t) function.
+- Added unit-aware shifting of frequency axes.
+
 ## [0.0.69]
 
 ### For users

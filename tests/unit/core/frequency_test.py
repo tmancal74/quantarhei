@@ -67,3 +67,32 @@ class TestFrequencyAxis(unittest.TestCase):
 
         numpy.testing.assert_array_equal(wa.data, tb.data)
         #
+
+    def test_frequency_axis_shift_respects_energy_units(self):
+        """FrequencyAxis is shifted in the currently active energy units"""
+        wa = FrequencyAxis(0.1, 5, 0.01)
+        original_internal_data = wa.data.copy()
+        original_internal_start = wa.start
+        original_internal_step = wa.step
+
+        with energy_units("1/cm"):
+            shift = 1000.0
+            original_data = wa.data.copy()
+            original_start = wa.start
+
+            wa.shift(shift)
+
+            self.assertAlmostEqual(wa.start, original_start + shift)
+            numpy.testing.assert_allclose(wa.data, original_data + shift)
+            self.assertEqual(wa.start, wa.data[0])
+
+        with energy_units("1/cm"):
+            expected_internal_shift = wa.convert_2_internal_u(1000.0)
+
+        self.assertAlmostEqual(
+            wa.start, original_internal_start + expected_internal_shift
+        )
+        numpy.testing.assert_allclose(
+            wa.data, original_internal_data + expected_internal_shift
+        )
+        self.assertEqual(wa.step, original_internal_step)

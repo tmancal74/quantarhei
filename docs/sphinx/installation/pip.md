@@ -31,7 +31,7 @@ Verify the installation:
 
 ```bash
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.69
+0.0.70
 ```
 
 [pypi]: https://pypi.org/project/quantarhei/

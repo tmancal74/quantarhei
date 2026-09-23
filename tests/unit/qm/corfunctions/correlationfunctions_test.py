@@ -239,6 +239,77 @@ class TestCorrelationFunction(unittest.TestCase):
 
         self.assertTrue(f3.reorganization_energy_consistent())
 
+    def test_m_defined_exponential_matches_overdamped_brownian(self):
+        """M-defined exponential bath agrees with the Brownian model."""
+        time = TimeAxis(0.0, 4096, 0.5)
+        reorg = 210.0
+        cortime = 100.0
+        temperature = 300.0
+        mvals = numpy.exp(-time.data / cortime)
+
+        mparams = dict(
+            ftype="M-defined",
+            reorg=reorg,
+            T=temperature,
+            M=mvals,
+            **{"cutoff-time": 5.0 * cortime},
+        )
+        bparams = dict(
+            ftype="OverdampedBrownian",
+            reorg=reorg,
+            cortime=cortime,
+            T=temperature,
+            matsubara=100,
+        )
+
+        with energy_units("1/cm"):
+            mcf = CorrelationFunction(time, mparams)
+            bcf = CorrelationFunction(time, bparams)
+
+        # The transform of a one-sided sampled function has an endpoint
+        # artifact at t=0.  Away from that endpoint both constructions agree.
+        section = slice(20, 2000)
+        real_error = numpy.linalg.norm(
+            (mcf.data[section] - bcf.data[section]).real
+        ) / numpy.linalg.norm(bcf.data[section].real)
+        imag_error = numpy.linalg.norm(
+            (mcf.data[section] - bcf.data[section]).imag
+        ) / numpy.linalg.norm(bcf.data[section].imag)
+        self.assertLess(real_error, 2.0e-3)
+        self.assertLess(imag_error, 3.0e-2)
+        self.assertTrue(mcf.reorganization_energy_consistent(rtol=2.0e-3))
+
+    def test_m_defined_validates_input(self):
+        """M-defined correlation functions reject inconsistent M arrays."""
+        time = TimeAxis(0.0, 100, 1.0)
+        params = dict(ftype="M-defined", reorg=20.0, T=300.0, M=numpy.ones(99))
+        with energy_units("1/cm"):
+            with self.assertRaises(Exception):
+                CorrelationFunction(time, params)
+
+        params["M"] = numpy.ones(100)
+        params["M"][0] = 0.5
+        with energy_units("1/cm"):
+            with self.assertRaises(Exception):
+                CorrelationFunction(time, params)
+
+    def test_m_defined_gaussian(self):
+        """A Gaussian M function produces a finite consistent bath."""
+        time = TimeAxis(0.0, 4096, 0.5)
+        tau = 130.0
+        params = dict(
+            ftype="M-defined",
+            reorg=140.0,
+            T=300.0,
+            M=numpy.exp(-((time.data / tau) ** 2)),
+        )
+
+        with energy_units("1/cm"):
+            cf = CorrelationFunction(time, params)
+
+        self.assertTrue(numpy.all(numpy.isfinite(cf.data)))
+        self.assertTrue(cf.reorganization_energy_consistent(rtol=2.0e-3))
+
     def test_of_correlation_function_as_Saveable(self):
         """(CorrelationFunction) Testing of saving"""
         t = TimeAxis(0.0, 1000, 1.0)

@@ -48,3 +48,42 @@ with energy_units("1/cm"):
 
 print(sd)
 ```
+
+## Defining a correlation function through M(t)
+
+Legacy line-shape models sometimes specify a normalized relaxation function
+`M(t)` rather than a spectral density.  Such a model can be supplied through
+the standard parameter dictionary with `ftype="M-defined"`.  The `M` array
+has to be real, sampled on the supplied time axis, and normalized to
+`M[0] == 1`.
+
+```python
+import numpy
+from quantarhei import CorrelationFunction, TimeAxis, energy_units
+
+ta = TimeAxis(0.0, 5000, 1.0)
+tau = 130.0
+m_values = numpy.exp(-(ta.data/tau)**2)
+
+params = {
+    "ftype": "M-defined",
+    "M": m_values,
+    "reorg": 140.0,       # 1/cm
+    "T": 300.0,           # K
+    "cutoff-time": 650.0, # fs, optional
+}
+
+with energy_units("1/cm"):
+    cf = CorrelationFunction(ta, params)
+```
+
+Internally Quantarhei constructs the spectral density according to
+
+```text
+J(omega) = 2*reorg*omega*integral(M(t)*cos(omega*t), t=0..infinity)
+```
+
+and converts it to a numerical correlation function through the existing
+value-defined mechanism.  The time axis should extend far enough that `M(t)`
+has decayed at its upper boundary.  Insufficient time range causes truncation
+and Fourier-transform artifacts.

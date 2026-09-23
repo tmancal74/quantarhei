@@ -204,6 +204,18 @@ class FrequencyAxis(ValueAxis, EnergyUnitsManaged):
         )
         return axis
 
+    def shift(self, w_shift: float) -> None:
+        """Shift the frequency axis in the current energy units.
+
+        Parameters
+        ----------
+        w_shift : float
+            Frequency shift expressed in the currently active energy units.
+        """
+        w_shift_internal = self.convert_2_internal_u(w_shift)
+        with energy_units("int"):
+            super().shift(w_shift_internal)
+
     def get_TimeAxis(self) -> TimeAxis:
         """Returns the corresponding TimeAxis object"""
         from .time import TimeAxis

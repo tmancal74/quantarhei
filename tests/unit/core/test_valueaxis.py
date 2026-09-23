@@ -27,6 +27,20 @@ class TestValueAxis(unittest.TestCase):
         self.assertEqual(ta.min, ta.data[0])
         self.assertEqual(ta.max, ta.data[ta.length - 1])
 
+    def test_value_axis_shift(self):
+        """ValueAxis shift keeps its defining attributes consistent"""
+        axis = ValueAxis(-2.0, 5, 0.5)
+        original_data = axis.data.copy()
+
+        axis.shift(3.5)
+
+        self.assertEqual(axis.start, 1.5)
+        self.assertEqual(axis.step, 0.5)
+        self.assertEqual(axis.length, 5)
+        numpy.testing.assert_allclose(axis.data, original_data + 3.5)
+        self.assertEqual(axis.min, axis.data[0])
+        self.assertEqual(axis.max, axis.data[-1])
+
     def test_if_value_axis_is_saveable(self):
         """Testing the Saveability of ValueAxis"""
         # with h5py.File("test_file_ValueAxes",driver="core",
