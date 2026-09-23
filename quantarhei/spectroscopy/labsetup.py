@@ -830,7 +830,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(time, params)
         >>> dfc = lab.get_pulse_envelop(1, [-50.0, -30.0, 2.0, 30.0])
         >>> print(dfc)
-        [  1.41569209e-05   1.95716100e-03   3.09310662e-02   1.95716100e-03]
+        [ 0.02126234  0.25        0.99385763  0.25      ]
 
         .. plot::
             :include-source:
@@ -887,7 +887,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(freq, params)
         >>> dfc = lab.get_pulse_spectrum(1, [600.0, 700.0, 800.0, 900.0])
         >>> print(dfc)
-        [  2.46865450e-04   1.40563784e-04   7.33935374e-05   3.51409461e-05]
+        [ 0.45850202  0.34597747  0.25        0.17298874]
 
         Here is a complete example with setting, getting and plotting spectrum:
 
