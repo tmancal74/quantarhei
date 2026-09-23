@@ -150,6 +150,20 @@ class ValueAxis(Saveable):
         """Returns the maximum value on the axis"""
         return self.data[self.length - 1]
 
+    def shift(self, shift: float) -> None:
+        """Shift the axis by a constant value in place.
+
+        The start and all sampled values are translated by ``shift``. The
+        step and length of the axis remain unchanged.
+
+        Parameters
+        ----------
+        shift : float
+            Value by which the axis is shifted.
+        """
+        self.start = self.start + shift
+        self.data = self.data + shift
+
     def locate(self, val: float) -> tuple[int, float]:
         """Return the index of the lower neighbor of ``val`` and the distance.
 
