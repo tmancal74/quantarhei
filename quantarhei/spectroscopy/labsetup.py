@@ -126,9 +126,9 @@ class LabSetup:
 
         params : dictionary
             Dictionary of pulse parameters. The parameters are the following:
-            `ptype` is the pulse type with possible values `Gaussian` and
-            `numeric`. Time domain pulses are specified with their center
-            at t = 0.
+            `ptype` is the pulse type with possible values `Gaussian`,
+            `delta`, and `numeric`. Time domain pulses are specified with
+            their center at t = 0.
 
             **Gaussian** pulse has further parameters `amplitude`, `FWHM`,
             and `frequency` with obvious meanings. `FWHM` is speficied in `fs`,
@@ -149,6 +149,10 @@ class LabSetup:
             **numeric** pulse is specified by a second parameters `function`
             which should be of DFunction type and specifies line shape around
             zero frequency.
+
+            A **delta** pulse is represented by one non-zero time-axis sample
+            with unit area, or by a constant on a frequency axis. Its optional
+            `amplitude` parameter defaults to one.
 
 
         Examples
@@ -392,6 +396,20 @@ class LabSetup:
 
                         self.pulse_f[k_p] = DFunction(fra, val)
 
+                elif par["ptype"] == "delta":
+                    amp = par.get("amplitude", 1.0)
+
+                    if self.axis_type == "time":
+                        tma = self.timeaxis
+                        data = numpy.zeros(tma.length)
+                        center_index = tma.nearest(self.pulse_centers[k_p])
+                        data[center_index] = amp / tma.step
+                        self.pulse_t[k_p] = DFunction(tma, data)
+
+                    elif self.axis_type == "frequency":
+                        data = numpy.full(self.freqaxis.length, amp, dtype=REAL)
+                        self.pulse_f[k_p] = DFunction(self.freqaxis, data)
+
                 elif par["ptype"] == "numeric":
                     fce = par["function"]
 
@@ -434,6 +452,12 @@ class LabSetup:
                 "set_pulses requires " + str(self.number_of_pulses) + " parameter sets"
             )
             raise QuantarheiError(text)
+
+    def has_delta_pulses(self) -> bool:
+        """Return whether every configured pulse is a delta pulse."""
+        if not self._field_set or self.saved_params is None:
+            return False
+        return all(par.get("ptype") == "delta" for par in self.saved_params)
 
     def set_pulse_polarizations(
         self, pulse_polarizations: Any = (X, X, X), detection_polarization: Any = X

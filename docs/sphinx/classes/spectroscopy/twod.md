@@ -5,9 +5,11 @@ coherent two-dimensional (2D) electronic and vibrational spectra. The main
 workflow begins with `TwoDResponseCalculator`, which computes the nonlinear
 optical response of a molecular system and stores the results in a
 `TwoDResponseContainer`. The container can then be converted into a
-`TwoDSpectrumContainer` (where the pulse-field convolution is applied), from
-which individual `TwoDSpectrum` objects are retrieved for plotting and
-analysis.
+`TwoDSpectrumContainer` by `TwoDSpectrumCalculator`. The spectrum calculator
+owns the experimental time axes and pulse setup, suggests the time axes needed
+for response calculation, and applies the pulse-field convolution. For delta
+pulses this step reduces to the established impulsive conversion. Individual
+`TwoDSpectrum` objects are then retrieved for plotting and analysis.
 
 ```{eval-rst}
 .. automodule:: quantarhei.spectroscopy.twodspect
@@ -21,5 +23,10 @@ analysis.
 
 ```{eval-rst}
 .. automodule:: quantarhei.spectroscopy.twodcalculator
+    :members:
+```
+
+```{eval-rst}
+.. automodule:: quantarhei.spectroscopy.twodspectrumcalculator
     :members:
 ```
