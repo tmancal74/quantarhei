@@ -13,6 +13,7 @@ Class Details
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import numpy
@@ -24,6 +25,40 @@ from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
 from ..utils import Integer
 from ..utils.vectors import X
+
+
+def _gaussian_values(
+    values: Any,
+    center: float,
+    fwhm: float,
+    amplitude: float,
+    *,
+    amplitude_type: str = "peak",
+    fwhm_type: str = "intensity",
+) -> Any:
+    """Return a Gaussian envelope under the public pulse conventions."""
+    if fwhm <= 0.0:
+        raise QuantarheiError("Gaussian pulse FWHM must be positive")
+
+    amplitude_type = amplitude_type.lower()
+    if amplitude_type not in ("peak", "area"):
+        raise QuantarheiError("Gaussian amplitude_type must be either 'peak' or 'area'")
+
+    fwhm_type = fwhm_type.lower()
+    if fwhm_type == "intensity":
+        exponent_factor = 2.0 * numpy.log(2.0)
+    elif fwhm_type in ("amplitude", "field"):
+        exponent_factor = 4.0 * numpy.log(2.0)
+    else:
+        raise QuantarheiError(
+            "Gaussian FWHM_type must be either 'intensity' or 'amplitude'"
+        )
+
+    scale = amplitude
+    if amplitude_type == "area":
+        scale *= numpy.sqrt(exponent_factor / numpy.pi) / fwhm
+
+    return scale * numpy.exp(-exponent_factor * ((values - center) / fwhm) ** 2)
 
 
 class LabSetup:
@@ -130,21 +165,22 @@ class LabSetup:
             `delta`, and `numeric`. Time domain pulses are specified with
             their center at t = 0.
 
-            **Gaussian** pulse has further parameters `amplitude`, `FWHM`,
-            and `frequency` with obvious meanings. `FWHM` is speficied in `fs`,
-            `frequency` is specified in energy units, while `amplitude`
-            is in units of [energy]/[transition dipole moment]. The formula
-            for the lineshape is
+            **Gaussian** pulse has further parameters `amplitude` and `FWHM`.
+            For finite pulses, `amplitude` is the peak envelope amplitude and
+            `FWHM` is the full width at half maximum of the intensity by
+            default. The time-domain envelope is
 
             .. math::
 
-                \\rm{shape}(\\omega) =
-                \\frac{2}{\\Delta}\\sqrt{\\frac{\\ln(2)}{\\pi}}
-                \\exp\\left\\{-\\frac{4\\ln(2)\\omega^2}{\\Delta^2}\\right\\}
+                A(t) = A_0
+                \\exp\\left\\{-\\frac{2\\ln(2)(t-t_c)^2}{\\Delta^2}\\right\\}.
 
-            The same formulae are used for time- and frequency domain
-            definitions. For time domain, :math:`t` should be used in stead of
-            :math:`\\omega`.
+            Set `amplitude_type="area"` to interpret `amplitude` as the
+            integral of the envelope, and set `FWHM_type="amplitude"` to use
+            the field-envelope FWHM. Combining both options reproduces the
+            historical Quantarhei Gaussian convention. The same conventions
+            apply to a frequency-domain Gaussian, with `FWHM` specified in the
+            active energy units.
 
             **numeric** pulse is specified by a second parameters `function`
             which should be of DFunction type and specifies line shape around
@@ -152,7 +188,8 @@ class LabSetup:
 
             A **delta** pulse is represented by one non-zero time-axis sample
             with unit area, or by a constant on a frequency axis. Its optional
-            `amplitude` parameter defaults to one.
+            `area` parameter defaults to one. The historical `amplitude`
+            spelling is accepted with a deprecation warning.
 
 
         Examples
@@ -353,17 +390,18 @@ class LabSetup:
                         tma = self.timeaxis
                         fwhm = par["FWHM"]
                         amp = par["amplitude"]
+                        amplitude_type = par.get("amplitude_type", "peak")
+                        fwhm_type = par.get("FWHM_type", "intensity")
 
                         tc = self.pulse_centers[k_p]
 
-                        # normalized Gaussian mupliplied by amplitude
-                        lfc = 4.0 * numpy.log(2.0)
-                        pi = numpy.pi
-                        val = (
-                            (2.0 / fwhm)
-                            * numpy.sqrt(numpy.log(2.0) / pi)
-                            * amp
-                            * numpy.exp(-lfc * ((tma.data - tc) / fwhm) ** 2)
+                        val = _gaussian_values(
+                            tma.data,
+                            tc,
+                            fwhm,
+                            amp,
+                            amplitude_type=amplitude_type,
+                            fwhm_type=fwhm_type,
                         )
 
                         self.pulse_t[k_p] = DFunction(tma, val)
@@ -381,33 +419,43 @@ class LabSetup:
                         pcentr = Manager().convert_energy_2_current_u(self.omega[k_p])
 
                         amp = par["amplitude"]
+                        amplitude_type = par.get("amplitude_type", "peak")
+                        fwhm_type = par.get("FWHM_type", "intensity")
 
-                        # normalized Gaussian mupliplied by amplitude
-                        val = (
-                            (2.0 / fwhm)
-                            * numpy.sqrt(numpy.log(2.0) / numpy.pi)
-                            * amp
-                            * numpy.exp(
-                                -4.0
-                                * numpy.log(2.0)
-                                * ((fra.data - pcentr) / fwhm) ** 2
-                            )
+                        val = _gaussian_values(
+                            fra.data,
+                            pcentr,
+                            fwhm,
+                            amp,
+                            amplitude_type=amplitude_type,
+                            fwhm_type=fwhm_type,
                         )
 
                         self.pulse_f[k_p] = DFunction(fra, val)
 
                 elif par["ptype"] == "delta":
-                    amp = par.get("amplitude", 1.0)
+                    if "area" in par and "amplitude" in par:
+                        raise QuantarheiError(
+                            "Delta pulse accepts either 'area' or the deprecated "
+                            "'amplitude', not both"
+                        )
+                    if "amplitude" in par:
+                        warnings.warn(
+                            "Delta-pulse 'amplitude' is deprecated; use 'area'",
+                            DeprecationWarning,
+                            stacklevel=2,
+                        )
+                    area = par.get("area", par.get("amplitude", 1.0))
 
                     if self.axis_type == "time":
                         tma = self.timeaxis
                         data = numpy.zeros(tma.length)
                         center_index = tma.nearest(self.pulse_centers[k_p])
-                        data[center_index] = amp / tma.step
+                        data[center_index] = area / tma.step
                         self.pulse_t[k_p] = DFunction(tma, data)
 
                     elif self.axis_type == "frequency":
-                        data = numpy.full(self.freqaxis.length, amp, dtype=REAL)
+                        data = numpy.full(self.freqaxis.length, area, dtype=REAL)
                         self.pulse_f[k_p] = DFunction(self.freqaxis, data)
 
                 elif par["ptype"] == "numeric":
@@ -1542,43 +1590,32 @@ class LabField:
         """Returns the envelop values"""
         # tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
-            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
-            amp = self.labsetup.saved_params[self.index]["amplitude"]
-
-            # tc = self.pulse_centers[k_p]
-
-            # normalized Gaussian mupliplied by amplitude
-            lfc = 4.0 * numpy.log(2.0)
-            pi = numpy.pi
-            val = (
-                (2.0 / fwhm)
-                * numpy.sqrt(numpy.log(2.0) / pi)
-                * amp
-                * numpy.exp(-lfc * (tt / fwhm) ** 2)
+            params = self.labsetup.saved_params[self.index]
+            return _gaussian_values(
+                tt,
+                0.0,
+                params["FWHM"],
+                params["amplitude"],
+                amplitude_type=params.get("amplitude_type", "peak"),
+                fwhm_type=params.get("FWHM_type", "intensity"),
             )
-
-            return val
 
         raise QuantarheiError()
 
     def get_pulse_envelop_function(self) -> Any:
         """Return a function to be called later"""
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
-            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
-            amp = self.labsetup.saved_params[self.index]["amplitude"]
-            lfc = 4.0 * numpy.log(2.0)
-            pi = numpy.pi
+            params = self.labsetup.saved_params[self.index]
 
             def env(tt: Any) -> Any:
-
-                val = (
-                    (2.0 / fwhm)
-                    * numpy.sqrt(numpy.log(2.0) / pi)
-                    * amp
-                    * numpy.exp(-lfc * (tt / fwhm) ** 2)
+                return _gaussian_values(
+                    tt,
+                    0.0,
+                    params["FWHM"],
+                    params["amplitude"],
+                    amplitude_type=params.get("amplitude_type", "peak"),
+                    fwhm_type=params.get("FWHM_type", "intensity"),
                 )
-
-                return val
 
             return env
 

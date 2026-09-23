@@ -142,6 +142,59 @@ class TestLabSetup(unittest.TestCase):
             plt.plot(time.data, numpy.real(fld))
             plt.show()
 
+    def test_gaussian_uses_peak_amplitude_and_intensity_fwhm_by_default(self):
+        """Finite Gaussian pulses use optical pulse conventions by default."""
+        time = TimeAxis(-100.0, 20001, 0.01, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+
+        lab.set_pulse_shapes(time, (pulse,))
+        envelope = lab.pulse_t[0].data
+
+        center = time.nearest(0.0)
+        half_width = time.nearest(10.0)
+        self.assertAlmostEqual(envelope[center], 0.3)
+        self.assertAlmostEqual(abs(envelope[half_width]) ** 2, 0.3**2 / 2.0)
+
+    def test_gaussian_legacy_area_and_amplitude_fwhm_are_explicit(self):
+        """Explicit options reproduce the historical Gaussian definition."""
+        time = TimeAxis(-100.0, 20001, 0.01, atype="complete")
+        pulse = dict(
+            ptype="Gaussian",
+            FWHM=20.0,
+            amplitude=0.3,
+            amplitude_type="area",
+            FWHM_type="amplitude",
+        )
+        lab = LabSetup(nopulses=1)
+
+        lab.set_pulse_shapes(time, (pulse,))
+        envelope = lab.pulse_t[0].data
+        expected = (
+            (2.0 / pulse["FWHM"])
+            * numpy.sqrt(numpy.log(2.0) / numpy.pi)
+            * pulse["amplitude"]
+            * numpy.exp(-4.0 * numpy.log(2.0) * (time.data / pulse["FWHM"]) ** 2)
+        )
+
+        npt.assert_allclose(envelope, expected)
+        self.assertAlmostEqual(numpy.sum(envelope) * time.step, 0.3)
+
+    def test_delta_uses_area_and_accepts_deprecated_amplitude(self):
+        """Delta-pulse strength is its sampled integral."""
+        time = TimeAxis(-10.0, 201, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, ({"ptype": "delta", "area": 0.4},))
+
+        self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.4)
+
+        with self.assertWarns(DeprecationWarning):
+            lab.set_pulse_shapes(
+                time,
+                ({"ptype": "delta", "amplitude": 0.2},),
+            )
+        self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.2)
+
     def test_dm_propagation_with_fields(self):
         """(LabSetup) Time evolution with explicit electric field"""
         from quantarhei.qm import LindbladForm, Operator, SystemBathInteraction
@@ -490,7 +543,7 @@ class TestLabSetup(unittest.TestCase):
             t2 = t1 + setthis[ii]
             fld.set_center(t2)
 
-            lfc = 4.0 * numpy.log(2.0)
+            lfc = 2.0 * numpy.log(2.0)
             kappa = numpy.exp(
                 -lfc * (2.0 * (t1 - t2) * time.data - (t1**2 - t2**2)) / (fwhm**2)
                 - 1j * om * (t1 - t2)

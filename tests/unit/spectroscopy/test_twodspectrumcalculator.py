@@ -9,7 +9,7 @@ import quantarhei as qr
 def _delta_lab() -> qr.LabSetup:
     lab = qr.LabSetup(nopulses=3)
     pulse_axis = qr.TimeAxis(-10.0, 21, 1.0, atype="complete")
-    pulse = {"ptype": "delta", "amplitude": 1.0}
+    pulse = {"ptype": "delta", "area": 1.0}
     lab.set_pulse_shapes(pulse_axis, (pulse, pulse, pulse))
     return lab
 
