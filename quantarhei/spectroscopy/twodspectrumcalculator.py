@@ -9,6 +9,7 @@ from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
 from ..utils import derived_type
 from .labsetup import LabSetup
+from .twodcalculator import TwoDResponseCalculator
 from .twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
 
 
@@ -57,6 +58,10 @@ class TwoDSpectrumCalculator:
         self.lab = lab
         self.explicit_convolution = explicit_convolution
         self.response_container: TwoDResponseContainer | None = None
+        self.response_calculator: TwoDResponseCalculator | None = None
+        self.system: Any = None
+        self._response_calculator_kwargs: dict[str, Any] = {}
+        self._response_bootstrap_kwargs: dict[str, Any] = {}
 
     def get_response_axes(self) -> tuple[TimeAxis, TimeAxis, TimeAxis]:
         """Return axes suitable for calculating the required responses.
@@ -81,17 +86,79 @@ class TwoDSpectrumCalculator:
         """Alias for :meth:`get_response_axes`."""
         return self.get_response_axes()
 
-    def bootstrap(self, response_container: TwoDResponseContainer) -> None:
-        """Set the response container from which spectra will be calculated."""
-        if not isinstance(response_container, TwoDResponseContainer):
-            raise TypeError("response_container must be a TwoDResponseContainer")
+    def bootstrap(
+        self,
+        sample: TwoDResponseContainer | Any,
+        *,
+        response_calculator_kwargs: dict[str, Any] | None = None,
+        response_bootstrap_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        """Mount a sample or install pre-calculated responses.
 
-        axis = response_container.axis
-        if axis is None or not axis.is_equal_to(self.t2axis):
+        ``sample`` is normally an Aggregate or OpenSystem.  In that workflow,
+        this calculator owns the experimental axes and laboratory setup, and
+        creates a :class:`TwoDResponseCalculator` when :meth:`calculate` is
+        called.  This keeps a usual calculation close to the experimental
+        sequence: configure the laboratory, choose measurement times, mount
+        the sample, and measure.
+
+        A :class:`TwoDResponseContainer` remains accepted for advanced use:
+        callers can calculate, inspect, or modify responses separately and
+        then use this calculator for the spectrum step.
+
+        Parameters
+        ----------
+        response_calculator_kwargs
+            Keyword arguments forwarded to ``TwoDResponseCalculator`` when a
+            system is supplied, e.g. relaxation settings.
+        response_bootstrap_kwargs
+            Keyword arguments forwarded to its ``bootstrap`` method.  ``lab``
+            is supplied by this calculator and may not be overridden.
+        """
+        if isinstance(sample, TwoDResponseContainer):
+            axis = sample.axis
+            if axis is None or not axis.is_equal_to(self.t2axis):
+                raise ValueError(
+                    "Response-container waiting-time axis does not match t2axis"
+                )
+            self.response_container = sample
+            self.response_calculator = None
+            self.system = None
+            return
+
+        bootstrap_kwargs = dict(response_bootstrap_kwargs or {})
+        if "lab" in bootstrap_kwargs:
             raise ValueError(
-                "Response-container waiting-time axis does not match t2axis"
+                "The laboratory setup is owned by TwoDSpectrumCalculator; "
+                "do not pass 'lab' in response_bootstrap_kwargs"
             )
-        self.response_container = response_container
+
+        self.system = sample
+        self.response_container = None
+        self.response_calculator = None
+        self._response_calculator_kwargs = dict(response_calculator_kwargs or {})
+        self._response_bootstrap_kwargs = bootstrap_kwargs
+
+    def _calculate_responses(self) -> TwoDResponseContainer:
+        """Calculate responses for the system installed during bootstrap."""
+        if self.system is None:
+            raise QuantarheiError(
+                "TwoDSpectrumCalculator must be bootstrapped before calculation"
+            )
+
+        t1axis, t2axis, t3axis = self.get_response_axes()
+        calculator = TwoDResponseCalculator(
+            t1axis,
+            t2axis,
+            t3axis,
+            system=self.system,
+            **self._response_calculator_kwargs,
+        )
+        calculator.bootstrap(lab=self.lab, **self._response_bootstrap_kwargs)
+        responses = calculator.calculate()
+        self.response_calculator = calculator
+        self.response_container = responses
+        return responses
 
     def calculate(self, stype: Any = signal_TOTL) -> TwoDSpectrumContainer:
         """Calculate and return a container of 2D spectra.
@@ -101,14 +168,14 @@ class TwoDSpectrumCalculator:
         a post-processing spectral overlay; explicit convolution is reserved
         for a later implementation.
         """
-        if self.response_container is None:
-            raise QuantarheiError(
-                "TwoDSpectrumCalculator must be bootstrapped before calculation"
-            )
         if not self.lab.has_delta_pulses() and self.explicit_convolution:
             raise NotImplementedError("Finite-pulse convolution is not implemented")
 
-        spectra = self.response_container.get_TwoDSpectrumContainer(stype=stype)
+        responses = self.response_container
+        if responses is None:
+            responses = self._calculate_responses()
+
+        spectra = responses.get_TwoDSpectrumContainer(stype=stype)
         if not self.lab.has_delta_pulses():
             for spectrum in spectra.spectra.values():
                 spectrum.overlay_pulses(self.lab)

@@ -4,6 +4,7 @@ import numpy.testing as npt
 import pytest
 
 import quantarhei as qr
+import quantarhei.spectroscopy.twodspectrumcalculator as spectrum_module
 
 
 def _delta_lab() -> qr.LabSetup:
@@ -118,3 +119,54 @@ def test_bootstrap_checks_waiting_time_axis():
 
     with pytest.raises(ValueError, match="waiting-time axis"):
         calculator.bootstrap(responses)
+
+
+def test_system_bootstrap_calculates_responses_with_owned_lab_and_axes(monkeypatch):
+    t1, t2, t3 = _axes()
+    lab = _delta_lab()
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
+    system = object()
+    responses = qr.TwoDResponseContainer(t2axis=t2)
+    expected = qr.TwoDSpectrumContainer(t2axis=t2)
+    responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
+
+    created = []
+
+    class ResponseCalculator:
+        def __init__(self, t1axis, t2axis, t3axis, *, system, dynamics):
+            self.axes = (t1axis, t2axis, t3axis)
+            self.system = system
+            self.dynamics = dynamics
+            self.bootstrap = Mock()
+            self.calculate = Mock(return_value=responses)
+            created.append(self)
+
+    monkeypatch.setattr(spectrum_module, "TwoDResponseCalculator", ResponseCalculator)
+    calculator.bootstrap(
+        system,
+        response_calculator_kwargs={"dynamics": "full"},
+        response_bootstrap_kwargs={"pad": 4},
+    )
+
+    result = calculator.calculate()
+
+    assert result is expected
+    assert len(created) == 1
+    response_calculator = created[0]
+    assert response_calculator.system is system
+    assert response_calculator.dynamics == "full"
+    for supplied, owned in zip(response_calculator.axes, (t1, t2, t3)):
+        assert supplied.is_equal_to(owned)
+        assert supplied is not owned
+    response_calculator.bootstrap.assert_called_once_with(lab=lab, pad=4)
+    response_calculator.calculate.assert_called_once_with()
+    assert calculator.response_calculator is response_calculator
+    assert calculator.response_container is responses
+
+
+def test_system_bootstrap_reserves_lab_for_spectrum_calculator():
+    t1, t2, t3 = _axes()
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, _delta_lab())
+
+    with pytest.raises(ValueError, match="laboratory setup is owned"):
+        calculator.bootstrap(object(), response_bootstrap_kwargs={"lab": _delta_lab()})
