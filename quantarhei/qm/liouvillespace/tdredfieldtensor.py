@@ -8,7 +8,7 @@ from ...core.time import TimeDependent
 from ...exceptions import QuantarheiError
 from ...qm.hilbertspace.hamiltonian import Hamiltonian
 from ...qm.liouvillespace.systembathinteraction import SystemBathInteraction
-from .redfieldtensor import RedfieldRelaxationTensor
+from .redfieldtensor import RedfieldRelaxationTensor, _site_to_eigenbasis
 
 
 class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
@@ -80,7 +80,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
-        hD, SS = numpy.linalg.eigh(ham._data)
+        hD, SS = _site_to_eigenbasis(ham)
 
         #
         #  Find all transition frequencies

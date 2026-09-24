@@ -16,7 +16,7 @@ import scipy
 
 from ... import COMPLEX, REAL
 from ...core.managers import energy_units
-from ...exceptions import QuantarheiError
+from ...exceptions import BasisError, QuantarheiError
 from ...utils.logging import log_detail, log_quick
 
 # from ...core.managers import BasisManaged
@@ -322,9 +322,9 @@ class RedfieldRelaxationTensor(RelaxationTensor):
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
-        # Use _data directly: _implementation must always diagonalize in the
-        # site basis so that Km is the correct eigenbasis coupling operator.
-        hD, SS = numpy.linalg.eigh(ham._data)
+        # SS must map the site basis (in which sbi.KK is defined) to the
+        # eigenbasis of ham, independently of the basis ham is currently in.
+        hD, SS = _site_to_eigenbasis(ham)
 
         #
         #  Find all transition frequencies
@@ -652,6 +652,62 @@ def _loopit(
                         RR[a, b, c, d] -= KdLm[a, c]
                     if a == c:
                         RR[a, b, c, d] -= LdKm[d, b]
+
+
+def _site_to_eigenbasis(ham: Hamiltonian) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """Eigenvalues of ``ham`` and the site-to-eigenbasis transformation matrix.
+
+    The system-bath coupling operators ``sbi.KK`` are always defined in the
+    site basis, so the Redfield tensor needs the matrix ``SS`` whose columns
+    are the eigenvectors of ``ham`` expressed in the site basis.
+
+    Basis transformations are applied to ``ham`` lazily: inside an
+    ``eigenbasis_of(ham)`` context, ``ham._data`` stays in the site basis
+    until ``ham.data`` is first read, after which it holds the (diagonal)
+    eigenbasis representation. Diagonalizing ``ham._data`` blindly therefore
+    gives ``SS`` close to the identity in the latter case, leaving the
+    coupling operators untransformed (issue #333). Here the eigenvectors are
+    found in the basis ``ham`` is currently stored in and are then mapped back
+    to the site basis using the basis transformations recorded by the manager.
+
+    Parameters
+    ----------
+    ham : Hamiltonian
+        Hamiltonian of the system, stored in any basis on the basis stack.
+
+    Returns
+    -------
+    hD : numpy.ndarray
+        Eigenvalues of ``ham`` in ascending order (internal energy units).
+    SS : numpy.ndarray
+        Transformation matrix from the site basis to the eigenbasis of
+        ``ham``, i.e. ``inv(SS) @ H_site @ SS`` is diagonal.
+
+    """
+    hD, SS = numpy.linalg.eigh(ham._data)
+
+    ob = ham.get_current_basis()
+    if ob == 0:
+        # ham is stored in the site basis; SS is already what we need
+        return hD, SS
+
+    manager = ham.manager
+    if ob not in manager.basis_stack:
+        raise BasisError("Basis of the Hamiltonian is not on stack.")
+
+    # Fix the arbitrary sign of each eigenvector so that its largest component
+    # is positive. When ham is already stored in its own eigenbasis, SS is then
+    # the identity and the tensor is expressed in exactly the context basis.
+    idx = numpy.argmax(numpy.abs(SS), axis=0)
+    SS = SS * numpy.sign(SS[idx, numpy.arange(SS.shape[1])])
+
+    # Compose the transformations site -> ... -> ob. The operator data in
+    # basis k are inv(Z_k) @ data_{k-1} @ Z_k (see Operator.transform).
+    TT = numpy.eye(ham.dim)
+    for kk in range(1, manager.basis_stack.index(ob) + 1):
+        TT = numpy.dot(TT, manager.basis_transformations[kk])
+
+    return hD, numpy.dot(TT, SS)
 
 
 def _integrate_last_axis(f: numpy.ndarray, dt: float) -> numpy.ndarray:
