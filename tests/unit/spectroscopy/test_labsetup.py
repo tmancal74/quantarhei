@@ -8,6 +8,7 @@ from quantarhei import (
     Aggregate,
     CorrelationFunction,
     DFunction,
+    FrequencyAxis,
     LabSetup,
     Molecule,
     ReducedDensityMatrixPropagator,
@@ -266,6 +267,47 @@ class TestLabSetup(unittest.TestCase):
                     },
                 ),
             )
+
+    def test_frequency_defined_pulse_keeps_its_source_axis_after_reset(self):
+        """A reset rebuilds a frequency-defined pulse in frequency space."""
+        frequency = FrequencyAxis(11500.0, 101, 10.0)
+        pulse = {"ptype": "Gaussian", "FWHM": 200.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([12000.0])
+        lab.set_pulse_shapes(frequency, (pulse,))
+        original_spectrum = lab.pulse_f[0].data.copy()
+
+        lab.convert_to_time()
+        self.assertTrue(lab.has_timedomain)
+        self.assertEqual(lab.pulse_definition_domain, "frequency")
+        self.assertIs(lab.pulse_definition_axis, frequency)
+
+        lab.set_pulse_arrival_times([20.0])
+
+        self.assertTrue(lab.has_freqdomain)
+        self.assertFalse(lab.has_timedomain)
+        self.assertIs(lab.pulse_f[0].axis, frequency)
+        npt.assert_allclose(lab.pulse_f[0].data, original_spectrum)
+
+        # Requesting an envelope creates only a derived time-domain cache.
+        envelope = lab.get_pulse_envelop(0, 0.0)
+        self.assertTrue(lab.has_timedomain)
+        self.assertTrue(numpy.isscalar(envelope))
+
+    def test_time_defined_pulse_lazily_provides_a_spectrum(self):
+        """Spectrum access Fourier-transforms a time-defined pulse on demand."""
+        time = TimeAxis(-20.0, 81, 0.5, atype="complete")
+        pulse = {"ptype": "Gaussian", "FWHM": 5.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (pulse,))
+
+        spectrum = lab.get_pulse_spectrum(0, numpy.array([0.0]))
+
+        self.assertEqual(lab.pulse_definition_domain, "time")
+        self.assertIs(lab.pulse_definition_axis, time)
+        self.assertTrue(lab.has_timedomain)
+        self.assertTrue(lab.has_freqdomain)
+        self.assertEqual(spectrum.shape, (1,))
 
     def test_get_field_at_time_wraps_envelope_at(self):
         """The legacy time-evaluation call delegates to envelope_at()."""

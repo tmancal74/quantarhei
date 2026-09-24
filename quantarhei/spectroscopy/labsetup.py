@@ -133,6 +133,10 @@ class LabSetup:
 
         # time or frequency
         self.axis_type: str | None = None
+        # The axis on which pulse parameters were supplied.  The opposite
+        # domain, when present, is always a Fourier-derived cache.
+        self.pulse_definition_domain: str | None = None
+        self.pulse_definition_axis: TimeAxis | FrequencyAxis | None = None
 
         # pulses in time- and frequency domain
         self.pulse_t: list[Any] = [None] * nopulses
@@ -155,9 +159,15 @@ class LabSetup:
         self.saved_params = None
 
     def reset_pulse_shape(self) -> None:
-        """Recalculates the pulse shapes"""
-        if self.saved_params is not None:
-            self.set_pulse_shapes(self.timeaxis, self.saved_params)
+        """Rebuild pulse shapes on their original definition axis.
+
+        Any representation obtained through a Fourier transform is discarded
+        and will be regenerated lazily when requested.  This keeps a
+        frequency-defined pulse frequency-defined after, for example, a pulse
+        arrival-time update.
+        """
+        if self.saved_params is not None and self.pulse_definition_axis is not None:
+            self.set_pulse_shapes(self.pulse_definition_axis, self.saved_params)
         # else:
         #    raise QuantarheiError("Pulse shapes must be set first.")
 
@@ -377,6 +387,8 @@ class LabSetup:
             if axis.atype == "complete":
                 self.timeaxis = axis
                 self.axis_type = "time"
+                self.pulse_definition_domain = "time"
+                self.pulse_definition_axis = axis
             else:
                 raise QuantarheiError(
                     "TimeAxis has to be of 'complete' type"
@@ -387,6 +399,8 @@ class LabSetup:
         elif isinstance(axis, FrequencyAxis):
             self.freqaxis = axis
             self.axis_type = "frequency"
+            self.pulse_definition_domain = "frequency"
+            self.pulse_definition_axis = axis
 
         else:
             raise QuantarheiError("Wrong axis paramater")
@@ -517,8 +531,12 @@ class LabSetup:
 
             if self.axis_type == "time":
                 self.has_timedomain = True
+                self.has_freqdomain = False
+                self.pulse_f = [None] * self.number_of_pulses
             elif self.axis_type == "frequency":
                 self.has_freqdomain = True
+                self.has_timedomain = False
+                self.pulse_t = [None] * self.number_of_pulses
 
             self._field_set = True
 
@@ -733,6 +751,8 @@ class LabSetup:
 
 
         """
+        if self.has_timedomain:
+            return
         if self.has_freqdomain:
             assert self.freqaxis is not None
             freq = self.freqaxis
@@ -809,6 +829,8 @@ class LabSetup:
 
 
         """
+        if self.has_freqdomain:
+            return
         if self.has_timedomain:
             assert self.timeaxis is not None
             time = self.timeaxis
@@ -888,6 +910,8 @@ class LabSetup:
 
 
         """
+        if not self.has_timedomain:
+            self.convert_to_time()
         return self.pulse_t[k].at(t)
 
     def get_pulse_spectrum(self, k: int, omega: Any) -> Any:
@@ -947,6 +971,8 @@ class LabSetup:
 
 
         """
+        if not self.has_freqdomain:
+            self.convert_to_frequency()
         return self.pulse_f[k].at(omega)
 
     def set_pulse_frequencies(self, omegas: Any) -> None:
@@ -1638,6 +1664,8 @@ class LabField:
             self.labsetup.reset_pulse_shape()
             self._center_changed = False
 
+        if not self.labsetup.has_timedomain:
+            self.labsetup.convert_to_time()
         pulse = self.labsetup.pulse_t[self.index]
         if time is None:
             return pulse.data

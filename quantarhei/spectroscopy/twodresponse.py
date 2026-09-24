@@ -672,6 +672,8 @@ class TwoDResponseBase(DataSaveable):
 
         self.xaxis: ValueAxis | None = None
         self.yaxis: ValueAxis | None = None
+        # Internal rotating-frame reference associated with the spectral axes.
+        self.rwa = 0.0
 
         #
         # The followinh attributes will be removed
@@ -1566,6 +1568,7 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         twod = TwoDSpectrum()
         twod.set_axis_1(self.xaxis.copy())
         twod.set_axis_3(self.yaxis.copy())
+        twod.rwa = self.rwa
 
         twod.set_t2(self.t2)
 

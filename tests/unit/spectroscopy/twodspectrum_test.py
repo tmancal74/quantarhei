@@ -40,6 +40,27 @@ class TestTwoDSpectrum(unittest.TestCase):
     def setUp(self, verbose=False):
         self._setup_system()
 
+    def test_pulse_overlay_uses_rwa_reference_and_axis_dimensions(self):
+        """The approximate overlay is context-independent and non-square safe."""
+        spectrum = qr.TwoDSpectrum()
+        spectrum.set_axis_1(qr.FrequencyAxis(9.0, 2, 1.0))
+        spectrum.set_axis_3(qr.FrequencyAxis(9.0, 3, 1.0))
+        spectrum.set_data(numpy.ones((2, 3)))
+        spectrum.set_rwa(10.0)
+
+        lab = qr.LabSetup()
+        pulse_axis = qr.FrequencyAxis(8.0, 5, 1.0)
+        pulse_data = numpy.arange(1.0, 6.0)
+        pulse = {"ptype": "numeric", "function": qr.DFunction(pulse_axis, pulse_data)}
+        lab.set_pulse_shapes(pulse_axis, (pulse, pulse, pulse))
+
+        with qr.energy_units("1/cm"):
+            spectrum.overlay_pulses(lab)
+
+        # omega_1 = [9, 10] and omega_3 = [9, 10, 11] in absolute units.
+        expected = numpy.array([[8.0, 12.0, 16.0], [18.0, 27.0, 36.0]])
+        npt.assert_allclose(spectrum.data, expected)
+
     def _setup_system(self, prepare_underdamped=False):
         #
         #  Chlorophyll parameters

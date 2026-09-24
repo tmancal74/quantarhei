@@ -575,6 +575,7 @@ class TwoDResponseContainer(Saveable):
             spect = TwoDSpectrum()
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
+            spect.rwa = sp1.rwa
 
             spect.set_data(ftdata[:, :, k_n], dtype=signal_TOTL)
 
@@ -1092,6 +1093,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             spect = TwoDSpectrum()
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
+            spect.rwa = sp1.rwa
 
             spect.set_data(ftdata[:, :, k_n], dtype=self.dtype)
 

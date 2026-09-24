@@ -916,6 +916,7 @@ class TwoDResponseCalculator:
         # Calculate corresponding 2D spectrum
         #
         onetwod = TwoDResponse()
+        onetwod.rwa = self.rwa
 
         # pad is set to 0 by default. If changed in the bootstrap,
         # responses are padded with 0s and the time axis is lengthened
