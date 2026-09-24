@@ -352,6 +352,61 @@ class TestLabSetup(unittest.TestCase):
         npt.assert_allclose(real_field, (field_p + field_m) / 2.0)
         self.assertTrue(numpy.isrealobj(real_field))
 
+    def test_gaussian_field_derivative_includes_envelope_and_carrier_terms(self):
+        """The public derivative API differentiates the analytic field."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+        times = numpy.array([10.0, 12.0, 14.0])
+
+        envelope = field.envelope_at(times)
+        envelope_derivative = (
+            -4.0 * numpy.log(2.0) * (times - 12.0) / pulse["FWHM"] ** 2 * envelope
+        )
+        expected = (envelope_derivative - 1j * 0.25 * envelope) * numpy.exp(
+            -1j * 0.25 * (times - 12.0) + 1j * 0.4
+        )
+
+        npt.assert_allclose(field.derivative_at(times), expected)
+        npt.assert_allclose(
+            field.derivative_at(times, component="envelope"), envelope_derivative
+        )
+        npt.assert_allclose(
+            field.derivative_at(times, component="negative"), numpy.conj(expected)
+        )
+        npt.assert_allclose(field.derivative_at(times, component="real"), expected.real)
+
+    def test_numeric_envelope_derivative_is_sampled_and_zero_padded(self):
+        """Numeric pulse derivatives are evaluated on the native time grid."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        data = (1.0 + 2.0j) * time.data
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(
+            time, (dict(ptype="numeric", function=DFunction(time, data)),)
+        )
+        field = lab.get_labfield(0)
+
+        npt.assert_allclose(
+            field.derivative_at(numpy.array([-1.0, 0.0, 1.0]), component="envelope"),
+            1.0 + 2.0j,
+        )
+        self.assertEqual(field.derivative_at(3.0, component="envelope"), 0.0j)
+
+    def test_labsetup_field_derivative_sums_fields_and_legacy_wrapper(self):
+        """The LabSetup helper uses the public derivative implementation."""
+        times = numpy.array([95.0, 100.0, 105.0])
+        expected = sum(field.derivative_at(times) for field in self.lab.get_labfields())
+        npt.assert_allclose(self.lab.get_field_derivative(times), expected)
+
+        with self.assertWarns(DeprecationWarning):
+            legacy = self.lab.get_labfield(2).get_field_derivative(times)
+        npt.assert_allclose(legacy, self.lab.get_labfield(2).derivative_at(times))
+
     def test_rwa_field_evaluation_is_local_and_non_mutating(self):
         """RWA evaluation changes only the local carrier detuning."""
         time = TimeAxis(-100.0, 2001, 0.1, atype="complete")

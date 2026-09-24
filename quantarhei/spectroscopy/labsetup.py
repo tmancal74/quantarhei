@@ -1280,20 +1280,29 @@ class LabSetup:
 
         return fld
 
-    def get_field_derivative(self) -> Any:
-        """Returns the time derivative of the total field"""
-        flds = self.get_labfields()
+    def get_field_derivative(
+        self,
+        time: Any = None,
+        component: str = "positive",
+        rwa_frequency: Any = None,
+    ) -> Any:
+        """Return the derivative of the sum of the configured pulse fields.
 
-        kk = 0
-        for fl in flds:
-            if kk == 0:
-                fld_d = fl.get_field_derivative()
-            else:
-                fld_d += fl.get_field_derivative()
-
-            kk += 1
-
-        return fld_d
+        Parameters have the same meaning as :meth:`LabField.derivative_at`.
+        In particular, the default is the derivative of the analytic
+        positive-frequency field.
+        """
+        derivatives = [
+            field.derivative_at(
+                time,
+                component=component,
+                rwa_frequency=rwa_frequency,
+            )
+            for field in self.get_labfields()
+        ]
+        if not derivatives:
+            return 0.0
+        return sum(derivatives)
 
 
 class labsetup(LabSetup):
@@ -1702,6 +1711,122 @@ class LabField:
         """Compatibility alias for the public envelope evaluator."""
         return self.envelope_at(time)
 
+    def _envelope_derivative_at(self, time: Any = None) -> Any:
+        """Return the derivative of the finite pulse envelope.
+
+        Time-defined Gaussian pulses are differentiated analytically.  All
+        other finite sampled pulses use a derivative on their native time
+        grid, interpolated with the same zero-padded support convention as
+        :meth:`envelope_at`.
+        """
+        if self.labsetup.saved_params[self.index].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
+
+        if self._center_changed:
+            self.labsetup.reset_pulse_shape()
+            self._center_changed = False
+
+        if not self.labsetup.has_timedomain:
+            self.labsetup.convert_to_time()
+        pulse = self.labsetup.pulse_t[self.index]
+
+        params = self.labsetup.saved_params[self.index]
+        if (
+            self.labsetup.pulse_definition_domain == "time"
+            and params.get("ptype") == "Gaussian"
+        ):
+            fwhm = params["FWHM"]
+            fwhm_type = params.get("FWHM_type", "intensity").lower()
+            if fwhm_type == "intensity":
+                exponent_factor = 2.0 * numpy.log(2.0)
+            else:
+                exponent_factor = 4.0 * numpy.log(2.0)
+            times = pulse.axis.data if time is None else numpy.asarray(time)
+            return (
+                -2.0
+                * exponent_factor
+                * (times - self.tc)
+                / fwhm**2
+                * self.envelope_at(time)
+            )
+
+        data = pulse.data
+        if pulse.axis.length < 2:
+            derivative_data = numpy.zeros_like(data)
+        else:
+            edge_order = 2 if pulse.axis.length > 2 else 1
+            derivative_data = numpy.gradient(
+                data,
+                pulse.axis.step,
+                edge_order=edge_order,
+            )
+        derivative = DFunction(pulse.axis, derivative_data)
+        if time is None:
+            return derivative.data
+
+        times = numpy.asarray(time)
+        scalar_input = times.ndim == 0
+        flat_times = numpy.atleast_1d(times).reshape(-1)
+        values = numpy.zeros(flat_times.shape, dtype=derivative.data.dtype)
+        inside = (flat_times >= derivative.axis.min) & (
+            flat_times <= derivative.axis.max
+        )
+        if numpy.any(inside):
+            values[inside] = derivative.at(flat_times[inside])
+        if scalar_input:
+            return values[0]
+        return values.reshape(times.shape)
+
+    def derivative_at(
+        self,
+        time: Any = None,
+        component: str = "positive",
+        rwa_frequency: Any = None,
+    ) -> Any:
+        r"""Return a time derivative of the pulse envelope or field.
+
+        ``component`` may be ``"envelope"``, ``"positive"`` (the default),
+        ``"negative"``, or ``"real"``.  For the analytic positive-frequency
+        field the carrier contribution is included exactly:
+
+        .. math::
+
+            \frac{dE^{(+)}}{dt} = [\dot A(t)-i(\omega-\Omega)A(t)]
+            e^{-i(\omega-\Omega)(t-t_c)+i\phi}.
+        """
+        component = component.lower()
+        aliases = {"p": "positive", "m": "negative"}
+        component = aliases.get(component, component)
+        if component not in ("envelope", "positive", "negative", "real"):
+            raise QuantarheiError(
+                "component must be 'envelope', 'positive', 'negative', or 'real'"
+            )
+
+        envelope_derivative = self._envelope_derivative_at(time)
+        if component == "envelope":
+            return envelope_derivative
+
+        if time is None:
+            times = self.labsetup.timeaxis.data
+        else:
+            times = numpy.asarray(time)
+        envelope = self.envelope_at(time)
+        omega = self.labsetup.omega[self.index]
+        if rwa_frequency is not None:
+            omega -= Manager().convert_energy_2_internal_u(rwa_frequency)
+        local_time = times - self.tc
+        positive = (envelope_derivative - 1j * omega * envelope) * numpy.exp(
+            -1j * omega * local_time + 1j * self.phi
+        )
+        if component == "positive":
+            return positive
+        if component == "negative":
+            return numpy.conj(positive)
+        return numpy.real(positive)
+
     def field_p_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
         """Return the positive-frequency field at supplied times.
 
@@ -1741,6 +1866,27 @@ class LabField:
     def real_field_at(self, time: Any = None) -> Any:
         """Return the physical real field under the analytic-signal convention."""
         return numpy.real(self.field_p_at(time))
+
+    def get_field_derivative(
+        self, time: Any = None, sign: int = 1, rwa_frequency: Any = None
+    ) -> Any:
+        """Return a field derivative using the historical sign interface.
+
+        Deprecated in favour of :meth:`derivative_at`.
+        """
+        warnings.warn(
+            "LabField.get_field_derivative() is deprecated; use derivative_at()",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        components = {1: "positive", -1: "negative", 0: "real"}
+        if sign not in components:
+            raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
+        return self.derivative_at(
+            time,
+            component=components[sign],
+            rwa_frequency=rwa_frequency,
+        )
 
     def get_field(self, time: Any = None, sign: int = 1) -> Any:
         """Return a field component using the historical interface.
