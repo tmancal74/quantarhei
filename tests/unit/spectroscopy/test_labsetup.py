@@ -7,6 +7,7 @@ import numpy.testing as npt
 from quantarhei import (
     Aggregate,
     CorrelationFunction,
+    DFunction,
     LabSetup,
     Molecule,
     ReducedDensityMatrixPropagator,
@@ -212,6 +213,46 @@ class TestLabSetup(unittest.TestCase):
         field.set_center(-17.0)
         npt.assert_allclose(field.field_p_at(-17.0), expected)
 
+    def test_envelope_at_accepts_scalar_and_array_times(self):
+        """Envelope evaluation preserves scalar and array input shape."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([[95.0, 100.0], [105.0, 110.0]])
+
+        scalar = field.envelope_at(100.0)
+        values = field.envelope_at(times)
+
+        self.assertTrue(numpy.isscalar(scalar))
+        self.assertEqual(values.shape, times.shape)
+        npt.assert_allclose(values.ravel(), self.lab.pulse_t[2].at(times.ravel()))
+        npt.assert_allclose(field.envelope_at(), self.lab.pulse_t[2].data)
+
+    def test_numeric_envelope_is_complex_and_zero_outside_support(self):
+        """Sampled complex envelopes have finite, zero-padded support."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        data = numpy.array([0.0, 1.0 + 2.0j, 2.0 - 1.0j, 1.0j, 0.0])
+        pulse = dict(ptype="numeric", function=DFunction(time, data))
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+
+        times = numpy.array([-3.0, -2.0, -0.5, 2.0, 3.0])
+        expected = numpy.array([0.0, 0.0, 1.5 + 0.5j, 0.0, 0.0])
+
+        npt.assert_allclose(field.envelope_at(times), expected)
+        self.assertEqual(field.envelope_at(times).dtype, data.dtype)
+        self.assertEqual(field.envelope_at(-3.0), 0.0j)
+        self.assertEqual(field.envelope_at(3.0), 0.0j)
+
+    def test_get_field_at_time_wraps_envelope_at(self):
+        """The legacy time-evaluation call delegates to envelope_at()."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([95.0, 100.0, 105.0])
+
+        with self.assertWarns(DeprecationWarning):
+            legacy = field.get_field(times)
+
+        npt.assert_allclose(legacy, field.envelope_at(times))
+
     def test_field_components_follow_the_analytic_signal_convention(self):
         """Negative-frequency and real fields derive from the analytic field."""
         field = self.lab.get_labfield(2)
@@ -248,6 +289,29 @@ class TestLabSetup(unittest.TestCase):
             lab.get_field(0, rwa_frequency=0.1),
             field.field_p_at(rwa_frequency=0.1),
         )
+
+    def test_carrier_frequency_accessors_use_active_energy_units(self):
+        """LabSetup and LabField expose the same unit-safe carrier values."""
+        lab = LabSetup(nopulses=1)
+        with energy_units("1/cm"):
+            lab.set_pulse_frequencies([12000.0])
+            field = lab.get_labfield(0)
+
+            self.assertEqual(lab.get_pulse_frequency(0), 12000.0)
+            self.assertEqual(field.get_frequency(), 12000.0)
+            self.assertEqual(field.om, 12000.0)
+
+            field.set_frequency(12500.0)
+            self.assertEqual(lab.get_pulse_frequency(0), 12500.0)
+            self.assertEqual(field.om, 12500.0)
+
+            field.om = 13000.0
+            self.assertEqual(lab.get_pulse_frequency(0), 13000.0)
+
+        with energy_units("int"):
+            expected = convert(13000.0, "1/cm", "int")
+            self.assertAlmostEqual(lab.get_pulse_frequency(0), expected)
+            self.assertAlmostEqual(field.get_frequency(), expected)
 
     def test_delay_phase_storage_does_not_affect_the_field(self):
         """Legacy delay-phase storage is not part of field evaluation."""

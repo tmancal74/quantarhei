@@ -466,7 +466,10 @@ class LabSetup:
                         # Create a new DFunction based on the submitted time
                         # axis
                         #
-                        data = numpy.zeros(self.timeaxis.length)
+                        data = numpy.zeros(
+                            self.timeaxis.length,
+                            dtype=fce.data.dtype,
+                        )
                         i_p = 0
                         for t_p in self.timeaxis.data:
                             data[i_p] = fce.at(t_p)
@@ -475,7 +478,10 @@ class LabSetup:
                         self.pulse_t[k_p] = DFunction(self.timeaxis, data)
 
                     elif self.axis_type == "frequency":
-                        data = numpy.zeros(self.freqaxis.length)
+                        data = numpy.zeros(
+                            self.freqaxis.length,
+                            dtype=fce.data.dtype,
+                        )
                         i_p = 0
                         for t_p in self.freqaxis.data:
                             data[i_p] = fce.at(t_p)
@@ -953,6 +959,8 @@ class LabSetup:
                 numpy.array(omegas, dtype=REAL)
             )
             self.omega = omega_val
+            for k in range(self.number_of_pulses):
+                self.delay_phases[k] = self.pulse_centers[k] * self.omega[k]
 
         else:
             raise QuantarheiError(
@@ -977,7 +985,17 @@ class LabSetup:
         2.0
 
         """
-        return self.omega[k]
+        return Manager().convert_energy_2_current_u(self.omega[k])
+
+    def set_pulse_frequency(self, k: int, omega: float) -> None:
+        """Set one carrier frequency in the active energy units.
+
+        The internal ``omega`` array always stores internal energy units.
+        This public setter, together with :meth:`get_pulse_frequency`, is the
+        unit-safe interface for one carrier frequency.
+        """
+        self.omega[k] = Manager().convert_energy_2_internal_u(omega)
+        self.delay_phases[k] = self.pulse_centers[k] * self.omega[k]
 
     def set_pulse_arrival_times(self, times: Any) -> None:
         """Sets the arrival time (i.e. centers) of the pulses
@@ -1265,6 +1283,18 @@ def _labarray(name: str, target: str) -> Any:
     return property(prop_getter, prop_setter)
 
 
+def _labfrequency() -> Any:
+    """Expose one LabField carrier frequency in the active energy units."""
+
+    def prop_getter(self: Any) -> Any:
+        return self.get_frequency()
+
+    def prop_setter(self: Any, value: Any) -> None:
+        self.set_frequency(value)
+
+    return property(prop_getter, prop_setter)
+
+
 def _fieldprop(name: str, flag: str, sign: int) -> Any:
     """Property returning field values over time"""
     cmplx_sign = sign
@@ -1477,7 +1507,7 @@ class LabField:
     phi = _labattr("phi", "phases")
     delay_phi = _labattr("delay_phi", "delay_phases")
     tc = _labattr("tc", "pulse_centers", flag="_center_changed")
-    om = _labattr("om", "omega")
+    om = _labfrequency()
     pol = _labarray("pol", "e")
     field_p = _fieldprop("field_p", "_field_set", 1)
     field_m = _fieldprop("field_p", "_field_set", -1)
@@ -1553,11 +1583,12 @@ class LabField:
         self.labsetup.delay_phases[self.index] = phi
 
     def get_frequency(self) -> Any:
-        return self.labsetup.omega[self.index]
+        """Return the carrier frequency in the active energy units."""
+        return self.labsetup.get_pulse_frequency(self.index)
 
     def set_frequency(self, val: float) -> None:
-        self.labsetup.omega[self.index] = val
-        self.set_delay_phase(self.tc)
+        """Set the carrier frequency in the active energy units."""
+        self.labsetup.set_pulse_frequency(self.index, val)
 
     def get_polarization(self) -> Any:
         return self.labsetup.e[self.index, :]
@@ -1568,16 +1599,43 @@ class LabField:
     def get_fwhm(self) -> Any:
         return self.labsetup.saved_params[self.index]["FWHM"]
 
-    def _envelope_at(self, time: Any = None) -> Any:
-        """Return the stored pulse envelope at supplied times."""
+    def envelope_at(self, time: Any = None) -> Any:
+        """Return the pulse envelope at supplied times.
+
+        Values inside the configured time axis are obtained from the stored
+        :class:`DFunction`. Values outside that finite sampled support are
+        zero rather than extrapolated. Scalar input produces a scalar and
+        array-like input preserves its shape.
+
+        Parameters
+        ----------
+        time : float or array-like, optional
+            Evaluation time. When omitted, return the envelope sampled on the
+            complete configured time axis.
+        """
         if self._center_changed:
             self.labsetup.reset_pulse_shape()
             self._center_changed = False
 
+        pulse = self.labsetup.pulse_t[self.index]
         if time is None:
-            return self.labsetup.pulse_t[self.index].data
+            return pulse.data
 
-        return self.labsetup.pulse_t[self.index].at(time)
+        times = numpy.asarray(time)
+        scalar_input = times.ndim == 0
+        flat_times = numpy.atleast_1d(times).reshape(-1)
+        values = numpy.zeros(flat_times.shape, dtype=pulse.data.dtype)
+        inside = (flat_times >= pulse.axis.min) & (flat_times <= pulse.axis.max)
+        if numpy.any(inside):
+            values[inside] = pulse.at(flat_times[inside])
+
+        if scalar_input:
+            return values[0]
+        return values.reshape(times.shape)
+
+    def _envelope_at(self, time: Any = None) -> Any:
+        """Compatibility alias for the public envelope evaluator."""
+        return self.envelope_at(time)
 
     def field_p_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
         """Return the positive-frequency field at supplied times.
@@ -1603,8 +1661,8 @@ class LabField:
         else:
             times = numpy.asarray(time)
 
-        envelope = self._envelope_at(time)
-        omega = self.om
+        envelope = self.envelope_at(time)
+        omega = self.labsetup.omega[self.index]
         if rwa_frequency is not None:
             omega -= Manager().convert_energy_2_internal_u(rwa_frequency)
 
@@ -1625,17 +1683,16 @@ class LabField:
         Without ``time``, ``sign`` selects the positive-frequency (``1``),
         negative-frequency (``-1``), or real (``0``) field on the configured
         axis. Supplying ``time`` retains the historical envelope-only behavior
-        and is deprecated; use :meth:`field_p_at`, :meth:`field_m_at`, or
-        :meth:`real_field_at` instead.
+        and is deprecated; use :meth:`envelope_at` instead.
         """
         if time is not None:
             warnings.warn(
                 "LabField.get_field(time) returns only the envelope and is "
-                "deprecated; use field_p_at(), field_m_at(), or real_field_at()",
+                "deprecated; use envelope_at()",
                 DeprecationWarning,
                 stacklevel=2,
             )
-            return self._envelope_at(time)
+            return self.envelope_at(time)
 
         if sign == 1:
             return self.field_p_at()
