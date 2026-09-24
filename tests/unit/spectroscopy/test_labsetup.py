@@ -397,6 +397,43 @@ class TestLabSetup(unittest.TestCase):
         )
         self.assertEqual(field.derivative_at(3.0, component="envelope"), 0.0j)
 
+    def test_frequency_defined_pulse_derivative_uses_derived_time_grid(self):
+        """A frequency-defined pulse has a stable sampled time derivative."""
+        frequency = FrequencyAxis(-1.0, 201, 0.01)
+        pulse = dict(ptype="Gaussian", FWHM=0.2, amplitude=1.0)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_shapes(frequency, (pulse,))
+        field = lab.get_labfield(0)
+
+        envelope = field.envelope_at()
+        expected = numpy.gradient(envelope, lab.timeaxis.step, edge_order=2)
+        npt.assert_allclose(field.derivative_at(component="envelope"), expected)
+
+        times = lab.timeaxis.data[20:-20:20]
+        envelope_derivative = field.derivative_at(times, component="envelope")
+        expected_field = (
+            envelope_derivative - 1j * 0.25 * field.envelope_at(times)
+        ) * (numpy.exp(-1j * 0.25 * (times - field.tc) + 1j * field.phi))
+        npt.assert_allclose(field.derivative_at(times), expected_field)
+
+    def test_derivative_rwa_frequency_respects_the_active_energy_units(self):
+        """RWA values are interpreted locally in the current energy units."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (dict(ptype="Gaussian", FWHM=20.0, amplitude=1.0),))
+        field = lab.get_labfield(0)
+        times = numpy.array([-2.0, 0.0, 2.0])
+
+        with energy_units("1/cm"):
+            lab.set_pulse_frequencies([12000.0])
+            in_wavenumbers = field.derivative_at(times, rwa_frequency=11800.0)
+        with energy_units("int"):
+            rwa_internal = convert(11800.0, "1/cm", "int")
+            in_internal_units = field.derivative_at(times, rwa_frequency=rwa_internal)
+
+        npt.assert_allclose(in_wavenumbers, in_internal_units)
+
     def test_labsetup_field_derivative_sums_fields_and_legacy_wrapper(self):
         """The LabSetup helper uses the public derivative implementation."""
         times = numpy.array([95.0, 100.0, 105.0])
