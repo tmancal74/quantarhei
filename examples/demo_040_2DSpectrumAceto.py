@@ -34,7 +34,14 @@ Npad = 0
 Nt = Nt2
 dt = dt2
 
-t_axis = qr.TimeAxis(0.0, Nt2, dt2)
+# time axes of the propagation in t1, t2 and t3 times
+t1_axis = qr.TimeAxis(0.0, Nt, dt)
+t2_axis = qr.TimeAxis(0.0, Nt2, dt2)
+t3_axis = qr.TimeAxis(0.0, Nt, dt)
+
+# bath correlation functions must cover t1_max + t2_max + t3_max, because
+# the response functions evaluate lineshape functions at summed times
+t_axis = qr.TwoDResponseCalculator(t1_axis, t2_axis, t3_axis).get_joint_time_axis()
 
 with qr.energy_units("1/cm"):
     # two two-level molecules
@@ -95,9 +102,6 @@ with qr.energy_units("1/cm"):
 #
 ###############################################################################
 
-# time span of the excited state evolution (later t2 time of the 2D spectrum)
-t2_axis = qr.TimeAxis(0.0, Nt2, dt2)
-
 # Lindblad relaxation operator
 with qr.eigenbasis_of(H):
     K = qr.qm.ProjectionOperator(1,2,dim=H.dim)
@@ -120,11 +124,6 @@ eUt.calculate()
 # 2D SPECTRUM: effective lineshape 2D spectrum
 #
 ###############################################################################
-
-# time axes of the propagation in t1 and t3 times
-
-t1_axis = qr.TimeAxis(0.0, Nt, dt)
-t3_axis = qr.TimeAxis(0.0, Nt, dt)
 
 agg_2D.build(mult=2)
 agg_2D.diagonalize()
