@@ -17,6 +17,7 @@ from ...core.frequency import FrequencyAxis
 from ...core.managers import UnitsManaged, energy_units
 from ...core.time import TimeAxis
 from ...core.units import convert, kB_int
+from ...core.wrappers import enforce_energy_units_context
 from ...exceptions import QuantarheiError
 from .correlationfunctions import CorrelationFunction, FTCorrelationFunction
 
@@ -109,6 +110,7 @@ class SpectralDensity(DFunction, UnitsManaged):
     )
     analytical_types = "OverdampedBrownian"
 
+    @enforce_energy_units_context
     def __init__(
         self, axis: Any = None, params: Any = None, values: Any = None
     ) -> None:

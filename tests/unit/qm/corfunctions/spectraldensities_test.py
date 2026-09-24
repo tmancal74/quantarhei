@@ -15,11 +15,34 @@ import numpy
 """
 
 
-from quantarhei import CorrelationFunction, SpectralDensity, TimeAxis, energy_units
+from quantarhei import (
+    CorrelationFunction,
+    Manager,
+    SpectralDensity,
+    TimeAxis,
+    energy_units,
+)
 
 
 class TestSpectralDensity(unittest.TestCase):
     """Tests spectral densities module"""
+
+    def test_constructor_requires_explicit_energy_units(self):
+        """SpectralDensity matches CorrelationFunction unit-context semantics."""
+        if not Manager()._enforce_contexts:
+            return
+
+        time = TimeAxis(0.0, 100, 1.0)
+        params = dict(ftype="OverdampedBrownian", reorg=20.0, cortime=100.0, T=300.0)
+
+        with self.assertRaisesRegex(
+            Exception, "MUST be called from within an 'energy_units' context"
+        ):
+            SpectralDensity(time, params)
+
+        with energy_units("1/cm"):
+            density = SpectralDensity(time, params)
+        self.assertGreater(density.lamb, 0.0)
 
     def test_underdamped_brownian_oscillator(self):
         """Testing Underdamped Brownian oscillator spectral density"""
