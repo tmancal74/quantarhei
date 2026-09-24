@@ -14,6 +14,14 @@ def _delta_lab() -> qr.LabSetup:
     return lab
 
 
+def _finite_lab() -> qr.LabSetup:
+    lab = qr.LabSetup(nopulses=3)
+    pulse_axis = qr.TimeAxis(-50.0, 101, 1.0, atype="complete")
+    pulse = {"ptype": "Gaussian", "FWHM": 15.0, "amplitude": 1.0}
+    lab.set_pulse_shapes(pulse_axis, (pulse, pulse, pulse))
+    return lab
+
+
 def _axes():
     return (
         qr.TimeAxis(0.0, 8, 1.0),
@@ -65,14 +73,41 @@ def test_calculate_requires_bootstrap():
 
 def test_finite_pulses_are_explicitly_deferred():
     t1, t2, t3 = _axes()
-    lab = qr.LabSetup(nopulses=3)
-    pulse_axis = qr.TimeAxis(-50.0, 101, 1.0, atype="complete")
-    pulse = {"ptype": "Gaussian", "FWHM": 15.0, "amplitude": 1.0}
-    lab.set_pulse_shapes(pulse_axis, (pulse, pulse, pulse))
-    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, _finite_lab())
 
     with pytest.raises(NotImplementedError, match="finite pulses"):
         calculator.get_response_axes()
+
+
+def test_finite_pulse_overlay_suggests_unchanged_response_axes():
+    t1, t2, t3 = _axes()
+    calculator = qr.TwoDSpectrumCalculator(
+        t1, t2, t3, _finite_lab(), explicit_convolution=False
+    )
+
+    response_axes = calculator.get_response_axes()
+
+    for suggested, experimental in zip(response_axes, (t1, t2, t3)):
+        assert suggested.is_equal_to(experimental)
+        assert suggested is not experimental
+
+
+def test_finite_pulse_overlay_is_applied_after_impulsive_conversion():
+    t1, t2, t3 = _axes()
+    lab = _finite_lab()
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab, explicit_convolution=False)
+    responses = qr.TwoDResponseContainer(t2axis=t2)
+    expected = qr.TwoDSpectrumContainer(t2axis=t2)
+    spectrum = Mock()
+    expected.spectra = {t2.data[0]: spectrum}
+    responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
+
+    calculator.bootstrap(responses)
+    result = calculator.calculate(stype=qr.signal_REPH)
+
+    assert result is expected
+    responses.get_TwoDSpectrumContainer.assert_called_once_with(stype=qr.signal_REPH)
+    spectrum.overlay_pulses.assert_called_once_with(lab)
 
 
 def test_bootstrap_checks_waiting_time_axis():

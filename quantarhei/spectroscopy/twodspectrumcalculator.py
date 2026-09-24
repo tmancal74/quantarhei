@@ -31,6 +31,11 @@ class TwoDSpectrumCalculator:
         Experimental detection-time axis.
     lab : LabSetup
         Laboratory setup containing three configured pulse shapes.
+    explicit_convolution : bool, optional
+        If ``True`` (default), finite pulses require an explicit convolution,
+        which is not implemented yet. If ``False``, calculate the impulsive
+        spectrum on the supplied axes and apply the approximate spectral-pulse
+        overlay to the resulting spectra.
     """
 
     t1axis = derived_type("t1axis", TimeAxis)
@@ -44,22 +49,25 @@ class TwoDSpectrumCalculator:
         t2axis: TimeAxis,
         t3axis: TimeAxis,
         lab: LabSetup,
+        explicit_convolution: bool = True,
     ) -> None:
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
         self.lab = lab
+        self.explicit_convolution = explicit_convolution
         self.response_container: TwoDResponseContainer | None = None
 
     def get_response_axes(self) -> tuple[TimeAxis, TimeAxis, TimeAxis]:
         """Return axes suitable for calculating the required responses.
 
-        For delta pulses, response and experimental axes are identical. Copies
-        are returned so a response calculator cannot modify the axes owned by
-        this calculator. Finite pulses will extend these axes in a later
+        Delta pulses, and finite pulses used with the approximate overlay,
+        use the experimental axes unchanged. Copies are returned so a response
+        calculator cannot modify the axes owned by this calculator. Explicit
+        finite-pulse convolution will extend these axes in a later
         implementation.
         """
-        if not self.lab.has_delta_pulses():
+        if not self.lab.has_delta_pulses() and self.explicit_convolution:
             raise NotImplementedError(
                 "Response-axis suggestions for finite pulses are not implemented"
             )
@@ -88,13 +96,21 @@ class TwoDSpectrumCalculator:
     def calculate(self, stype: Any = signal_TOTL) -> TwoDSpectrumContainer:
         """Calculate and return a container of 2D spectra.
 
-        The current implementation supports delta pulses only and therefore
-        performs the established impulsive response-to-spectrum conversion.
+        Delta pulses use the established impulsive response-to-spectrum
+        conversion. For finite pulses, ``explicit_convolution=False`` applies
+        a post-processing spectral overlay; explicit convolution is reserved
+        for a later implementation.
         """
         if self.response_container is None:
             raise QuantarheiError(
                 "TwoDSpectrumCalculator must be bootstrapped before calculation"
             )
-        if not self.lab.has_delta_pulses():
+        if not self.lab.has_delta_pulses() and self.explicit_convolution:
             raise NotImplementedError("Finite-pulse convolution is not implemented")
-        return self.response_container.get_TwoDSpectrumContainer(stype=stype)
+
+        spectra = self.response_container.get_TwoDSpectrumContainer(stype=stype)
+        if not self.lab.has_delta_pulses():
+            for spectrum in spectra.spectra.values():
+                spectrum.overlay_pulses(self.lab)
+
+        return spectra
