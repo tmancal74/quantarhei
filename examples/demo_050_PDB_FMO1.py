@@ -12,6 +12,8 @@ print("""
 """)
 
 
+import os
+
 import numpy
 
 import quantarhei as qr
@@ -22,8 +24,10 @@ from quantarhei.models.bacteriochlorophylls import BacterioChlorophyll
 #
 # Read a PDB file
 #
-file = PDBFile("data_050_3eoj.pdb")
-#file = PDBFile("data_050_3eni.pdb")
+# PDB files are located next to this script, so that it runs from any cwd
+_data_dir = os.path.dirname(os.path.abspath(__file__))
+file = PDBFile(os.path.join(_data_dir, "data_050_3eoj.pdb"))
+#file = PDBFile(os.path.join(_data_dir, "data_050_3eni.pdb"))
 print("Loaded", file.linecount, "lines")
 
 #
