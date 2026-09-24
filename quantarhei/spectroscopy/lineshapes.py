@@ -221,7 +221,7 @@ def lorentzian2D(
         #
         # for k in range(N1):
         #    data[k, :] = dat1[k]*dat2[:]
-        data = numpy.outer(dat1, dat2)
+        data = numpy.outer(dat2, dat1)
 
     else:
         raise ImplementationError("Not implemented yet")

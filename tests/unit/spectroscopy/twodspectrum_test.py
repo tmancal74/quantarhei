@@ -45,7 +45,7 @@ class TestTwoDSpectrum(unittest.TestCase):
         spectrum = qr.TwoDSpectrum()
         spectrum.set_axis_1(qr.FrequencyAxis(9.0, 2, 1.0))
         spectrum.set_axis_3(qr.FrequencyAxis(9.0, 3, 1.0))
-        spectrum.set_data(numpy.ones((2, 3)))
+        spectrum.set_data(numpy.ones((3, 2)))
         spectrum.set_rwa(10.0)
 
         lab = qr.LabSetup()
@@ -58,8 +58,35 @@ class TestTwoDSpectrum(unittest.TestCase):
             spectrum.overlay_pulses(lab)
 
         # omega_1 = [9, 10] and omega_3 = [9, 10, 11] in absolute units.
-        expected = numpy.array([[8.0, 12.0, 16.0], [18.0, 27.0, 36.0]])
+        expected = numpy.array([[8.0, 18.0], [12.0, 27.0], [16.0, 36.0]])
         npt.assert_allclose(spectrum.data, expected)
+
+    def test_plot_maps_first_data_dimension_to_omega_3(self):
+        """Storage rows are omega_3, matching Matplotlib's row convention."""
+        import matplotlib.pyplot as plt
+
+        spectrum = qr.TwoDSpectrum()
+        spectrum.set_axis_1(qr.FrequencyAxis(1.0, 2, 1.0))
+        spectrum.set_axis_3(qr.FrequencyAxis(10.0, 3, 1.0))
+        data = numpy.array([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
+        spectrum.set_data(data)
+
+        spectrum.plot(plot_type="image")
+        image = plt.gca().images[0]
+        npt.assert_allclose(image.get_array(), data)
+        plt.close(plt.gcf())
+
+    def test_coordinate_accessors_follow_omega_3_omega_1_storage(self):
+        """Coordinate lookups and cuts use data[omega_3, omega_1]."""
+        spectrum = qr.TwoDSpectrum()
+        spectrum.set_axis_1(qr.FrequencyAxis(1.0, 2, 1.0))
+        spectrum.set_axis_3(qr.FrequencyAxis(10.0, 3, 1.0))
+        data = numpy.array([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]])
+        spectrum.set_data(data)
+
+        self.assertEqual(spectrum.get_value_at(2.0, 11.0), 5.0)
+        npt.assert_allclose(spectrum.get_cut_along_x(11.0).data, [2.0, 5.0])
+        npt.assert_allclose(spectrum.get_cut_along_y(2.0).data, [4.0, 5.0, 6.0])
 
     def _setup_system(self, prepare_underdamped=False):
         #

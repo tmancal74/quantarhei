@@ -920,20 +920,28 @@ class TwoDResponseCalculator:
 
         # pad is set to 0 by default. If changed in the bootstrap,
         # responses are padded with 0s and the time axis is lengthened
-        t13Pad = TimeAxis(
+        t1Pad = TimeAxis(
             self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step
+        )
+        t3Pad = TimeAxis(
+            self.t3axis.start, self.t3axis.length + self.pad, self.t3axis.step
         )
         response_window = None
         if self.pad > 0:
             self._vprint("padding by - " + str(self.pad))
 
-            t13Pad.atype = "complete"
-            t13PadFreq = t13Pad.get_FrequencyAxis()
-            t13PadFreq.data += self.rwa
-            t13PadFreq.start += self.rwa
+            t1Pad.atype = "complete"
+            t1PadFreq = t1Pad.get_FrequencyAxis()
+            t1PadFreq.data += self.rwa
+            t1PadFreq.start += self.rwa
 
-            onetwod.set_axis_1(t13PadFreq)
-            onetwod.set_axis_3(t13PadFreq)
+            t3Pad.atype = "complete"
+            t3PadFreq = t3Pad.get_FrequencyAxis()
+            t3PadFreq.data += self.rwa
+            t3PadFreq.start += self.rwa
+
+            onetwod.set_axis_1(t1PadFreq)
+            onetwod.set_axis_3(t3PadFreq)
 
             # Sloping the end of the data down to 0 so there isn't a hard
             # cutoff at the end of the data
@@ -969,7 +977,8 @@ class TwoDResponseCalculator:
         if self.keep_resp:
             resp = {
                 "time": self.t1axis.data,
-                "time_pad": t13Pad.data,
+                "time_pad": t1Pad.data,
+                "time_pad_3": t3Pad.data,
                 "rTot": resp_r,
                 "nTot": resp_n,
                 "rGSB": resp_Rgsb,
@@ -989,7 +998,8 @@ class TwoDResponseCalculator:
             numpy.savez(
                 "./" + self.write_resp + "/respT" + str(int(tt2)) + ".npz",
                 time=self.t1axis.data,
-                time_pad=t13Pad.data,
+                time_pad=t1Pad.data,
+                time_pad_3=t3Pad.data,
                 rTot=resp_r,
                 nTot=resp_n,
                 rGSB=resp_Rgsb,

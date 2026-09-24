@@ -133,8 +133,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if (self.xaxis is None) or (self.yaxis is None):
             raise QuantarheiError("Axes of the 2D spectrum are not set")
 
-        if (self.xaxis.length == data.shape[0]) and (
-            self.yaxis.length == data.shape[1]
+        if (self.yaxis.length == data.shape[0]) and (
+            self.xaxis.length == data.shape[1]
         ):
             self.data = data
 
@@ -168,15 +168,15 @@ class TwoDSpectrum(DataSaveable, Saveable):
         assert self.yaxis is not None
         assert self.data is not None
         with energy_units("int"):
-            # The first array dimension is omega_1 and the second is omega_3.
+            # The first array dimension is omega_3 and the second is omega_1.
             ome1 = self.xaxis.data
             ome3 = self.yaxis.data
             spect1 = lab.get_pulse_spectrum(0, ome1)
             spect2 = lab.get_pulse_spectrum(1, ome1)
             spect3 = lab.get_pulse_spectrum(2, ome3)
 
-        self.data = self.data * (spect1 * spect2)[:, numpy.newaxis]
-        self.data = self.data * spect3[numpy.newaxis, :]
+        self.data = self.data * (spect1 * spect2)
+        self.data = self.data * spect3[:, numpy.newaxis]
 
         # do we need to add also the detection pulse ?
 
