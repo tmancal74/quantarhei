@@ -16,6 +16,7 @@ from quantarhei import (
     eigenbasis_of,
     energy_units,
 )
+from quantarhei.exceptions import QuantarheiError
 
 # import quantarhei as qr
 from quantarhei.utils.vectors import X, Y, Z
@@ -242,6 +243,29 @@ class TestLabSetup(unittest.TestCase):
         self.assertEqual(field.envelope_at(times).dtype, data.dtype)
         self.assertEqual(field.envelope_at(-3.0), 0.0j)
         self.assertEqual(field.envelope_at(3.0), 0.0j)
+
+    def test_empty_chirp_is_compatible_and_nonempty_chirp_is_rejected(self):
+        """A chirp must not be silently ignored by a finite-pulse setup."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        lab = LabSetup(nopulses=1)
+        pulse = {"ptype": "Gaussian", "FWHM": 1.0, "amplitude": 1.0, "chirp": []}
+
+        lab.set_pulse_shapes(time, (pulse,))
+
+        with self.assertRaisesRegex(
+            QuantarheiError, "Chirped pulses are not implemented"
+        ):
+            lab.set_pulse_shapes(
+                time,
+                (
+                    {
+                        "ptype": "Gaussian",
+                        "FWHM": 1.0,
+                        "amplitude": 1.0,
+                        "chirp": [0.1],
+                    },
+                ),
+            )
 
     def test_get_field_at_time_wraps_envelope_at(self):
         """The legacy time-evaluation call delegates to envelope_at()."""

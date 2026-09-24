@@ -61,6 +61,26 @@ def _gaussian_values(
     return scale * numpy.exp(-exponent_factor * ((values - center) / fwhm) ** 2)
 
 
+def _validate_chirp(parameters: Any) -> None:
+    """Reject a separate chirp parameter until its convention is defined.
+
+    A complex numeric envelope can already carry arbitrary spectral or
+    temporal phase.  Silently accepting a separate ``chirp`` value for a
+    Gaussian pulse, however, would make it impossible to know whether that
+    phase has been applied.  Empty values are retained for compatibility with
+    existing input dictionaries.
+    """
+    chirp = parameters.get("chirp", None)
+    if chirp is None:
+        return
+    if numpy.asarray(chirp).size == 0:
+        return
+    raise QuantarheiError(
+        "Chirped pulses are not implemented; encode phase in a complex "
+        "numeric pulse or omit the 'chirp' parameter"
+    )
+
+
 class LabSetup:
     """Laboratory set-up for non-linear spectroscopy
 
@@ -382,6 +402,7 @@ class LabSetup:
 
             k_p = 0
             for par in params:
+                _validate_chirp(par)
                 if par["ptype"] == "Gaussian":
                     if self.axis_type == "time":
                         #
