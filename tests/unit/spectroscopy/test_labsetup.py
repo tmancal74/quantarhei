@@ -198,6 +198,26 @@ class TestLabSetup(unittest.TestCase):
             )
         self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.2)
 
+    def test_delta_pulse_rejects_pointwise_field_evaluation(self):
+        """A delta pulse is area-defined, not a sampled finite field."""
+        time = TimeAxis(-10.0, 201, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, ({"ptype": "delta", "area": 0.4},))
+        field = lab.get_labfield(0)
+
+        for evaluator in (
+            field.envelope_at,
+            field.field_p_at,
+            field.field_m_at,
+            field.real_field_at,
+            field.get_field,
+        ):
+            with self.assertRaisesRegex(QuantarheiError, "no pointwise"):
+                evaluator(0.0)
+
+        with self.assertRaisesRegex(QuantarheiError, "no pointwise"):
+            lab.get_pulse_envelop(0, 0.0)
+
     def test_field_phase_is_defined_at_pulse_center(self):
         """Translation preserves the configured carrier phase at the peak."""
         time = TimeAxis(-100.0, 2001, 0.1, atype="complete")

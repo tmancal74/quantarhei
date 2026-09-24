@@ -216,10 +216,13 @@ class LabSetup:
             which should be of DFunction type and specifies line shape around
             zero frequency.
 
-            A **delta** pulse is represented by one non-zero time-axis sample
-            with unit area, or by a constant on a frequency axis. Its optional
-            `area` parameter defaults to one. The historical `amplitude`
-            spelling is accepted with a deprecation warning.
+            A **delta** pulse is an area-defined impulsive object. It is
+            represented internally by one non-zero time-axis sample, or by a
+            constant on a frequency axis, solely for impulsive dispatch and
+            Fourier-domain compatibility. Pointwise time-domain field and
+            envelope evaluation is undefined and raises :class:`QuantarheiError`.
+            Its optional `area` parameter defaults to one. The historical
+            `amplitude` spelling is accepted with a deprecation warning.
 
 
         Examples
@@ -910,6 +913,13 @@ class LabSetup:
 
 
         """
+        if self.saved_params is None:
+            raise QuantarheiError("Pulse shapes have not been configured.")
+        if self.saved_params[k].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
         if not self.has_timedomain:
             self.convert_to_time()
         return self.pulse_t[k].at(t)
@@ -1660,6 +1670,12 @@ class LabField:
             Evaluation time. When omitted, return the envelope sampled on the
             complete configured time axis.
         """
+        if self.labsetup.saved_params[self.index].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
+
         if self._center_changed:
             self.labsetup.reset_pulse_shape()
             self._center_changed = False
