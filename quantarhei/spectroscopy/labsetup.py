@@ -983,7 +983,30 @@ class LabSetup:
         """
         if not self.has_freqdomain:
             self.convert_to_frequency()
-        return self.pulse_f[k].at(omega)
+
+        # A Fourier transform of a time-domain pulse is the slowly varying
+        # envelope on a detuning axis.  Frequency-domain pulse definitions,
+        # in contrast, are supplied directly on an absolute-frequency axis.
+        # The public spectral-overlap API always accepts absolute frequencies.
+        query = numpy.asarray(omega)
+        if self.pulse_definition_domain == "time":
+            query = query - self.omega[k]
+
+        pulse = self.pulse_f[k]
+        assert pulse is not None
+        lower = pulse.axis.data[0]
+        upper = pulse.axis.data[-1]
+        inside = (query >= lower) & (query <= upper)
+
+        if query.ndim == 0:
+            if not bool(inside):
+                return numpy.zeros((), dtype=pulse.data.dtype)[()]
+            return pulse.at(query.item())
+
+        values = numpy.zeros(query.shape, dtype=pulse.data.dtype)
+        if numpy.any(inside):
+            values[inside] = pulse.at(query[inside])
+        return values
 
     def set_pulse_frequencies(self, omegas: Any) -> None:
         """Sets pulse frequencies

@@ -329,6 +329,32 @@ class TestLabSetup(unittest.TestCase):
         self.assertTrue(lab.has_freqdomain)
         self.assertEqual(spectrum.shape, (1,))
 
+    def test_time_defined_pulse_spectrum_uses_absolute_frequency_queries(self):
+        """A time-domain envelope is shifted by its carrier for overlap."""
+        time = TimeAxis(-20.0, 81, 0.5, atype="complete")
+        pulse = {"ptype": "Gaussian", "FWHM": 5.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([100.0])
+        lab.set_pulse_shapes(time, (pulse,))
+
+        values = lab.get_pulse_spectrum(0, numpy.array([100.0, 130.0]))
+
+        self.assertGreater(abs(values[0]), 0.0)
+        self.assertEqual(values[1], 0.0)
+
+    def test_frequency_defined_pulse_spectrum_is_zero_outside_support(self):
+        """Spectral overlay treats unavailable pulse frequencies as zero."""
+        frequency = FrequencyAxis(10.0, 5, 1.0)
+        pulse = {"ptype": "Gaussian", "FWHM": 2.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([12.0])
+        lab.set_pulse_shapes(frequency, (pulse,))
+
+        values = lab.get_pulse_spectrum(0, numpy.array([9.0, 12.0, 15.0]))
+
+        npt.assert_allclose(values[[0, 2]], 0.0)
+        self.assertGreater(values[1], 0.0)
+
     def test_get_field_at_time_wraps_envelope_at(self):
         """The legacy time-evaluation call delegates to envelope_at()."""
         field = self.lab.get_labfield(2)

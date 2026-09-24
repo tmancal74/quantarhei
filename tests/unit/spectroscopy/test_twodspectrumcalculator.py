@@ -125,7 +125,12 @@ def test_system_bootstrap_calculates_responses_with_owned_lab_and_axes(monkeypat
     t1, t2, t3 = _axes()
     lab = _delta_lab()
     calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
-    system = object()
+
+    class System:
+        def get_RWA_suggestion(self):
+            return 3.5
+
+    system = System()
     responses = qr.TwoDResponseContainer(t2axis=t2)
     expected = qr.TwoDSpectrumContainer(t2axis=t2)
     responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
@@ -158,7 +163,7 @@ def test_system_bootstrap_calculates_responses_with_owned_lab_and_axes(monkeypat
     for supplied, owned in zip(response_calculator.axes, (t1, t2, t3)):
         assert supplied.is_equal_to(owned)
         assert supplied is not owned
-    response_calculator.bootstrap.assert_called_once_with(lab=lab, pad=4)
+    response_calculator.bootstrap.assert_called_once_with(rwa=3.5, lab=lab, pad=4)
     response_calculator.calculate.assert_called_once_with()
     assert calculator.response_calculator is response_calculator
     assert calculator.response_container is responses
@@ -170,3 +175,33 @@ def test_system_bootstrap_reserves_lab_for_spectrum_calculator():
 
     with pytest.raises(ValueError, match="laboratory setup is owned"):
         calculator.bootstrap(object(), response_bootstrap_kwargs={"lab": _delta_lab()})
+
+
+def test_system_bootstrap_records_explicit_rwa_in_active_units(monkeypatch):
+    t1, t2, t3 = _axes()
+    lab = _delta_lab()
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
+    responses = qr.TwoDResponseContainer(t2axis=t2)
+    responses.get_TwoDSpectrumContainer = Mock(
+        return_value=qr.TwoDSpectrumContainer(t2axis=t2)
+    )
+
+    class System:
+        def get_RWA_suggestion(self):
+            raise AssertionError("An explicit RWA should take precedence")
+
+    response_calculator = Mock()
+    response_calculator.calculate.return_value = responses
+    monkeypatch.setattr(
+        spectrum_module,
+        "TwoDResponseCalculator",
+        Mock(return_value=response_calculator),
+    )
+
+    with qr.energy_units("1/cm"):
+        calculator.bootstrap(System(), rwa=12000.0)
+    calculator.calculate()
+
+    with qr.energy_units("1/cm"):
+        expected_rwa = qr.convert(12000.0, "1/cm", "int")
+    response_calculator.bootstrap.assert_called_once_with(rwa=expected_rwa, lab=lab)

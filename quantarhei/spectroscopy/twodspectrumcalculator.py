@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .. import signal_TOTL
+from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
 from ..utils import derived_type
@@ -60,6 +61,7 @@ class TwoDSpectrumCalculator:
         self.response_container: TwoDResponseContainer | None = None
         self.response_calculator: TwoDResponseCalculator | None = None
         self.system: Any = None
+        self.rwa: float | None = None
         self._response_calculator_kwargs: dict[str, Any] = {}
         self._response_bootstrap_kwargs: dict[str, Any] = {}
 
@@ -90,6 +92,7 @@ class TwoDSpectrumCalculator:
         self,
         sample: TwoDResponseContainer | Any,
         *,
+        rwa: float | None = None,
         response_calculator_kwargs: dict[str, Any] | None = None,
         response_bootstrap_kwargs: dict[str, Any] | None = None,
     ) -> None:
@@ -114,6 +117,9 @@ class TwoDSpectrumCalculator:
         response_bootstrap_kwargs
             Keyword arguments forwarded to its ``bootstrap`` method.  ``lab``
             is supplied by this calculator and may not be overridden.
+        rwa
+            Optional rotating-wave reference frequency in the active energy
+            units. If omitted, the system's RWA suggestion is used.
         """
         if isinstance(sample, TwoDResponseContainer):
             axis = sample.axis
@@ -124,6 +130,7 @@ class TwoDSpectrumCalculator:
             self.response_container = sample
             self.response_calculator = None
             self.system = None
+            self.rwa = None
             return
 
         bootstrap_kwargs = dict(response_bootstrap_kwargs or {})
@@ -132,10 +139,16 @@ class TwoDSpectrumCalculator:
                 "The laboratory setup is owned by TwoDSpectrumCalculator; "
                 "do not pass 'lab' in response_bootstrap_kwargs"
             )
+        if "rwa" in bootstrap_kwargs:
+            raise ValueError(
+                "Pass 'rwa' directly to TwoDSpectrumCalculator.bootstrap(), "
+                "so its active energy units are recorded at bootstrap time"
+            )
 
         self.system = sample
         self.response_container = None
         self.response_calculator = None
+        self.rwa = None if rwa is None else Manager().convert_energy_2_internal_u(rwa)
         self._response_calculator_kwargs = dict(response_calculator_kwargs or {})
         self._response_bootstrap_kwargs = bootstrap_kwargs
 
@@ -154,7 +167,13 @@ class TwoDSpectrumCalculator:
             system=self.system,
             **self._response_calculator_kwargs,
         )
-        calculator.bootstrap(lab=self.lab, **self._response_bootstrap_kwargs)
+        with energy_units("int"):
+            rwa = self.rwa
+            if rwa is None:
+                rwa = self.system.get_RWA_suggestion()
+            calculator.bootstrap(
+                rwa=rwa, lab=self.lab, **self._response_bootstrap_kwargs
+            )
         responses = calculator.calculate()
         self.response_calculator = calculator
         self.response_container = responses
