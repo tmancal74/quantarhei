@@ -203,6 +203,38 @@ Full reference: [NumPy docstring guide](https://numpydoc.readthedocs.io/en/lates
 3. Ensure all tests pass: `uv run pytest tests/unit`
 4. Open a pull request against `master` with a clear description
 
+Label pull requests with `bug`, `enhancement`, or `tests` where it applies.
+These labels decide which section of the release notes a PR appears in (see
+`.github/release.yml`). Unlabeled PRs go under "Other Changes".
+
+## Releasing
+
+Maintainers publish a new version like this:
+
+1. Bump `version` in `pyproject.toml` (for example to `0.0.71`) and merge that
+   change into `master`.
+2. Create and publish a GitHub Release whose tag is `v` followed by the same
+   version. Let GitHub generate the notes from the PRs merged since the last
+   release:
+
+   ```bash
+   gh release create v0.0.71 --target master --title v0.0.71 --generate-notes
+   ```
+
+   In the web UI, use **Releases > Draft a new release**, create the tag
+   `v0.0.71` on `master`, click **Generate release notes**, edit them if
+   needed, and click **Publish release**.
+3. Publishing the release starts `.github/workflows/publish-to-pypi.yml`. It
+   checks that the tag matches the version in `pyproject.toml`, builds the
+   sdist and wheel, and uploads them to PyPI with trusted publishing. Check the
+   run under **Actions**, then confirm the new version on
+   <https://pypi.org/project/quantarhei/>.
+
+If the version check fails, nothing is uploaded to PyPI. Delete the release
+and its tag, fix `pyproject.toml`, and start again. To try the build first,
+run the "Publish Python package to TestPyPI" workflow by hand from the
+**Actions** tab.
+
 ## Reporting bugs
 
 Please use the [bug report template](https://github.com/tmancal74/quantarhei/issues/new?template=bug_report.md) and include a minimal reproducible example.

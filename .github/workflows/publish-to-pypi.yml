@@ -1,13 +1,15 @@
 name: Publish Python package to PyPI
 
+# Publishing is triggered by publishing a GitHub Release (see "Releasing" in
+# CONTRIBUTING.md), so release notes exist before the package reaches PyPI.
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
 
 jobs:
   build:
     name: Build distribution
+    if: startsWith(github.event.release.tag_name, 'v')
     runs-on: ubuntu-latest
 
     steps:
@@ -15,8 +17,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Validate version tag matches pyproject.toml
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          TAG="${GITHUB_REF_NAME#v}"
+          TAG="${RELEASE_TAG#v}"
           PKG=$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
           if [ "$TAG" != "$PKG" ]; then
             echo "ERROR: git tag v$TAG does not match pyproject.toml version $PKG"
@@ -65,24 +69,3 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-
-  release:
-    name: Create GitHub Release
-    needs: publish
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release with generated notes
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes \
-            --verify-tag
