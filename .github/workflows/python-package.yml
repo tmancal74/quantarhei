@@ -281,14 +281,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     # MPLBACKEND=Agg is set globally above so no display is needed.
-    # demos that require external files, a parallel region, or have known
-    # internal library bugs are excluded until those issues are resolved:
+    # demos that require external files, a parallel region, or are too slow
+    # are excluded until those issues are resolved:
     #   demo_013.1-HEOM.py  — too slow (>60 s)
-    #   demo_030, 031, 040  — internal TwoDSpectrum/PumpProbe attribute errors
     #   demo_035, 036       — slow (disorder loop)
-    #   demo_050            — needs PDB files at a specific cwd
     #   demo_300            — requires a declared parallel_region
-    #   demo_850            — internal aggregate_excitonanalysis bug
     #   demo_853*, 854*     — require external YAML config files
     steps:
     - uses: actions/checkout@v4
@@ -317,11 +314,16 @@ jobs:
         uv run python demo_017_RedfieldTheory_MultiExcitons.py
         uv run python demo_018_ModifiedRedfieldTheory_1.py
         uv run python demo_020_EvolutionSuperOperator_1.py
+        uv run python demo_030_2DSpectrum1.py
+        uv run python demo_031_PumpProbeSpectrum1.py
+        uv run python demo_040_2DSpectrumAceto.py
+        uv run python demo_050_PDB_FMO1.py
         uv run python demo_100_TimeAndFrequencyAxis.py
         uv run python demo_101_OperatorFactory.py
         uv run python demo_102_DFunction_fitting.py
         uv run python demo_200_Secular.py
         uv run python demo_800_DiagProblem.py
+        uv run python demo_850_vibrons.py
 
   notebooks:
     runs-on: ubuntu-latest
