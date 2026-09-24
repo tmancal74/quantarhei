@@ -55,6 +55,7 @@ from __future__ import annotations
 import os
 import types
 import warnings
+import weakref
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -321,7 +322,7 @@ class Manager(metaclass=Singleton):
         self.basis_stack.append(0)
         self.basis_transformations: list[Any] = []
         self.basis_transformations.append(1)
-        self.basis_registered: dict[int, list[Any]] = {}
+        self.basis_registered: dict[int, weakref.WeakValueDictionary[int, Any]] = {}
 
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
@@ -740,7 +741,7 @@ class Manager(metaclass=Singleton):
         nb = self.get_current_basis() + 1
         self.basis_stack.append(nb)
         self.basis_transformations.append(SS)
-        self.basis_registered[nb] = []
+        self.basis_registered[nb] = weakref.WeakValueDictionary()
         return nb
 
     def transform_to_current_basis(self, operator: Any) -> None:
@@ -791,7 +792,17 @@ class Manager(metaclass=Singleton):
             self.register_with_basis(cb, operator)
 
     def register_with_basis(self, nb: int, operator: Any) -> None:
-        self.basis_registered[nb].append(operator)
+        """Registers an operator to be transformed back when basis ``nb`` exits
+
+        Only a weak reference is kept, so operators which become unreachable
+        inside a long-lived context are not kept alive by the Manager.
+        Registering an operator which is already registered is a no-op, and
+        registration with the default basis ``0`` is ignored, because there
+        is no transformation to undo.
+        """
+        if nb == 0:
+            return
+        self.basis_registered[nb][id(operator)] = operator
 
 
 class Managed:
@@ -1040,29 +1051,34 @@ class eigenbasis_of(basis_context_manager):
     def __init__(self, operator: Any) -> None:
         super().__init__()
         self.op = operator
-        self.manager.store_current_basis_operator(self.op)
+        self._previous_basis_operator: Any = None
 
     def __enter__(self) -> None:
 
-        self.manager._in_eigenbasis_of_context = True
+        manager = self.manager
 
-        if self.manager.warn_about_basis_change:
+        if manager.warn_about_basis_change:
             print("\nQr >>> Entering basis context manager ...")
 
-        cb = self.manager.get_current_basis()
+        cb = manager.get_current_basis()
         ob = self.op.get_current_basis()
 
         if cb != ob:
-            self.manager.transform_to_current_basis(self.op)
+            manager.transform_to_current_basis(self.op)
 
         # SS = self.op.diagonalize()
         SS = self.op.get_diagonalization_matrix()
-        self.manager.set_new_basis(SS)
+        manager.set_new_basis(SS)
 
         # self.manager.register_with_basis(nb,self.op)
         # self.op.set_current_basis(nb)
 
-        if self.manager.warn_about_basis_change:
+        # the operator defining the enclosing context is restored on exit
+        self._previous_basis_operator = manager.current_basis_operator
+        manager.store_current_basis_operator(self.op)
+        manager._in_eigenbasis_of_context = True
+
+        if manager.warn_about_basis_change:
             print("\nQr >>>  ... setting context done")
 
     def __exit__(
@@ -1072,44 +1088,43 @@ class eigenbasis_of(basis_context_manager):
         tb: types.TracebackType | None,
     ) -> None:
 
-        if self.manager.warn_about_basis_change:
+        manager = self.manager
+
+        if manager.warn_about_basis_change:
             print("\nQr >>> Returning from basis context manager. Cleaning ...")
 
         try:
             # This is the basis we are leaving
-            bb = self.manager.basis_stack.pop()
+            bb = manager.basis_stack.pop()
             # this is the transformation we got here with
-            SS = self.manager.basis_transformations.pop()
+            SS = manager.basis_transformations.pop()
             # This is the new basis
-            bss = len(self.manager.basis_stack)
-            nb = self.manager.basis_stack[bss - 1]
+            nb = manager.basis_stack[-1]
+
+            # objects registered with the basis we are leaving; the entry is
+            # released right away, so that it cannot outlive the context even
+            # if the transformation below fails
+            registered = manager.basis_registered.pop(bb, None)
+            operators = [] if registered is None else list(registered.values())
 
             # inverse of the transformation matrix
             S1 = numpy.linalg.inv(SS)
 
             # transform all registered objects
-            operators = self.manager.basis_registered[bb]
-
-            if nb != 0:
-                # operators registered with the context above this one
-                ops_above = self.manager.basis_registered[nb]
-
             for op in operators:
                 op.transform(S1, inv=SS)
                 op.set_current_basis(nb)
 
-                # operators which appeared in this context and where not
-                # register in the one above are now registerd
-                if nb != 0:
-                    if op not in ops_above:
-                        self.manager.register_with_basis(nb, op)
+                # operators which appeared in this context and were not
+                # registered in the one above are now registered with it
+                # (registration is idempotent and ignored for basis 0)
+                manager.register_with_basis(nb, op)
 
-            self.manager.remove_current_basis_operator()
-
-            del self.manager.basis_registered[bb]
         finally:
-            if len(self.manager.basis_stack) == 1:
-                self.manager._in_eigenbasis_of_context = False
+            manager.store_current_basis_operator(self._previous_basis_operator)
+            self._previous_basis_operator = None
+            if len(manager.basis_stack) == 1:
+                manager._in_eigenbasis_of_context = False
 
         if self.manager.warn_about_basis_change:
             print("\nQr >>> ... cleaning done")
