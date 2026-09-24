@@ -53,10 +53,12 @@ property needs to be basis managed, one should use a predefined type
 from __future__ import annotations
 
 import os
+import threading
 import types
 import warnings
 import weakref
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from typing import Any
 
 from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
@@ -89,6 +91,41 @@ from .units import (
     conversion_facs_length,
 )
 
+_HARDWIRED_UNITS: dict[str, str] = {
+    "energy": "1/fs",
+    "frequency": "1/fs",
+    "dipolemoment": "Debye",
+    "temperature": "Kelvin",
+    "length": "A",
+}
+
+
+class _ContextState(threading.local):
+    """Per-thread state of the units and basis contexts of the Manager.
+
+    Every thread sees its own instance of these attributes, so that
+    ``energy_units`` and ``eigenbasis_of`` contexts entered in one thread do
+    not affect calculations running concurrently in another thread. The
+    state of a thread is created lazily on its first access; ``units_seed``
+    supplies the units a new thread starts with.
+
+    Basis ids are only meaningful within the thread that created them.
+    Basis managed objects must therefore not be shared between threads
+    while they are held in a non-default basis.
+    """
+
+    def __init__(self, units_seed: Callable[[], dict[str, str]]) -> None:
+        self.current_units: dict[str, str] = units_seed()
+        self.saved_units: dict[str, str] = {}
+        self.in_energy_units_context = False
+        self.in_eu_count = 0
+        self.in_eigenbasis_of_context = False
+        self.in_eb_count = 0
+        self.basis_stack: list[int] = [0]
+        self.basis_transformations: list[Any] = [1]
+        self.basis_registered: dict[int, weakref.WeakValueDictionary[int, Any]] = {}
+        self.current_basis_operator: Any = None
+
 
 class Manager(metaclass=Singleton):
     """Main package Manager.
@@ -96,6 +133,15 @@ class Manager(metaclass=Singleton):
     Handles units management, basis conversion, and selection of optimized
     implementations for the entire Quantarhei package. Only one instance
     exists at any time (Singleton pattern).
+
+    The state of the units and basis contexts (``current_units``,
+    ``basis_stack``, ``basis_registered``, ``current_basis_operator`` and
+    the context flags) is thread-local: each thread has its own stacks, so
+    that contexts can be used safely from concurrently running threads. A
+    newly started thread begins in the default basis with the units last set
+    by the module level :func:`set_current_units` (internal units unless
+    changed). Configuration (implementations, ``num_conf`` etc.) is shared
+    by all threads.
 
     Attributes
     ----------
@@ -189,7 +235,12 @@ class Manager(metaclass=Singleton):
 
     def __init__(self) -> None:
 
-        self.current_units: dict[str, str] = {}
+        # units with which newly started threads begin
+        self._default_units_lock = threading.Lock()
+        self._default_units: dict[str, str] = dict(_HARDWIRED_UNITS)
+
+        # thread-local state of units and basis contexts
+        self._ctx = _ContextState(self._new_thread_units)
 
         # main configuration file
         cfile = "~/.quantarhei/quantarhei.json"
@@ -223,16 +274,11 @@ class Manager(metaclass=Singleton):
             with open(self.cfile) as f:
                 self.main_conf = json.load(f)
 
-        self.current_basis_operator: Any = None
-
         #
-        # Flags for all contexts which are enforced or prevented by functions
+        # Enforcement of contexts by functions (process-wide switch); the
+        # context flags themselves are thread-local, see _ContextState
         #
         self._enforce_contexts = True
-        self._in_eigenbasis_of_context = False
-        self._in_eb_count = 0
-        self._in_energy_units_context = False
-        self._in_eu_count = 0
 
         #
         #  Setting physical units
@@ -318,16 +364,8 @@ class Manager(metaclass=Singleton):
 
         self.change_implementation_at_runtime = True
 
-        self.basis_stack: list[int] = []
-        self.basis_stack.append(0)
-        self.basis_transformations: list[Any] = []
-        self.basis_transformations.append(1)
-        self.basis_registered: dict[int, weakref.WeakValueDictionary[int, Any]] = {}
-
         self.warn_about_basis_change = False
         self.warn_about_basis_changing_objects = False
-
-        self._saved_units: dict[str, str] = {}
 
         self.save_dict: dict[str, Any] = {}
 
@@ -351,6 +389,107 @@ class Manager(metaclass=Singleton):
         # Read local user config file (this will only be done on request)
         #
         # self._read_uconf()
+
+    #
+    # Thread-local state of units and basis contexts
+    #
+
+    def _new_thread_units(self) -> dict[str, str]:
+        """Returns the units a newly started thread begins with"""
+        with self._default_units_lock:
+            return dict(self._default_units)
+
+    def _set_new_thread_units(self, utype: str, units: str) -> None:
+        """Sets the units of type ``utype`` for threads started later"""
+        with self._default_units_lock:
+            self._default_units[utype] = units
+
+    @property
+    def current_units(self) -> dict[str, str]:
+        """Units currently used in this thread, per unit type"""
+        return self._ctx.current_units
+
+    @current_units.setter
+    def current_units(self, value: dict[str, str]) -> None:
+        self._ctx.current_units = value
+
+    @property
+    def _saved_units(self) -> dict[str, str]:
+        return self._ctx.saved_units
+
+    @_saved_units.setter
+    def _saved_units(self, value: dict[str, str]) -> None:
+        self._ctx.saved_units = value
+
+    @property
+    def _in_energy_units_context(self) -> bool:
+        return self._ctx.in_energy_units_context
+
+    @_in_energy_units_context.setter
+    def _in_energy_units_context(self, value: bool) -> None:
+        self._ctx.in_energy_units_context = value
+
+    @property
+    def _in_eu_count(self) -> int:
+        return self._ctx.in_eu_count
+
+    @_in_eu_count.setter
+    def _in_eu_count(self, value: int) -> None:
+        self._ctx.in_eu_count = value
+
+    @property
+    def _in_eigenbasis_of_context(self) -> bool:
+        return self._ctx.in_eigenbasis_of_context
+
+    @_in_eigenbasis_of_context.setter
+    def _in_eigenbasis_of_context(self, value: bool) -> None:
+        self._ctx.in_eigenbasis_of_context = value
+
+    @property
+    def _in_eb_count(self) -> int:
+        return self._ctx.in_eb_count
+
+    @_in_eb_count.setter
+    def _in_eb_count(self, value: int) -> None:
+        self._ctx.in_eb_count = value
+
+    @property
+    def basis_stack(self) -> list[int]:
+        """Stack of basis ids of this thread; ``0`` is the default basis"""
+        return self._ctx.basis_stack
+
+    @basis_stack.setter
+    def basis_stack(self, value: list[int]) -> None:
+        self._ctx.basis_stack = value
+
+    @property
+    def basis_transformations(self) -> list[Any]:
+        """Transformation matrices leading to the bases on ``basis_stack``"""
+        return self._ctx.basis_transformations
+
+    @basis_transformations.setter
+    def basis_transformations(self, value: list[Any]) -> None:
+        self._ctx.basis_transformations = value
+
+    @property
+    def basis_registered(self) -> dict[int, weakref.WeakValueDictionary[int, Any]]:
+        """Weakly held operators to transform back on exit, per basis id"""
+        return self._ctx.basis_registered
+
+    @basis_registered.setter
+    def basis_registered(
+        self, value: dict[int, weakref.WeakValueDictionary[int, Any]]
+    ) -> None:
+        self._ctx.basis_registered = value
+
+    @property
+    def current_basis_operator(self) -> Any:
+        """Operator defining the innermost basis context of this thread"""
+        return self._ctx.current_basis_operator
+
+    @current_basis_operator.setter
+    def current_basis_operator(self, value: Any) -> None:
+        self._ctx.current_basis_operator = value
 
     def load_conf(self) -> None:
         """Loads configuration file
@@ -734,14 +873,14 @@ class Manager(metaclass=Singleton):
 
     def get_current_basis(self) -> int:
         """Returns the current basis id"""
-        l = len(self.basis_stack)
-        return self.basis_stack[l - 1]
+        return self._ctx.basis_stack[-1]
 
     def set_new_basis(self, SS: Any) -> int:
-        nb = self.get_current_basis() + 1
-        self.basis_stack.append(nb)
-        self.basis_transformations.append(SS)
-        self.basis_registered[nb] = weakref.WeakValueDictionary()
+        ctx = self._ctx
+        nb = ctx.basis_stack[-1] + 1
+        ctx.basis_stack.append(nb)
+        ctx.basis_transformations.append(SS)
+        ctx.basis_registered[nb] = weakref.WeakValueDictionary()
         return nb
 
     def transform_to_current_basis(self, operator: Any) -> None:
@@ -772,17 +911,19 @@ class Manager(metaclass=Singleton):
             SS = numpy.diag(numpy.ones(operator.dim))
             # find out if current basis of the object is in the stack (i.e. it
             # was used sometime in the past)
-            if ob in self.basis_stack:
-                sl = len(self.basis_stack)
+            basis_stack = self._ctx.basis_stack
+            basis_transformations = self._ctx.basis_transformations
+            if ob in basis_stack:
+                sl = len(basis_stack)
                 # scroll back over the bases
                 for k in range(1, sl):
                     # take the basis transformation to the earlier used basis
-                    ZZ = self.basis_transformations[sl - k]
+                    ZZ = basis_transformations[sl - k]
 
                     # included it into the transformation matrix
                     SS = numpy.dot(ZZ, SS)
                     # if the basis is found, break away from the loop
-                    if self.basis_stack[sl - k - 1] == ob:
+                    if basis_stack[sl - k - 1] == ob:
                         break
             else:
                 raise BasisError("Basis of the object is not on stack.")
@@ -802,7 +943,7 @@ class Manager(metaclass=Singleton):
         """
         if nb == 0:
             return
-        self.basis_registered[nb][id(operator)] = operator
+        self._ctx.basis_registered[nb][id(operator)] = operator
 
 
 class Managed:
@@ -1133,6 +1274,10 @@ class eigenbasis_of(basis_context_manager):
 def set_current_units(units: dict[str, str] | None = None) -> None:
     """Set units globally without a context manager.
 
+    The units are set for the calling thread and are also used as the
+    starting units of threads which access the Manager for the first time
+    afterwards. Threads which are already running keep their own units.
+
     Parameters
     ----------
     units : dict of str, optional
@@ -1157,6 +1302,7 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
                     un = units["frequency"]
 
                 manager.set_current_units(utype, un)
+                manager._set_new_thread_units(utype, un)
             else:
                 raise UnitsError(f"Unknown units type {utype}")
 
@@ -1165,6 +1311,7 @@ def set_current_units(units: dict[str, str] | None = None) -> None:
         for utype in manager.internal_units:
             if utype in manager.allowed_utypes:
                 manager.set_current_units(utype, manager.internal_units[utype])
+                manager._set_new_thread_units(utype, manager.internal_units[utype])
             else:
                 raise UnitsError(f"Unknown units type {utype}")
 
