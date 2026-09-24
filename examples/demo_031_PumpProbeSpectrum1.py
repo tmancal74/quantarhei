@@ -117,7 +117,7 @@ pcalc = qr.MockPumpProbeSpectrumCalculator(t1_axis, t2_axis, t3_axis)
 with qr.energy_units("1/cm"):
     pcalc.bootstrap(rwa=12100.0)
 
-pcont3 = pcalc.calculate_all_system(agg_2D, H, eUt, lab)
+pcont3 = pcalc.calculate_all_system(agg_2D, eUt, lab)
 
 if _movie_:
     with qr.energy_units("1/cm"):
