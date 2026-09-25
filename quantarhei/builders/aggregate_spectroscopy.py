@@ -10,6 +10,7 @@ Class Details
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 
 import numpy
@@ -343,8 +344,6 @@ class AggregateSpectroscopy(AggregateBase):
 # Data-driven pathway generation (incremental refactoring of #366)
 # ---------------------------------------------------------------------------
 
-from dataclasses import dataclass
-
 
 @dataclass(frozen=True)
 class _GroundExcitedPathwayDesc:
@@ -355,11 +354,16 @@ class _GroundExcitedPathwayDesc:
     first_transition_pair: Callable[..., tuple[int, int]]
     third_transition_pair: Callable[..., tuple[int, int]]
     transitions: tuple[tuple[Callable[..., tuple[int, int]], int, int | None], ...]
+    # Message of the QuantarheiError raised when building a pathway fails.
+    # None reproduces the historical behaviour of silently skipping the
+    # remaining final states of the innermost loop.
+    failure_message: str | None
 
 
 _R3G_DESC = _GroundExcitedPathwayDesc(
     pathway_type="R",
     pathway_name="R3g",
+    failure_message="Generation of pathway failed",
     evolution_factor_indices=lambda ground, mid_ground: (
         ground,
         mid_ground,
@@ -384,6 +388,7 @@ _R3G_DESC = _GroundExcitedPathwayDesc(
 _R4G_DESC = _GroundExcitedPathwayDesc(
     pathway_type="NR",
     pathway_name="R4g",
+    failure_message=None,
     evolution_factor_indices=lambda ground, mid_ground: (
         ground,
         mid_ground,
@@ -423,11 +428,16 @@ class _RelaxationPathwayDesc:
     transitions_after_transfer: tuple[
         tuple[Callable[..., tuple[int, int]], int, int | None], ...
     ]
+    # Message of the QuantarheiError raised when building a pathway fails.
+    # None reproduces the historical behaviour of silently skipping the
+    # remaining detection states of the innermost loop.
+    failure_message: str | None
 
 
 _R1G_DESC = _RelaxationPathwayDesc(
     pathway_type="NR",
     pathway_name="R1g",
+    failure_message="Pathway generation failed",
     requires_two_exciton_band=False,
     relaxation_band=1,
     detection_band=0,
@@ -459,6 +469,7 @@ _R1G_DESC = _RelaxationPathwayDesc(
 _R2G_DESC = _RelaxationPathwayDesc(
     pathway_type="R",
     pathway_name="R2g",
+    failure_message="",
     requires_two_exciton_band=False,
     relaxation_band=1,
     detection_band=0,
@@ -490,6 +501,7 @@ _R2G_DESC = _RelaxationPathwayDesc(
 _R1F_DESC = _RelaxationPathwayDesc(
     pathway_type="R",
     pathway_name="R1f*",
+    failure_message="Constructionrelaxation pathway failed",
     requires_two_exciton_band=True,
     relaxation_band=1,
     detection_band=2,
@@ -521,6 +533,7 @@ _R1F_DESC = _RelaxationPathwayDesc(
 _R2F_DESC = _RelaxationPathwayDesc(
     pathway_type="NR",
     pathway_name="R2f*",
+    failure_message=None,
     requires_two_exciton_band=True,
     relaxation_band=1,
     detection_band=2,
@@ -552,6 +565,7 @@ _R2F_DESC = _RelaxationPathwayDesc(
 _R1GE_DESC = _RelaxationPathwayDesc(
     pathway_type="NR",
     pathway_name="R1gE",
+    failure_message="",
     requires_two_exciton_band=False,
     relaxation_band=0,
     detection_band=1,
@@ -583,6 +597,7 @@ _R1GE_DESC = _RelaxationPathwayDesc(
 _R2GE_DESC = _RelaxationPathwayDesc(
     pathway_type="R",
     pathway_name="R2gE",
+    failure_message="",
     requires_two_exciton_band=False,
     relaxation_band=0,
     detection_band=1,
@@ -614,6 +629,7 @@ _R2GE_DESC = _RelaxationPathwayDesc(
 _R1FE_DESC = _RelaxationPathwayDesc(
     pathway_type="R",
     pathway_name="R1f*E",
+    failure_message="Constructionrelaxation pathway failed",
     requires_two_exciton_band=False,
     relaxation_band=0,
     detection_band=1,
@@ -645,6 +661,7 @@ _R1FE_DESC = _RelaxationPathwayDesc(
 _R2FE_DESC = _RelaxationPathwayDesc(
     pathway_type="NR",
     pathway_name="R2f*E",
+    failure_message=None,
     requires_two_exciton_band=False,
     relaxation_band=0,
     detection_band=1,
@@ -690,10 +707,11 @@ def _generate_relaxation_pathway(
     if desc.requires_two_exciton_band:
         try:
             two_exciton_states = self.get_excitonic_band(band=2)
-        except Exception:
-            raise Exception(
-                f"Band-2 states not available for {desc.pathway_name} pathway generation"
-            )
+        except Exception as e:
+            raise QuantarheiError(
+                f"Excited states not available for {desc.pathway_name}"
+                " pathway generation"
+            ) from e
 
     relaxation_states = excited_states if desc.relaxation_band == 1 else ground_states
     if desc.detection_band == 0:
@@ -865,11 +883,12 @@ def _generate_relaxation_pathway(
                                                                 pair, side
                                                             )
 
-                                                except Exception:
-                                                    raise Exception(
-                                                        f"Generation of {desc.pathway_name}"
-                                                        " pathway failed"
-                                                    )
+                                                except Exception as e:
+                                                    if desc.failure_message is None:
+                                                        break
+                                                    raise QuantarheiError(
+                                                        desc.failure_message
+                                                    ) from e
 
                                                 pathway.build()
                                                 pathways.append(pathway)
@@ -986,10 +1005,12 @@ def _generate_ground_excited_pathway(
 
                                         pathway.set_evolution_factor(evolution_factor)
 
-                                    except Exception:
-                                        raise Exception(
-                                            f"Generation of {desc.pathway_name} pathway failed"
-                                        )
+                                    except Exception as e:
+                                        if desc.failure_message is None:
+                                            break
+                                        raise QuantarheiError(
+                                            desc.failure_message
+                                        ) from e
 
                                     pathway.build()
                                     pathways.append(pathway)
