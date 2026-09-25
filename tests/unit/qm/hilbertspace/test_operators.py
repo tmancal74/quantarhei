@@ -242,3 +242,25 @@ class TestSiteBasisEigensystem(unittest.TestCase):
             with eigenbasis_of(self.H):
                 self.H.data
                 self.assertDiagonalizesSite(*self.H.get_site_basis_eigensystem())
+
+    def test_degenerate_uses_context_eigenvectors(self):
+        """With degenerate eigenvalues, eigh of the transformed (noisy
+        diagonal) matrix would rotate the degenerate pair; the eigenvectors
+        must be exactly the context's transformation instead."""
+        from quantarhei import Hamiltonian, Manager, eigenbasis_of
+
+        # C3 ring: eigenvalues -0.5, -0.5, 1.0 (two-fold degenerate)
+        H_site = 0.5 * (numpy.ones((3, 3)) - numpy.eye(3))
+        H = Hamiltonian(data=H_site.copy())
+        m = Manager()
+        with eigenbasis_of(H):
+            ZZ = m.get_site_to_basis_transformation(m.get_current_basis(), 3)
+            for touch in (False, True):
+                if touch:
+                    H.data
+                dd, SS = H.get_site_basis_eigensystem()
+                numpy.testing.assert_array_equal(SS, ZZ)
+                numpy.testing.assert_allclose(dd, [-0.5, -0.5, 1.0], atol=1e-12)
+                numpy.testing.assert_allclose(
+                    SS.T @ H_site @ SS, numpy.diag(dd), atol=1e-12
+                )
