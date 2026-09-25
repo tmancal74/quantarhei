@@ -20,6 +20,8 @@ tempfile
 *.pyc
 *.hdf5
 *.npz
+# committed reference data for regression tests
+!tests/unit/**/test_*.npz
 *.npy
 *.mp4
 *.swp
