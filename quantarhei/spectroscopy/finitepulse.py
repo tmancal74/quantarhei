@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import numpy
 
+from .. import signal_NONR, signal_REPH
 from ..core.managers import Manager
 from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
@@ -48,6 +49,56 @@ class FinitePulseConvolver:
         # remain slow rather than restoring an optical-frequency oscillation.
         self.rwa = Manager().convert_energy_2_internal_u(rwa_frequency)
 
+    @staticmethod
+    def signal_delays(
+        t3: float, t2: float, t1: float
+    ) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
+        """Return the signed pulse-center delays for R and NR signal branches.
+
+        The molecular response itself is always integrated on the positive
+        response-time axes supplied to this object.  The external coherence
+        scan is represented by a positive ``t1`` axis: the rephasing branch
+        samples ``P(t3, t2, +t1)`` and the nonrephasing branch samples
+        ``P(t3, t2, -t1)``.  Both are subsequently transformed using the
+        established one-sided R and NR Fourier conventions.
+        """
+        if min(t3, t2, t1) < 0.0:
+            raise ValueError(
+                "External t1, t2 and t3 scan coordinates must be non-negative"
+            )
+        return (t3, t2, t1), (t3, t2, -t1)
+
+    def carrier_detunings(self) -> numpy.ndarray:
+        """Return pulse carrier frequencies relative to the response RWA."""
+        return self.lab.omega - self.rwa
+
+    def field_factor(
+        self,
+        signal: str,
+        time1: numpy.ndarray | float,
+        time2: numpy.ndarray | float,
+        time3: numpy.ndarray | float,
+    ) -> numpy.ndarray:
+        """Return the three-interaction field factor for one signal type.
+
+        The response functions are evaluated in the rotating frame set at
+        construction.  This method therefore returns only the complex pulse
+        envelopes; the corresponding carrier *detunings* are applied by the
+        signal-specific phase factors of the convolution kernel.
+
+        Rephasing pathways have the signature ``E1* E2 E3`` and
+        nonrephasing pathways have ``E1 E2* E3``.
+        """
+        field1, field2, field3 = self.lab.get_labfields()
+        e1 = field1.envelope_at(time1)
+        e2 = field2.envelope_at(time2)
+        e3 = field3.envelope_at(time3)
+        if signal == signal_REPH:
+            return numpy.conj(e1) * e2 * e3
+        if signal == signal_NONR:
+            return e1 * numpy.conj(e2) * e3
+        raise QuantarheiError("Unsupported finite-pulse signal type: " + signal)
+
     def convolve_rephasing(
         self, response: numpy.ndarray, t: float, T: float, tau: float
     ) -> complex:
@@ -71,27 +122,28 @@ class FinitePulseConvolver:
         t3 = self.t3axis.data[:, None, None]
         t2 = self.t2axis.data[None, :, None]
         t1 = self.t1axis.data[None, None, :]
-        omega1, omega2, omega3 = self.lab.omega - self.rwa
-        field1, field2, field3 = self.lab.get_labfields()
+        omega1, omega2, omega3 = self.carrier_detunings()
 
-        e1m = numpy.conj(field1.envelope_at(t + T + tau - t3 - t2 - t1))
-        first_ordering = (
-            field2.envelope_at(t + T - t3 - t2)
-            * field3.envelope_at(t - t3)
-            * numpy.exp(
-                -1j * (omega1 - omega2 - omega3) * t3
-                - 1j * (omega1 - omega2) * t2
-                - 1j * omega1 * t1
-            )
+        first_time = t + T + tau - t3 - t2 - t1
+        first_ordering = self.field_factor(
+            signal_REPH,
+            first_time,
+            t + T - t3 - t2,
+            t - t3,
+        ) * numpy.exp(
+            -1j * (omega1 - omega2 - omega3) * t3
+            - 1j * (omega1 - omega2) * t2
+            - 1j * omega1 * t1
         )
-        second_ordering = (
-            field3.envelope_at(t - t3 - t2)
-            * field2.envelope_at(t + T - t3 - t1)
-            * numpy.exp(
-                -1j * (omega1 - omega2 - omega3) * t3
-                - 1j * (omega1 - omega3) * t2
-                - 1j * omega3 * t1
-            )
+        second_ordering = self.field_factor(
+            signal_REPH,
+            first_time,
+            t + T - t3 - t1,
+            t - t3 - t2,
+        ) * numpy.exp(
+            -1j * (omega1 - omega2 - omega3) * t3
+            - 1j * (omega1 - omega3) * t2
+            - 1j * omega3 * t1
         )
         prefactor = numpy.exp(
             1j * (omega1 - omega2 - omega3) * t
@@ -101,6 +153,6 @@ class FinitePulseConvolver:
         volume = self.t1axis.step * self.t2axis.step * self.t3axis.step
         return complex(
             prefactor
-            * numpy.sum(response * e1m * (first_ordering + second_ordering))
+            * numpy.sum(response * (first_ordering + second_ordering))
             * volume
         )

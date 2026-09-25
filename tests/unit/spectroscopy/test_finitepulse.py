@@ -59,3 +59,51 @@ def test_rephasing_kernel_uses_carrier_detunings_in_the_response_rwa_frame():
     convolver = FinitePulseConvolver(*axes, lab, rwa_frequency=10.0)
     value = convolver.convolve_rephasing(numpy.ones((2, 2, 2)), 1.0, 1.0, 1.0)
     npt.assert_allclose(value, 16.0)
+
+
+def test_signal_delays_map_positive_scan_axis_to_rephasing_and_nonrephasing():
+    rephasing, nonrephasing = FinitePulseConvolver.signal_delays(30.0, 100.0, 20.0)
+
+    assert rephasing == (30.0, 100.0, 20.0)
+    assert nonrephasing == (30.0, 100.0, -20.0)
+
+
+def test_field_factors_keep_rephasing_and_nonrephasing_conjugations_separate():
+    axis = qr.TimeAxis(0.0, 1, 1.0)
+    pulse_axis = qr.TimeAxis(-1.0, 3, 1.0, atype="complete")
+    lab = qr.LabSetup(nopulses=3)
+    values = (1.0 + 2.0j, 3.0 + 4.0j, 5.0 + 6.0j)
+    lab.set_pulse_shapes(
+        pulse_axis,
+        tuple(
+            {
+                "ptype": "numeric",
+                "function": qr.DFunction(
+                    pulse_axis, numpy.full(pulse_axis.length, value)
+                ),
+            }
+            for value in values
+        ),
+    )
+    convolver = FinitePulseConvolver(axis, axis, axis, lab)
+
+    rephasing = convolver.field_factor(qr.signal_REPH, 0.0, 0.0, 0.0)
+    nonrephasing = convolver.field_factor(qr.signal_NONR, 0.0, 0.0, 0.0)
+
+    npt.assert_allclose(rephasing, numpy.conj(values[0]) * values[1] * values[2])
+    npt.assert_allclose(nonrephasing, values[0] * numpy.conj(values[1]) * values[2])
+    assert rephasing != nonrephasing
+
+
+def test_carrier_detunings_share_the_response_rwa_reference():
+    axis = qr.TimeAxis(0.0, 1, 1.0)
+    pulse_axis = qr.TimeAxis(-1.0, 3, 1.0, atype="complete")
+    lab = qr.LabSetup(nopulses=3)
+    lab.set_pulse_frequencies([10.0, 12.0, 15.0])
+    one = qr.DFunction(pulse_axis, numpy.ones(pulse_axis.length))
+    lab.set_pulse_shapes(
+        pulse_axis, tuple({"ptype": "numeric", "function": one} for _ in range(3))
+    )
+    convolver = FinitePulseConvolver(axis, axis, axis, lab, rwa_frequency=10.0)
+
+    npt.assert_allclose(convolver.carrier_detunings(), [0.0, 2.0, 5.0])
