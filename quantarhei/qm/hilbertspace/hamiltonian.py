@@ -242,6 +242,19 @@ class Hamiltonian(SelfAdjointOperator, BasisManaged, EnergyUnitsManaged):
         self.JR = JR
         self._has_remainder_coupling = True
 
+    def get_site_basis_remainder_coupling(self) -> numpy.ndarray:
+        """Remainder coupling ``JR`` in the site basis.
+
+        ``JR`` is transformed together with the Hamiltonian data, so inside
+        an ``eigenbasis_of`` context it may already be in the transformed
+        basis, depending on whether ``data`` has been read. This returns it
+        in the site basis independently of that state (zeros if there is no
+        remainder coupling).
+        """
+        if not self._has_remainder_coupling:
+            return numpy.zeros((self.dim, self.dim), dtype=REAL)
+        return self._to_site_basis(self.JR)
+
     def subtract_cutoff_coupling(self, coupling_cutoff: Any) -> None:
         """Subtracts the cut-off coupling from all coupling elements
 

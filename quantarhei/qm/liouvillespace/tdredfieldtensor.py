@@ -80,7 +80,7 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
         #
         # Get eigenenergies and transformation matrix of the Hamiltonian
         #
-        hD, SS = numpy.linalg.eigh(ham._data)
+        hD, SS = ham.get_site_basis_eigensystem()
 
         #
         #  Find all transition frequencies

@@ -78,7 +78,7 @@ class TDRedfieldRateMatrix(TimeDependent):
         """Reference implementation, completely in Python"""
         # dimension of the Hamiltonian (includes excitons
         # with all multiplicities specified at its creation)
-        Na = ham.data.shape[0]
+        Na = ham.dim
 
         # number of components
         Nk = self.sbi.N
@@ -92,7 +92,9 @@ class TDRedfieldRateMatrix(TimeDependent):
             raise QuantarheiError("No system bath intraction components present")
 
         # Eigen problem
-        hD, SS = numpy.linalg.eigh(ham.data)
+        # site-basis eigenvectors (internal units), independent of the lazy
+        # basis state of ham; KK below is defined in the site basis
+        hD, SS = ham.get_site_basis_eigensystem()
         S1 = numpy.linalg.inv(SS)
 
         # component operators

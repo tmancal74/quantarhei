@@ -743,6 +743,39 @@ class Manager(metaclass=Singleton):
         self.basis_registered[nb] = []
         return nb
 
+    def get_site_to_basis_transformation(self, bb: int, dim: int) -> numpy.ndarray:
+        """Composite transformation from the site basis to basis ``bb``
+
+        Operator data in basis ``k`` of the stack are
+        ``inv(Z_k) @ data_{k-1} @ Z_k``, so the data in basis ``bb`` are
+        ``inv(T) @ data_site @ T`` with ``T = Z_1 @ Z_2 @ ... @ Z_bb``.
+
+        Parameters
+        ----------
+        bb : int
+            Basis id; must be on the basis stack.
+        dim : int
+            Dimension of the matrices.
+
+        Returns
+        -------
+        numpy.ndarray
+            The matrix ``T`` (identity for the site basis ``0``).
+
+        Raises
+        ------
+        BasisError
+            If ``bb`` is not on the basis stack.
+
+        """
+        if bb not in self.basis_stack:
+            raise BasisError("Basis of the object is not on stack.")
+
+        TT = numpy.eye(dim)
+        for kk in range(1, self.basis_stack.index(bb) + 1):
+            TT = numpy.dot(TT, self.basis_transformations[kk])
+        return TT
+
     def transform_to_current_basis(self, operator: Any) -> None:
         """Transforms an operator to the currently used basis
 

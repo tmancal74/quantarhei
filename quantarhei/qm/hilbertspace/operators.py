@@ -196,6 +196,90 @@ class SelfAdjointOperator(Operator):
         dd, SS = numpy.linalg.eigh(self._data)
         return SS
 
+    # Relative size of off-diagonal elements below which the operator is
+    # considered diagonal in the current context basis. Rounding noise of the
+    # basis transformations is ~1e-16 relative; genuine couplings are many
+    # orders of magnitude larger.
+    _diagonal_rtol = 1.0e-10
+
+    def get_site_basis_eigensystem(self) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Eigenvalues and site-basis eigenvectors, independent of the lazy basis state.
+
+        Basis transformations are applied lazily: inside an ``eigenbasis_of``
+        context, ``_data`` stays in the basis it was last used in until
+        ``data`` is read, after which it holds the transformed representation.
+        Diagonalizing ``_data`` directly therefore depends on whether the
+        operator has already been read (issue #333). This method is
+        independent of that state:
+
+        * If the current basis context diagonalizes the operator (in
+          particular inside ``eigenbasis_of`` of this operator), the
+          eigenvectors are the columns of the context's own site-to-basis
+          transformation and the eigenvalues are the diagonal of the operator
+          in that basis. Eigenvectors are then never recomputed, so degenerate
+          eigenvectors are exactly those of the context, and quantities built
+          from them (e.g. a relaxation tensor) are expressed in exactly the
+          basis the context uses. The order follows the context basis.
+        * Otherwise (outside any context, or in a context which does not
+          diagonalize the operator) the site-basis matrix is reconstructed
+          and diagonalized with ``numpy.linalg.eigh``; outside any context
+          this is exactly ``numpy.linalg.eigh(self._data)``.
+
+        Returns
+        -------
+        dd : numpy.ndarray
+            Eigenvalues, in the representation of ``_data`` (internal units
+            for a Hamiltonian).
+        SS : numpy.ndarray
+            Matrix whose columns are the eigenvectors expressed in the site
+            basis, i.e. ``inv(SS) @ A_site @ SS`` is diagonal with ``dd``
+            on the diagonal.
+
+        Raises
+        ------
+        BasisError
+            If the basis the operator is stored in is not on the basis stack.
+
+        """
+        manager = self.manager
+        ob = self.get_current_basis()
+        cb = manager.get_current_basis()
+
+        # site -> basis of the stored data (raises BasisError if stale)
+        T_ob = manager.get_site_to_basis_transformation(ob, self.dim)
+
+        if cb != 0:
+            T_cb = manager.get_site_to_basis_transformation(cb, self.dim)
+            if ob == cb:
+                A_cb = self._data
+            else:
+                # stored basis -> current basis, without touching self._data
+                MM = numpy.dot(numpy.linalg.inv(T_ob), T_cb)
+                A_cb = numpy.dot(numpy.linalg.inv(MM), numpy.dot(self._data, MM))
+            diag = numpy.diag(A_cb)
+            offd = A_cb - numpy.diag(diag)
+            scale = max(float(numpy.max(numpy.abs(A_cb))), 1.0e-300)
+            if numpy.max(numpy.abs(offd)) <= self._diagonal_rtol * scale:
+                return numpy.real(diag).copy(), T_cb
+
+        return numpy.linalg.eigh(self._to_site_basis(self._data))
+
+    def _to_site_basis(self, mat: numpy.ndarray) -> numpy.ndarray:
+        """Express a matrix stored in the basis of ``_data`` in the site basis.
+
+        Matrices which are transformed together with ``_data`` (such as
+        ``Hamiltonian.JR``) are in the basis the operator is stored in, which
+        depends on whether the operator was already read in the current
+        context. This returns ``T @ mat @ inv(T)`` with ``T`` the
+        site-to-stored-basis transformation, and ``mat`` itself if the
+        operator is stored in the site basis.
+        """
+        ob = self.get_current_basis()
+        if ob == 0:
+            return mat
+        T_ob = self.manager.get_site_to_basis_transformation(ob, self.dim)
+        return numpy.dot(T_ob, numpy.dot(mat, numpy.linalg.inv(T_ob)))
+
     def __str__(self) -> str:
         out = "\nquantarhei.SelfAdjointOperator object"
         out += "\n====================================="
