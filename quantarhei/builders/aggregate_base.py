@@ -2172,29 +2172,38 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 # FIXME: Here we assume only excitation from the lowest state (lowest vibrational state)
                 mon1 = s1.get_monomer()
                 mon2 = s2.get_monomer()
-                try:
-                    if mon1 != -1 and mon2 != -1:
-                        da = self.transition_dipole(s0, s1)
-                        db = self.transition_dipole(s0, s2)
-                        mb = self.transition_magnetic(s0, s2)
-                        Ra = numpy.array(self.monomers[mon1].position, "f8")
-                        # alternative definition of rotatory strength
-                        # Rb = numpy.array(self.monomers[mon2].position,"f8")
-                        # RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db))
+                # Rotatory strengths need the position of the monomer carrying
+                # the excitation in s1; molecules without a position do not
+                # contribute (RR, RRv, RRm stay zero).
+                if (
+                    mon1 != -1
+                    and mon2 != -1
+                    and self.monomers[mon1].position is not None
+                ):
+                    da = self.transition_dipole(s0, s1)
+                    db = self.transition_dipole(s0, s2)
+                    mb = self.transition_magnetic(s0, s2)
+                    Ra = numpy.array(self.monomers[mon1].position, "f8")
+                    # alternative definition of rotatory strength
+                    # Rb = numpy.array(self.monomers[mon2].position,"f8")
+                    # RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db))
 
-                        Ea = s1._energy() - s0._energy()
-                        # for energy in current units use s1.energy()
-                        try:
-                            dav = self.transition_velocity_dipole(s0, s1)
-                            self._has_velocity_dipoles = True
-                        except (AttributeError, TypeError):
-                            dav = -1j * Ea * da
-                        RRv[a, b] = numpy.real(1j * numpy.dot(Ra, numpy.cross(dav, db)))
-                        RR[a, b] = numpy.dot(Ra, numpy.cross(da, db))
-                        RRm[a, b] = numpy.real(numpy.dot(dav, mb))
-
-                except Exception:
-                    pass
+                    Ea = s1._energy() - s0._energy()
+                    # for energy in current units use s1.energy()
+                    if self.monomers[mon1]._has_transition_velocity:
+                        dav = self.transition_velocity_dipole(s0, s1)
+                        self._has_velocity_dipoles = True
+                    else:
+                        # No velocity dipole was set on the monomer:
+                        # approximate it from the length-form dipole via
+                        # the commutator relation v = i[H, r] (hbar = 1),
+                        # i.e. <0|v|a> = -i (E_a - E_0) <0|r|a>, energy in
+                        # internal units (same convention as the fallback
+                        # in Molecule.set_magnetic_dipoleR()).
+                        dav = -1j * Ea * da
+                    RRv[a, b] = numpy.real(1j * numpy.dot(Ra, numpy.cross(dav, db)))
+                    RR[a, b] = numpy.dot(Ra, numpy.cross(da, db))
+                    RRm[a, b] = numpy.real(numpy.dot(dav, mb))
 
                 if a != b:
                     HH[a, b] = self.coupling_vec(s1, s2)

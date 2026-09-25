@@ -295,3 +295,60 @@ class TestCoupling(unittest.TestCase):
         c12 = self.agg.coupling(self.es1, self.es2)
         c21 = self.agg.coupling(self.es2, self.es1)
         self.assertAlmostEqual(c12, c21)
+
+
+def _chiral_dimer(velocity: bool = False) -> Aggregate:
+    """Dimer with perpendicular dipoles displaced along z (chiral geometry)."""
+    m1 = Molecule(elenergies=[0.0, 1.0])
+    m2 = Molecule(elenergies=[0.0, 1.1])
+    m1.position = [0.0, 0.0, -2.5]
+    m2.position = [0.0, 0.0, 2.5]
+    m1.set_dipole(0, 1, [1.0, 0.0, 0.0])
+    m2.set_dipole(0, 1, [0.0, 1.0, 0.0])
+    if velocity:
+        m1.set_velocity_dipole(0, 1, [-2.0j, 0.0, 0.0])
+        m2.set_velocity_dipole(0, 1, [0.0, -2.0j, 0.0])
+    agg = Aggregate(molecules=[m1, m2])
+    agg.build()
+    return agg
+
+
+class TestRotatoryStrengthMatrices(unittest.TestCase):
+    """Regression: a QuantarheiError raised by the missing velocity
+    dipole used to be swallowed, leaving RR and RRv identically zero."""
+
+    def test_length_form_rotatory_strength(self) -> None:
+        agg = _chiral_dimer()
+        # RR[a, b] = R_a . (d_a x d_b); exact for these vectors
+        expected = numpy.zeros((3, 3))
+        expected[1, 2] = numpy.dot([0.0, 0.0, -2.5], numpy.cross([1, 0, 0], [0, 1, 0]))
+        expected[2, 1] = numpy.dot([0.0, 0.0, 2.5], numpy.cross([0, 1, 0], [1, 0, 0]))
+        numpy.testing.assert_allclose(agg.RR, expected, rtol=1e-12, atol=1e-12)
+        self.assertFalse(agg._has_velocity_dipoles)
+
+    def test_velocity_form_falls_back_to_length_form(self) -> None:
+        agg = _chiral_dimer()
+        # Without velocity dipoles, v_a = -i E_a d_a, so RRv[a, b] = E_a RR[a, b]
+        Ea = numpy.diag(agg.HH) - agg.HH[0, 0]
+        numpy.testing.assert_allclose(
+            agg.RRv, Ea[:, None] * agg.RR, rtol=1e-12, atol=1e-12
+        )
+        self.assertTrue(numpy.any(agg.RRv != 0.0))
+        # no magnetic dipoles set
+        numpy.testing.assert_array_equal(agg.RRm, 0.0)
+
+    def test_velocity_form_uses_explicit_velocity_dipoles(self) -> None:
+        agg = _chiral_dimer(velocity=True)
+        self.assertTrue(agg._has_velocity_dipoles)
+        # RRv[a, b] = Re(i R_a . (v_a x d_b)) with v = -2i d  ->  2 RR[a, b]
+        numpy.testing.assert_allclose(agg.RRv, 2.0 * agg.RR, rtol=1e-12, atol=1e-12)
+
+    def test_monomers_without_position_do_not_contribute(self) -> None:
+        m1 = Molecule(elenergies=[0.0, 1.0])
+        m2 = Molecule(elenergies=[0.0, 1.1])
+        m1.set_dipole(0, 1, [1.0, 0.0, 0.0])
+        m2.set_dipole(0, 1, [0.0, 1.0, 0.0])
+        agg = Aggregate(molecules=[m1, m2])
+        agg.build()
+        numpy.testing.assert_array_equal(agg.RR, 0.0)
+        numpy.testing.assert_array_equal(agg.RRv, 0.0)
