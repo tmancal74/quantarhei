@@ -768,7 +768,7 @@ classDiagram
     class LabSetup {
         +pulse_polarizations
         +detection_axis
-        +set_polarizations()
+        +set_pulse_polarizations()
     }
 
     class LabField {

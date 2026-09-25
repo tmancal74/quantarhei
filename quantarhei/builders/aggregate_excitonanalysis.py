@@ -77,7 +77,7 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
         indx = [i for i in range(self.HH.shape[0])]
         return indx, coefs, sqrs
 
-    def report_on_expansion(self, file: Any = None, state: int = 0, N: int = 5) -> None:
+    def report_on_expansion(self, state: int = 0, N: int = 5, file: Any = None) -> None:
         """Prints a short report on the composition of an exciton state
 
         Parameters
@@ -87,6 +87,9 @@ class AggregateExcitonAnalysis(AggregateSpectroscopy):
 
         N : int
             Number of states in expansion to report
+
+        file : file-like, optional
+            Stream to print the report to (default: ``sys.stdout``)
 
         Examples
         --------

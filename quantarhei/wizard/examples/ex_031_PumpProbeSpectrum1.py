@@ -105,7 +105,7 @@ agg_2D.diagonalize()
 
 # laboratory settings
 lab = qr.LabSetup()
-lab.set_polarizations(pulse_polarizations=(X, X, X), detection_polarization=X)
+lab.set_pulse_polarizations(pulse_polarizations=(X, X, X), detection_polarization=X)
 
 #
 # Given a molecular system (only Aggregate class so far), we calculate
@@ -115,7 +115,7 @@ pcalc = qr.MockPumpProbeSpectrumCalculator(t1_axis, t2_axis, t3_axis)
 with qr.energy_units("1/cm"):
     pcalc.bootstrap(rwa=12100.0)
 
-pcont3 = pcalc.calculate_all_system(agg_2D, H, eUt, lab)
+pcont3 = pcalc.calculate_all_system(agg_2D, eUt, lab)
 
 if _movie_:
     with qr.energy_units("1/cm"):

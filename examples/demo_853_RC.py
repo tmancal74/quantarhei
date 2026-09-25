@@ -24,7 +24,7 @@ from quantarhei.utils.vectors import X
 print("\n***** Rc Simulation Script"
       " *****")
 
-input_file = "ex_853_RC.yaml"
+input_file = "demo_853_RC.yaml"
 
 INP = qr.Input(input_file, show_input=False) #,
                #math_allowed_in =["E0",
@@ -279,7 +279,7 @@ def run(omega, HR, dE, JJ, rate, E0, vib_loc="up", use_vib=True,
     # Laboratory setup
     #
     lab = qr.LabSetup()
-    lab.set_polarizations(pulse_polarizations=[X,X,X],
+    lab.set_pulse_polarizations(pulse_polarizations=[X,X,X],
                           detection_polarization=X)
 
     t2_N_steps = INP.t2_N_steps

@@ -24,7 +24,7 @@ single_realization: False
 # Directory with the precalculated results and input file of that calculation
 #
 dname : "sim_up_center=600_FWHM=c"
-input_file : "ex_853_RC.yaml"
+input_file : "ex_853o_RC.yaml"
 input_file_from_results : True
 with_math_allowed_in : ["E_B", "E_P"]
 

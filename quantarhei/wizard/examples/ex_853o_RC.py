@@ -22,13 +22,12 @@ import numpy
 import quantarhei as qr
 import quantarhei.functions as func
 from quantarhei.core.units import kB_int
+from quantarhei.exceptions import QuantarheiError
 from quantarhei.utils.vectors import X
-
-from ...exceptions import QuantarheiError
 
 print("\n***** Calculation of material for disorder integration (dimer version) *****")
 
-input_file = "ex_853_RC.yaml"
+input_file = "ex_853o_RC.yaml"
 # input_file = {'E0': 10000.0, 'resonance_coupling': 100.0, 'no_g_vib': 2, 'no_e_vib': 2, 'params': {'HR': 0.01, 'omega': 500.0, 'use_vib': True}, 'location_of_vibrations': 'up', 'append_to_dirname': '_center=600_FWHM=100', 'dip1': [1.5, 0.0, 0.0], 'dip2': [-1.0, -1.0, 0.0], 'rate': '1.0/500.0', 'temperature': 77.0, 't2_N_steps': 100, 't2_time_step': 10.0, 'fine_splitting': 10, 't1_N_steps': 100, 't1_time_step': 10.0, 't3_N_steps': 100, 't3_time_step': 10.0, 'feature_width': 100.0, 'trim_maps_to': [9900, 11500, 9000, 11500], 'omega_uncertainty': 200.0, 'tukey_window_r': 0.3, 'center': 600.0, 'step': 2.0, 'max_available_fwhm': 100.0, 'how_many_fwhm': 2, 'make_movie': False, 'show_plots': False, 'save_containers': False, 'detailed_balance': True, 't2_save_pathways': [50.0, 100.0, 200.0, 300.0], 'copy_input_file_to_results': True, '_math_allowed_in': ['E0', 'resonance_coupling', 'rate', ['params', ['HR', 'omega', 'rate']], 'center', 'step', 'max_available_fwhm', 'how_many_fwhm', 't2_save_pathways']}
 INP = qr.Input(input_file, show_input=True)  # ,
 # math_allowed_in =["E0",
@@ -206,7 +205,7 @@ def run(
     # Laboratory setup
     #
     lab = qr.LabSetup()
-    lab.set_polarizations(pulse_polarizations=[X, X, X], detection_polarization=X)
+    lab.set_pulse_polarizations(pulse_polarizations=[X, X, X], detection_polarization=X)
 
     t2_N_steps = INP.t2_N_steps
     t2_time_step = INP.t2_time_step

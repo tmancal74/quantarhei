@@ -12,7 +12,6 @@ from ..builders.opensystem import OpenSystem
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..exceptions import ImplementationError, QuantarheiError
-from ..implementations.aceto.lab_settings import lab_settings
 
 # deprecated class
 # This is how we calculate it now
@@ -24,6 +23,7 @@ from ..spectroscopy.responses import (
     validate_2d_time_axes,
 )
 from ..utils import derived_type
+from .labsetup import LabSetup
 from .twodresponse import TwoDResponse
 
 
@@ -513,9 +513,13 @@ class TwoDResponseCalculator:
             # define lab settings
             #
             if lab is None:
-                self.lab = lab_settings(lab_settings.FOUR_WAVE_MIXING)
+                # default: all pulses and detection polarized along X;
+                # responses need LabSetup.F4eM4 (orientational averaging)
+                self.lab = LabSetup()
                 X = numpy.array([1.0, 0.0, 0.0], dtype=numpy.float64)
-                self.lab.set_laser_polarizations(X, X, X, X)
+                self.lab.set_pulse_polarizations(
+                    pulse_polarizations=(X, X, X), detection_polarization=X
+                )
             else:
                 self.lab = lab
 
