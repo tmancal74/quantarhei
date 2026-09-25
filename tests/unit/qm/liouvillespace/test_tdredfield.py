@@ -115,3 +115,19 @@ class TDTestRedfield(unittest.TestCase):
         # print(self.c_omega_m)
 
         numpy.testing.assert_allclose(KT, KM, rtol=1.0e-2)
+
+    def test_secular_on_init(self):
+        """Testing that TDRedfieldRelaxationTensor can be secularized on init"""
+        full = TDRedfieldRelaxationTensor(self.H1, self.sbi1)
+        secular = TDRedfieldRelaxationTensor(self.H1, self.sbi1, secular=True)
+
+        N = full.data.shape[1]
+        ii, jj, kk, ll = numpy.indices((N, N, N, N))
+        kept = ((ii == jj) & (kk == ll)) | ((ii == kk) & (jj == ll))
+        expected = numpy.where(kept, full.data, 0.0)
+
+        self.assertTrue(secular.is_secular)
+        numpy.testing.assert_array_equal(secular.data, expected)
+
+        full.secularize()
+        numpy.testing.assert_array_equal(full.data, expected)
