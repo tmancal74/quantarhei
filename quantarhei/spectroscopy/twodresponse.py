@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numbers
 from functools import partial
-from typing import Any
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import numpy
@@ -24,6 +24,7 @@ from ..core.datasaveable import DataSaveable
 from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
 from ..core.saveable import Saveable
+from ..core.time import TimeAxis
 from ..core.valueaxis import ValueAxis
 from ..exceptions import ImplementationError, QuantarheiError
 from ..utils.types import check_numpy_array
@@ -672,6 +673,8 @@ class TwoDResponseBase(DataSaveable):
 
         self.xaxis: ValueAxis | None = None
         self.yaxis: ValueAxis | None = None
+        # Internal rotating-frame reference associated with the spectral axes.
+        self.rwa = 0.0
 
         #
         # The followinh attributes will be removed
@@ -1315,11 +1318,13 @@ TwoDSpectrumBase = TwoDResponseBase  # temporary backwards-compatible alias
 
 
 class TwoDResponse(TwoDSpectrumBase, Saveable):
-    """A single two-dimensional (2D) Fourier-transform spectrum.
+    """A raw two-dimensional third-order response at fixed waiting time.
 
-    Stores the complex 2D spectral data indexed by (omega_1, omega_3) at a
-    fixed waiting time ``t2``. Data may be stored at various resolutions
-    (individual Liouville pathways down to the total spectrum only).
+    Stores complex data indexed by ``(t3, t1)`` at a fixed waiting time
+    ``t2``.  Rephasing and non-rephasing contributions remain separate until
+    :class:`TwoDSpectrumCalculator` applies their distinct Fourier transforms.
+    Data may be stored at various resolutions (individual Liouville pathways
+    down to the total response only).
 
     Parameters
     ----------
@@ -1335,7 +1340,28 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         self.keep_pathways = keep_pathways
         self.keep_stypes = keep_stypes
         self.t2 = -1.0
+        # ``frequency`` is retained only for the analytical mock calculator.
+        # Physical response calculators store raw time-domain slices.
+        self.domain = "time"
         super().__init__()
+
+    @property
+    def t1axis(self) -> TimeAxis | None:
+        """Coherence-time axis of this response slice."""
+        return cast(TimeAxis | None, self.xaxis)
+
+    @t1axis.setter
+    def t1axis(self, axis: TimeAxis) -> None:
+        self.xaxis = axis
+
+    @property
+    def t3axis(self) -> TimeAxis | None:
+        """Detection-time axis of this response slice."""
+        return cast(TimeAxis | None, self.yaxis)
+
+    @t3axis.setter
+    def t3axis(self, axis: TimeAxis) -> None:
+        self.yaxis = axis
 
     def set_t2(self, t2: float) -> None:
         """Sets the t2 (waiting time) of the spectrum"""
@@ -1560,20 +1586,26 @@ class TwoDResponse(TwoDSpectrumBase, Saveable):
         return pp.calculate_from_2D(self)
 
     def get_TwoDSpectrum(self, dtype: str | None = None) -> TwoDSpectrum:
-        """Returns a 2D spectrum based on this response"""
+        """Return the Fourier-transform spectrum of this raw response.
+
+        This compatibility convenience delegates the transform to
+        :class:`TwoDSpectrumCalculator`.
+        """
         if dtype is None:
             dtype = signal_TOTL
-        twod = TwoDSpectrum()
-        twod.set_axis_1(self.xaxis.copy())
-        twod.set_axis_3(self.yaxis.copy())
+        if self.domain == "frequency":
+            twod = TwoDSpectrum()
+            twod.set_axis_1(self.xaxis.copy())
+            twod.set_axis_3(self.yaxis.copy())
+            twod.rwa = self.rwa
+            twod.set_t2(self.t2)
+            twod.set_data_type(dtype)
+            self.set_data_flag(dtype)
+            twod.set_data(self.d__data[:, :])
+            return twod
+        from .twodspectrumcalculator import TwoDSpectrumCalculator
 
-        twod.set_t2(self.t2)
-
-        twod.set_data_type(dtype)
-        self.set_data_flag(dtype)
-        twod.set_data(self.d__data[:, :])
-
-        return twod
+        return TwoDSpectrumCalculator.convert_response(self, stype=dtype)
 
     def plot(
         self,

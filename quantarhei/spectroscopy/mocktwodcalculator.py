@@ -109,6 +109,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     def calculate_one(self, tc: int) -> Any:
         """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
+        onetwod.domain = "frequency"
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")
@@ -137,6 +138,7 @@ class MockTwoDResponseCalculator(TwoDResponseCalculator):
     def calculate(self) -> Any:
         """Calculate the 2D spectrum for all pathways"""
         onetwod = TwoDResponse()
+        onetwod.domain = "frequency"
         onetwod.set_axis_1(self.oa1)
         onetwod.set_axis_3(self.oa3)
         onetwod.set_resolution("signals")

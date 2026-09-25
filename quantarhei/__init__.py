@@ -518,6 +518,9 @@ from .spectroscopy.twodcontainer import TwoDSpectrumContainer as TwoDSpectrumCon
 #
 from .spectroscopy.twodresponse import TwoDResponse as TwoDResponse
 from .spectroscopy.twodspect import TwoDSpectrum as TwoDSpectrum
+from .spectroscopy.twodspectrumcalculator import (
+    TwoDSpectrumCalculator as TwoDSpectrumCalculator,
+)
 
 try:
     from .symbolic.cumulant import evaluate_cumulant as evaluate_cumulant
@@ -780,6 +783,7 @@ __all__ = [
     "TwoDResponseCalculator",
     "TwoDResponseContainer",
     "TwoDSpectrum",
+    "TwoDSpectrumCalculator",
     "TwoDSpectrumContainer",
     "UnitsError",
     "UnityOperator",

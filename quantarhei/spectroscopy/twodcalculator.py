@@ -27,46 +27,6 @@ from ..utils import derived_type
 from .twodresponse import TwoDResponse
 
 
-def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
-    """Apply the endpoint half-weight used before Fourier transformation."""
-    ret = data.copy()
-    ret[:, 0] *= 0.5
-    ret[0, :] *= 0.5
-    return ret
-
-
-def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:
-    """Transform a time-domain response contribution to a 2D spectrum."""
-    data = _apply_response_window(data)
-
-    if signal == signal_REPH:
-        ftresp = numpy.fft.fft(data, axis=1)
-    elif signal == signal_NONR:
-        ftresp = numpy.fft.ifft(data, axis=1) * data.shape[1]
-    else:
-        raise Exception("Unknown 2D signal type: " + signal)
-
-    ftresp = numpy.fft.ifft(ftresp, axis=0)
-    return numpy.fft.fftshift(ftresp)
-
-
-def _pad_response_data(
-    data: numpy.ndarray, pad: int, window: numpy.ndarray | None = None
-) -> numpy.ndarray:
-    """Pad a response contribution in the same way as the total response."""
-    if window is not None:
-        size = int(len(window) / 2)
-        data = data.copy()
-        data[len(data) - size :, :] *= window[size:, None]
-        data[:, len(data) - size :] *= window[None, size:]
-
-    if pad > 0:
-        data = numpy.hstack((data, numpy.zeros((data.shape[0], pad))))
-        data = numpy.vstack((data, numpy.zeros((pad, data.shape[1]))))
-
-    return data
-
-
 def _normalize_twodtype(twodtype: str) -> str:
     if twodtype in ["2DES", "F-2DES"]:
         return twodtype
@@ -912,51 +872,24 @@ class TwoDResponseCalculator:
         resp_r = resp_Rgsb + resp_Rse + resp_Resa + resp_Rsewt + resp_Resawt
         resp_n = resp_Ngsb + resp_Nse + resp_Nesa + resp_Nsewt + resp_Nesawt
 
-        #
-        # Calculate corresponding 2D spectrum
-        #
+        # Store the raw fixed-t2 response.  Padding, endpoint windowing and
+        # Fourier transformation are deliberately deferred to
+        # TwoDSpectrumCalculator.
         onetwod = TwoDResponse()
+        onetwod.rwa = self.rwa
+        onetwod.t1axis = self.t1axis.deepcopy()
+        onetwod.t3axis = self.t3axis.deepcopy()
 
         # pad is set to 0 by default. If changed in the bootstrap,
         # responses are padded with 0s and the time axis is lengthened
-        t13Pad = TimeAxis(
+        t1Pad = TimeAxis(
             self.t1axis.start, self.t1axis.length + self.pad, self.t1axis.step
         )
-        response_window = None
+        t3Pad = TimeAxis(
+            self.t3axis.start, self.t3axis.length + self.pad, self.t3axis.step
+        )
         if self.pad > 0:
             self._vprint("padding by - " + str(self.pad))
-
-            t13Pad.atype = "complete"
-            t13PadFreq = t13Pad.get_FrequencyAxis()
-            t13PadFreq.data += self.rwa
-            t13PadFreq.start += self.rwa
-
-            onetwod.set_axis_1(t13PadFreq)
-            onetwod.set_axis_3(t13PadFreq)
-
-            # Sloping the end of the data down to 0 so there isn't a hard
-            # cutoff at the end of the data
-            from scipy.signal import windows as sig
-
-            window = 20
-            response_window = sig.tukey(window * 2, 1, sym=False)
-
-            resp_r = _pad_response_data(resp_r, self.pad, response_window)
-            resp_n = _pad_response_data(resp_n, self.pad, response_window)
-            resp_Rgsb = _pad_response_data(resp_Rgsb, self.pad, response_window)
-            resp_Ngsb = _pad_response_data(resp_Ngsb, self.pad, response_window)
-            resp_Rse = _pad_response_data(resp_Rse, self.pad, response_window)
-            resp_Nse = _pad_response_data(resp_Nse, self.pad, response_window)
-            resp_Resa = _pad_response_data(resp_Resa, self.pad, response_window)
-            resp_Nesa = _pad_response_data(resp_Nesa, self.pad, response_window)
-            resp_Rsewt = _pad_response_data(resp_Rsewt, self.pad, response_window)
-            resp_Nsewt = _pad_response_data(resp_Nsewt, self.pad, response_window)
-            resp_Resawt = _pad_response_data(resp_Resawt, self.pad, response_window)
-            resp_Nesawt = _pad_response_data(resp_Nesawt, self.pad, response_window)
-
-        else:
-            onetwod.set_axis_1(self.oa1)
-            onetwod.set_axis_3(self.oa3)
 
         # FIXME: Make a decision, if this is to be kept
         # Right now the code does not distinguish different response types, except rephasing and non-rephasing
@@ -968,7 +901,8 @@ class TwoDResponseCalculator:
         if self.keep_resp:
             resp = {
                 "time": self.t1axis.data,
-                "time_pad": t13Pad.data,
+                "time_pad": t1Pad.data,
+                "time_pad_3": t3Pad.data,
                 "rTot": resp_r,
                 "nTot": resp_n,
                 "rGSB": resp_Rgsb,
@@ -988,7 +922,8 @@ class TwoDResponseCalculator:
             numpy.savez(
                 "./" + self.write_resp + "/respT" + str(int(tt2)) + ".npz",
                 time=self.t1axis.data,
-                time_pad=t13Pad.data,
+                time_pad=t1Pad.data,
+                time_pad_3=t3Pad.data,
                 rTot=resp_r,
                 nTot=resp_n,
                 rGSB=resp_Rgsb,
@@ -1004,8 +939,6 @@ class TwoDResponseCalculator:
             )
 
         for resp, data in response_pieces:
-            data = _pad_response_data(data, self.pad, response_window)
-
             if isinstance(resp, NonLinearResponse):
                 signal = resp.signal
                 dtype = resp.storage_type
@@ -1017,10 +950,8 @@ class TwoDResponseCalculator:
             else:
                 raise Exception("Unknown response object")
 
-            spect_data = _fourier_transform_response(data, signal)
-            spect_data *= data.shape[0] * self.t1axis.step * self.t3axis.step
-            spect_data *= self._detection_weight(resp)
-            onetwod._add_data(spect_data, resolution=resolution, dtype=dtype)
+            data *= self._detection_weight(resp)
+            onetwod._add_data(data, resolution=resolution, dtype=dtype)
 
         onetwod.set_t2(self.t2axis.data[tc])
 
@@ -1061,6 +992,7 @@ class TwoDResponseCalculator:
             # calculate user defined responses
 
             twods = TwoDResponseContainer(self.t2axis)
+            twods.pad = self.pad
 
             teetoos = self.t2axis.data
 

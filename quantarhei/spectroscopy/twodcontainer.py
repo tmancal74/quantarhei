@@ -69,6 +69,7 @@ class TwoDResponseContainer(Saveable):
 
         self.itype: str | None = None
         self.index = 0
+        self.pad = 0
         self.tags: list[Any] = []
 
         if self.keep_pathways:
@@ -255,20 +256,10 @@ class TwoDResponseContainer(Saveable):
             sp.set_data_flag(flag)
 
     def get_TwoDSpectrumContainer(self, stype: Any = signal_TOTL) -> Any:
-        """Returns a container with specific spectra"""
-        if self.itype in ["ValueAxis", "TimeAxis", "FrequencyAxis"]:
-            axis = self.axis.deepcopy()
+        """Return spectra by Fourier transforming the stored raw responses."""
+        from .twodspectrumcalculator import TwoDSpectrumCalculator
 
-            cont = TwoDSpectrumContainer(axis)
-
-            for val in self.axis.data:
-                sp = self.get_spectrum(val)
-                nsp = sp.get_TwoDSpectrum(dtype=stype)
-                cont.set_spectrum(nsp, tag=val)
-
-            return cont
-
-        raise QuantarheiError("")
+        return TwoDSpectrumCalculator.convert_response_container(self, stype=stype)
 
     def get_nearest(self, val: float) -> Any:
 
@@ -323,49 +314,11 @@ class TwoDResponseContainer(Saveable):
     def get_PumpProbeSpectrumContainer(self, skip: int = 0) -> Any:
         """Converts this response container into PumpProbeSpectrumContainer.
 
-        Each stored :class:`TwoDResponse` already contains enough spectral
-        information to be projected onto the pump-probe axis.  This method
-        performs that projection for every stored waiting time.
+        Raw response slices are first transformed through the established 2D
+        spectrum conversion path, then projected onto the pump-probe axis.
         """
-        from .pumpprobe import PumpProbeSpectrumContainer
-
-        k = 0
-        ppc = []
-        ttc = []
-        ii = 0
-        assert self.axis is not None
-        for sp in self.get_spectra():
-            if k == 0:
-                pp = sp.get_PumpProbeSpectrum()
-                ppc.append(pp)
-                ttc.append(self.axis.data[ii])
-            k += 1
-            if k > skip:
-                k = 0
-            ii += 1
-
-        length = len(ppc)
-        if length == 0:
-            raise Exception("No spectra available for pump-probe conversion")
-        start = ppc[0].get_t2()
-        if length > 1:
-            step = ppc[1].get_t2() - start
-        elif self.axis is not None:
-            step = self.axis.step
-        else:
-            step = 1.0
-
-        naxis = TimeAxis(start, length, step)
-        ppcont = PumpProbeSpectrumContainer(t2axis=naxis)
-        ppcont.itype = self.itype
-
-        ii = 0
-        for sp in ppc:
-            tt = ttc[ii]
-            ppcont.set_spectrum(sp, tt)
-            ii += 1
-
-        return ppcont
+        spectra = self.get_TwoDSpectrumContainer()
+        return spectra.get_PumpProbeSpectrumContainer(skip=skip)
 
     def get_integrated_area_evolution(
         self, times: Any, area: Any, dpart: Any = part_REAL
@@ -575,6 +528,7 @@ class TwoDResponseContainer(Saveable):
             spect = TwoDSpectrum()
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
+            spect.rwa = sp1.rwa
 
             spect.set_data(ftdata[:, :, k_n], dtype=signal_TOTL)
 
@@ -1092,6 +1046,7 @@ class TwoDSpectrumContainer(TwoDResponseContainer):
             spect = TwoDSpectrum()
             spect.set_axis_1(sp1.xaxis)
             spect.set_axis_3(sp1.yaxis)
+            spect.rwa = sp1.rwa
 
             spect.set_data(ftdata[:, :, k_n], dtype=self.dtype)
 

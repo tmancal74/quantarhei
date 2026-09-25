@@ -13,6 +13,7 @@ Class Details
 
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 import numpy
@@ -24,6 +25,60 @@ from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
 from ..utils import Integer
 from ..utils.vectors import X
+
+
+def _gaussian_values(
+    values: Any,
+    center: float,
+    fwhm: float,
+    amplitude: float,
+    *,
+    amplitude_type: str = "peak",
+    fwhm_type: str = "intensity",
+) -> Any:
+    """Return a Gaussian envelope under the public pulse conventions."""
+    if fwhm <= 0.0:
+        raise QuantarheiError("Gaussian pulse FWHM must be positive")
+
+    amplitude_type = amplitude_type.lower()
+    if amplitude_type not in ("peak", "area"):
+        raise QuantarheiError("Gaussian amplitude_type must be either 'peak' or 'area'")
+
+    fwhm_type = fwhm_type.lower()
+    if fwhm_type == "intensity":
+        exponent_factor = 2.0 * numpy.log(2.0)
+    elif fwhm_type in ("amplitude", "field"):
+        exponent_factor = 4.0 * numpy.log(2.0)
+    else:
+        raise QuantarheiError(
+            "Gaussian FWHM_type must be either 'intensity' or 'amplitude'"
+        )
+
+    scale = amplitude
+    if amplitude_type == "area":
+        scale *= numpy.sqrt(exponent_factor / numpy.pi) / fwhm
+
+    return scale * numpy.exp(-exponent_factor * ((values - center) / fwhm) ** 2)
+
+
+def _validate_chirp(parameters: Any) -> None:
+    """Reject a separate chirp parameter until its convention is defined.
+
+    A complex numeric envelope can already carry arbitrary spectral or
+    temporal phase.  Silently accepting a separate ``chirp`` value for a
+    Gaussian pulse, however, would make it impossible to know whether that
+    phase has been applied.  Empty values are retained for compatibility with
+    existing input dictionaries.
+    """
+    chirp = parameters.get("chirp", None)
+    if chirp is None:
+        return
+    if numpy.asarray(chirp).size == 0:
+        return
+    raise QuantarheiError(
+        "Chirped pulses are not implemented; encode phase in a complex "
+        "numeric pulse or omit the 'chirp' parameter"
+    )
 
 
 class LabSetup:
@@ -78,6 +133,10 @@ class LabSetup:
 
         # time or frequency
         self.axis_type: str | None = None
+        # The axis on which pulse parameters were supplied.  The opposite
+        # domain, when present, is always a Fourier-derived cache.
+        self.pulse_definition_domain: str | None = None
+        self.pulse_definition_axis: TimeAxis | FrequencyAxis | None = None
 
         # pulses in time- and frequency domain
         self.pulse_t: list[Any] = [None] * nopulses
@@ -100,9 +159,15 @@ class LabSetup:
         self.saved_params = None
 
     def reset_pulse_shape(self) -> None:
-        """Recalculates the pulse shapes"""
-        if self.saved_params is not None:
-            self.set_pulse_shapes(self.timeaxis, self.saved_params)
+        """Rebuild pulse shapes on their original definition axis.
+
+        Any representation obtained through a Fourier transform is discarded
+        and will be regenerated lazily when requested.  This keeps a
+        frequency-defined pulse frequency-defined after, for example, a pulse
+        arrival-time update.
+        """
+        if self.saved_params is not None and self.pulse_definition_axis is not None:
+            self.set_pulse_shapes(self.pulse_definition_axis, self.saved_params)
         # else:
         #    raise QuantarheiError("Pulse shapes must be set first.")
 
@@ -126,29 +191,38 @@ class LabSetup:
 
         params : dictionary
             Dictionary of pulse parameters. The parameters are the following:
-            `ptype` is the pulse type with possible values `Gaussian` and
-            `numeric`. Time domain pulses are specified with their center
-            at t = 0.
+            `ptype` is the pulse type with possible values `Gaussian`,
+            `delta`, and `numeric`. Time domain pulses are specified with
+            their center at t = 0.
 
-            **Gaussian** pulse has further parameters `amplitude`, `FWHM`,
-            and `frequency` with obvious meanings. `FWHM` is speficied in `fs`,
-            `frequency` is specified in energy units, while `amplitude`
-            is in units of [energy]/[transition dipole moment]. The formula
-            for the lineshape is
+            **Gaussian** pulse has further parameters `amplitude` and `FWHM`.
+            For finite pulses, `amplitude` is the peak envelope amplitude and
+            `FWHM` is the full width at half maximum of the intensity by
+            default. The time-domain envelope is
 
             .. math::
 
-                \\rm{shape}(\\omega) =
-                \\frac{2}{\\Delta}\\sqrt{\\frac{\\ln(2)}{\\pi}}
-                \\exp\\left\\{-\\frac{4\\ln(2)\\omega^2}{\\Delta^2}\\right\\}
+                A(t) = A_0
+                \\exp\\left\\{-\\frac{2\\ln(2)(t-t_c)^2}{\\Delta^2}\\right\\}.
 
-            The same formulae are used for time- and frequency domain
-            definitions. For time domain, :math:`t` should be used in stead of
-            :math:`\\omega`.
+            Set `amplitude_type="area"` to interpret `amplitude` as the
+            integral of the envelope, and set `FWHM_type="amplitude"` to use
+            the field-envelope FWHM. Combining both options reproduces the
+            historical Quantarhei Gaussian convention. The same conventions
+            apply to a frequency-domain Gaussian, with `FWHM` specified in the
+            active energy units.
 
             **numeric** pulse is specified by a second parameters `function`
             which should be of DFunction type and specifies line shape around
             zero frequency.
+
+            A **delta** pulse is an area-defined impulsive object. It is
+            represented internally by one non-zero time-axis sample, or by a
+            constant on a frequency axis, solely for impulsive dispatch and
+            Fourier-domain compatibility. Pointwise time-domain field and
+            envelope evaluation is undefined and raises :class:`QuantarheiError`.
+            Its optional `area` parameter defaults to one. The historical
+            `amplitude` spelling is accepted with a deprecation warning.
 
 
         Examples
@@ -316,6 +390,8 @@ class LabSetup:
             if axis.atype == "complete":
                 self.timeaxis = axis
                 self.axis_type = "time"
+                self.pulse_definition_domain = "time"
+                self.pulse_definition_axis = axis
             else:
                 raise QuantarheiError(
                     "TimeAxis has to be of 'complete' type"
@@ -326,6 +402,8 @@ class LabSetup:
         elif isinstance(axis, FrequencyAxis):
             self.freqaxis = axis
             self.axis_type = "frequency"
+            self.pulse_definition_domain = "frequency"
+            self.pulse_definition_axis = axis
 
         else:
             raise QuantarheiError("Wrong axis paramater")
@@ -341,6 +419,7 @@ class LabSetup:
 
             k_p = 0
             for par in params:
+                _validate_chirp(par)
                 if par["ptype"] == "Gaussian":
                     if self.axis_type == "time":
                         #
@@ -349,17 +428,18 @@ class LabSetup:
                         tma = self.timeaxis
                         fwhm = par["FWHM"]
                         amp = par["amplitude"]
+                        amplitude_type = par.get("amplitude_type", "peak")
+                        fwhm_type = par.get("FWHM_type", "intensity")
 
                         tc = self.pulse_centers[k_p]
 
-                        # normalized Gaussian mupliplied by amplitude
-                        lfc = 4.0 * numpy.log(2.0)
-                        pi = numpy.pi
-                        val = (
-                            (2.0 / fwhm)
-                            * numpy.sqrt(numpy.log(2.0) / pi)
-                            * amp
-                            * numpy.exp(-lfc * ((tma.data - tc) / fwhm) ** 2)
+                        val = _gaussian_values(
+                            tma.data,
+                            tc,
+                            fwhm,
+                            amp,
+                            amplitude_type=amplitude_type,
+                            fwhm_type=fwhm_type,
                         )
 
                         self.pulse_t[k_p] = DFunction(tma, val)
@@ -377,20 +457,44 @@ class LabSetup:
                         pcentr = Manager().convert_energy_2_current_u(self.omega[k_p])
 
                         amp = par["amplitude"]
+                        amplitude_type = par.get("amplitude_type", "peak")
+                        fwhm_type = par.get("FWHM_type", "intensity")
 
-                        # normalized Gaussian mupliplied by amplitude
-                        val = (
-                            (2.0 / fwhm)
-                            * numpy.sqrt(numpy.log(2.0) / numpy.pi)
-                            * amp
-                            * numpy.exp(
-                                -4.0
-                                * numpy.log(2.0)
-                                * ((fra.data - pcentr) / fwhm) ** 2
-                            )
+                        val = _gaussian_values(
+                            fra.data,
+                            pcentr,
+                            fwhm,
+                            amp,
+                            amplitude_type=amplitude_type,
+                            fwhm_type=fwhm_type,
                         )
 
                         self.pulse_f[k_p] = DFunction(fra, val)
+
+                elif par["ptype"] == "delta":
+                    if "area" in par and "amplitude" in par:
+                        raise QuantarheiError(
+                            "Delta pulse accepts either 'area' or the deprecated "
+                            "'amplitude', not both"
+                        )
+                    if "amplitude" in par:
+                        warnings.warn(
+                            "Delta-pulse 'amplitude' is deprecated; use 'area'",
+                            DeprecationWarning,
+                            stacklevel=2,
+                        )
+                    area = par.get("area", par.get("amplitude", 1.0))
+
+                    if self.axis_type == "time":
+                        tma = self.timeaxis
+                        data = numpy.zeros(tma.length)
+                        center_index = tma.nearest(self.pulse_centers[k_p])
+                        data[center_index] = area / tma.step
+                        self.pulse_t[k_p] = DFunction(tma, data)
+
+                    elif self.axis_type == "frequency":
+                        data = numpy.full(self.freqaxis.length, area, dtype=REAL)
+                        self.pulse_f[k_p] = DFunction(self.freqaxis, data)
 
                 elif par["ptype"] == "numeric":
                     fce = par["function"]
@@ -400,7 +504,10 @@ class LabSetup:
                         # Create a new DFunction based on the submitted time
                         # axis
                         #
-                        data = numpy.zeros(self.timeaxis.length)
+                        data = numpy.zeros(
+                            self.timeaxis.length,
+                            dtype=fce.data.dtype,
+                        )
                         i_p = 0
                         for t_p in self.timeaxis.data:
                             data[i_p] = fce.at(t_p)
@@ -409,7 +516,10 @@ class LabSetup:
                         self.pulse_t[k_p] = DFunction(self.timeaxis, data)
 
                     elif self.axis_type == "frequency":
-                        data = numpy.zeros(self.freqaxis.length)
+                        data = numpy.zeros(
+                            self.freqaxis.length,
+                            dtype=fce.data.dtype,
+                        )
                         i_p = 0
                         for t_p in self.freqaxis.data:
                             data[i_p] = fce.at(t_p)
@@ -424,8 +534,12 @@ class LabSetup:
 
             if self.axis_type == "time":
                 self.has_timedomain = True
+                self.has_freqdomain = False
+                self.pulse_f = [None] * self.number_of_pulses
             elif self.axis_type == "frequency":
                 self.has_freqdomain = True
+                self.has_timedomain = False
+                self.pulse_t = [None] * self.number_of_pulses
 
             self._field_set = True
 
@@ -434,6 +548,12 @@ class LabSetup:
                 "set_pulses requires " + str(self.number_of_pulses) + " parameter sets"
             )
             raise QuantarheiError(text)
+
+    def has_delta_pulses(self) -> bool:
+        """Return whether every configured pulse is a delta pulse."""
+        if not self._field_set or self.saved_params is None:
+            return False
+        return all(par.get("ptype") == "delta" for par in self.saved_params)
 
     def set_pulse_polarizations(
         self, pulse_polarizations: Any = (X, X, X), detection_polarization: Any = X
@@ -634,6 +754,8 @@ class LabSetup:
 
 
         """
+        if self.has_timedomain:
+            return
         if self.has_freqdomain:
             assert self.freqaxis is not None
             freq = self.freqaxis
@@ -710,6 +832,8 @@ class LabSetup:
 
 
         """
+        if self.has_freqdomain:
+            return
         if self.has_timedomain:
             assert self.timeaxis is not None
             time = self.timeaxis
@@ -758,7 +882,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(time, params)
         >>> dfc = lab.get_pulse_envelop(1, [-50.0, -30.0, 2.0, 30.0])
         >>> print(dfc)
-        [  1.41569209e-05   1.95716100e-03   3.09310662e-02   1.95716100e-03]
+        [ 0.02126234  0.25        0.99385763  0.25      ]
 
         .. plot::
             :include-source:
@@ -789,6 +913,15 @@ class LabSetup:
 
 
         """
+        if self.saved_params is None:
+            raise QuantarheiError("Pulse shapes have not been configured.")
+        if self.saved_params[k].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
+        if not self.has_timedomain:
+            self.convert_to_time()
         return self.pulse_t[k].at(t)
 
     def get_pulse_spectrum(self, k: int, omega: Any) -> Any:
@@ -815,7 +948,7 @@ class LabSetup:
         >>> lab.set_pulse_shapes(freq, params)
         >>> dfc = lab.get_pulse_spectrum(1, [600.0, 700.0, 800.0, 900.0])
         >>> print(dfc)
-        [  2.46865450e-04   1.40563784e-04   7.33935374e-05   3.51409461e-05]
+        [ 0.45850202  0.34597747  0.25        0.17298874]
 
         Here is a complete example with setting, getting and plotting spectrum:
 
@@ -848,7 +981,32 @@ class LabSetup:
 
 
         """
-        return self.pulse_f[k].at(omega)
+        if not self.has_freqdomain:
+            self.convert_to_frequency()
+
+        # A Fourier transform of a time-domain pulse is the slowly varying
+        # envelope on a detuning axis.  Frequency-domain pulse definitions,
+        # in contrast, are supplied directly on an absolute-frequency axis.
+        # The public spectral-overlap API always accepts absolute frequencies.
+        query = numpy.asarray(omega)
+        if self.pulse_definition_domain == "time":
+            query = query - self.omega[k]
+
+        pulse = self.pulse_f[k]
+        assert pulse is not None
+        lower = pulse.axis.data[0]
+        upper = pulse.axis.data[-1]
+        inside = (query >= lower) & (query <= upper)
+
+        if query.ndim == 0:
+            if not bool(inside):
+                return numpy.zeros((), dtype=pulse.data.dtype)[()]
+            return pulse.at(query.item())
+
+        values = numpy.zeros(query.shape, dtype=pulse.data.dtype)
+        if numpy.any(inside):
+            values[inside] = pulse.at(query[inside])
+        return values
 
     def set_pulse_frequencies(self, omegas: Any) -> None:
         """Sets pulse frequencies
@@ -881,6 +1039,8 @@ class LabSetup:
                 numpy.array(omegas, dtype=REAL)
             )
             self.omega = omega_val
+            for k in range(self.number_of_pulses):
+                self.delay_phases[k] = self.pulse_centers[k] * self.omega[k]
 
         else:
             raise QuantarheiError(
@@ -905,7 +1065,17 @@ class LabSetup:
         2.0
 
         """
-        return self.omega[k]
+        return Manager().convert_energy_2_current_u(self.omega[k])
+
+    def set_pulse_frequency(self, k: int, omega: float) -> None:
+        """Set one carrier frequency in the active energy units.
+
+        The internal ``omega`` array always stores internal energy units.
+        This public setter, together with :meth:`get_pulse_frequency`, is the
+        unit-safe interface for one carrier frequency.
+        """
+        self.omega[k] = Manager().convert_energy_2_internal_u(omega)
+        self.delay_phases[k] = self.pulse_centers[k] * self.omega[k]
 
     def set_pulse_arrival_times(self, times: Any) -> None:
         """Sets the arrival time (i.e. centers) of the pulses
@@ -1077,6 +1247,19 @@ class LabSetup:
         return fields
 
     def set_rwa(self, om: float) -> None:
+        """Subtract a frequency from all carriers in place.
+
+        .. deprecated:: 0.0.71
+            Use ``LabField.field_p_at(..., rwa_frequency=...)`` or
+            ``LabSetup.get_field(..., rwa_frequency=...)`` for non-mutating
+            rotating-frame evaluation.
+        """
+        warnings.warn(
+            "LabSetup.set_rwa() mutates pulse frequencies and is deprecated; "
+            "pass rwa_frequency when evaluating a field instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         self.saved_omega = numpy.zeros((self.number_of_pulses), dtype=REAL)
 
@@ -1084,6 +1267,12 @@ class LabSetup:
         self.omega[:] -= om
 
     def restore_rwa(self) -> None:
+        """Restore carriers saved by the deprecated :meth:`set_rwa`."""
+        warnings.warn(
+            "LabSetup.restore_rwa() is deprecated with LabSetup.set_rwa()",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
         if self.saved_omega is None:
             raise QuantarheiError("RWA has to be set first")
@@ -1091,44 +1280,52 @@ class LabSetup:
         self.omega[:] = self.saved_omega[:]
 
     def get_field(self, kk: Any = None, rwa_frequency: Any = None) -> Any:
-        """Returns the total field of the lab or a single field"""
+        """Return a positive-frequency field on the configured time axis.
+
+        When ``kk`` is ``None``, fields from all pulses are summed. The
+        optional ``rwa_frequency`` is applied during evaluation and does not
+        modify stored carrier frequencies.
+        """
         if kk is None:
             flds = self.get_labfields()
 
             kk = 0
             for fl in flds:
                 if kk == 0:
-                    fld = fl.get_field()
+                    fld = fl.field_p_at(rwa_frequency=rwa_frequency)
                 else:
-                    fld += fl.get_field()
+                    fld += fl.field_p_at(rwa_frequency=rwa_frequency)
                 kk += 1
 
         else:
             fl = self.get_labfield(kk)
-            fld = fl.get_field()
-
-        if rwa_frequency is not None:
-            ome = Manager().convert_energy_2_internal_u(rwa_frequency)
-            tt = self.timeaxis.data
-            arg = 1j * ome * tt
-            fld = fld * numpy.exp(arg)
+            fld = fl.field_p_at(rwa_frequency=rwa_frequency)
 
         return fld
 
-    def get_field_derivative(self) -> Any:
-        """Returns the time derivative of the total field"""
-        flds = self.get_labfields()
+    def get_field_derivative(
+        self,
+        time: Any = None,
+        component: str = "positive",
+        rwa_frequency: Any = None,
+    ) -> Any:
+        """Return the derivative of the sum of the configured pulse fields.
 
-        kk = 0
-        for fl in flds:
-            if kk == 0:
-                fld_d = fl.get_field_derivative()
-            else:
-                fld_d += fl.get_field_derivative()
-
-            kk += 1
-
-        return fld_d
+        Parameters have the same meaning as :meth:`LabField.derivative_at`.
+        In particular, the default is the derivative of the analytic
+        positive-frequency field.
+        """
+        derivatives = [
+            field.derivative_at(
+                time,
+                component=component,
+                rwa_frequency=rwa_frequency,
+            )
+            for field in self.get_labfields()
+        ]
+        if not derivatives:
+            return 0.0
+        return sum(derivatives)
 
 
 class labsetup(LabSetup):
@@ -1175,6 +1372,18 @@ def _labarray(name: str, target: str) -> Any:
     return property(prop_getter, prop_setter)
 
 
+def _labfrequency() -> Any:
+    """Expose one LabField carrier frequency in the active energy units."""
+
+    def prop_getter(self: Any) -> Any:
+        return self.get_frequency()
+
+    def prop_setter(self: Any, value: Any) -> None:
+        self.set_frequency(value)
+
+    return property(prop_getter, prop_setter)
+
+
 def _fieldprop(name: str, flag: str, sign: int) -> Any:
     """Property returning field values over time"""
     cmplx_sign = sign
@@ -1182,12 +1391,11 @@ def _fieldprop(name: str, flag: str, sign: int) -> Any:
     def prop_getter(self: Any) -> Any:
         if getattr(self.labsetup, flag):
             if cmplx_sign == 1:
-                return self.get_field()
+                return self.field_p_at()
             if cmplx_sign == -1:
-                return numpy.conj(self.get_field())
+                return self.field_m_at()
             if cmplx_sign == 0:
-                fld = self.get_field()
-                return (fld + numpy.conj(fld)) / 2.0
+                return self.real_field_at()
             raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
         else:
             raise QuantarheiError("The property '" + name + "' is not initialited.")
@@ -1388,7 +1596,7 @@ class LabField:
     phi = _labattr("phi", "phases")
     delay_phi = _labattr("delay_phi", "delay_phases")
     tc = _labattr("tc", "pulse_centers", flag="_center_changed")
-    om = _labattr("om", "omega")
+    om = _labfrequency()
     pol = _labarray("pol", "e")
     field_p = _fieldprop("field_p", "_field_set", 1)
     field_m = _fieldprop("field_p", "_field_set", -1)
@@ -1408,12 +1616,16 @@ class LabField:
         return self.labsetup.phases[self.index]
 
     def get_delay_phase(self) -> Any:
-        """Returns the phase caused by the pulse delay"""
+        """Return the legacy laboratory-time delay phase.
+
+        This compatibility value is not used to construct electric fields.
+        New code should use the carrier phase defined at the pulse center.
+        """
         return self.labsetup.delay_phases[self.index]
 
     def get_total_phase(self) -> Any:
-
-        return self.labsetup.delay_phases[self.index] + self.labsetup.phases[self.index]
+        """Return the legacy sum of configured and delay phases."""
+        return self.get_delay_phase() + self.get_phase()
 
     def set_phase(self, val: float) -> None:
         """Sets the phase of the pulse
@@ -1460,10 +1672,12 @@ class LabField:
         self.labsetup.delay_phases[self.index] = phi
 
     def get_frequency(self) -> Any:
-        return self.labsetup.omega[self.index]
+        """Return the carrier frequency in the active energy units."""
+        return self.labsetup.get_pulse_frequency(self.index)
 
     def set_frequency(self, val: float) -> None:
-        self.labsetup.omega[self.index] = val
+        """Set the carrier frequency in the active energy units."""
+        self.labsetup.set_pulse_frequency(self.index, val)
 
     def get_polarization(self) -> Any:
         return self.labsetup.e[self.index, :]
@@ -1474,29 +1688,253 @@ class LabField:
     def get_fwhm(self) -> Any:
         return self.labsetup.saved_params[self.index]["FWHM"]
 
-    def get_field(self, time: Any = None, sign: int = 1) -> Any:
-        """Returns the electric field of the pulses"""
+    def envelope_at(self, time: Any = None) -> Any:
+        """Return the pulse envelope at supplied times.
+
+        Values inside the configured time axis are obtained from the stored
+        :class:`DFunction`. Values outside that finite sampled support are
+        zero rather than extrapolated. Scalar input produces a scalar and
+        array-like input preserves its shape.
+
+        Parameters
+        ----------
+        time : float or array-like, optional
+            Evaluation time. When omitted, return the envelope sampled on the
+            complete configured time axis.
+        """
+        if self.labsetup.saved_params[self.index].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
+
         if self._center_changed:
-            # recalculate pulses
             self.labsetup.reset_pulse_shape()
-            # FIXME: might require reseting the phase too!!!
+            self._center_changed = False
+
+        if not self.labsetup.has_timedomain:
+            self.labsetup.convert_to_time()
+        pulse = self.labsetup.pulse_t[self.index]
+        if time is None:
+            return pulse.data
+
+        times = numpy.asarray(time)
+        scalar_input = times.ndim == 0
+        flat_times = numpy.atleast_1d(times).reshape(-1)
+        values = numpy.zeros(flat_times.shape, dtype=pulse.data.dtype)
+        inside = (flat_times >= pulse.axis.min) & (flat_times <= pulse.axis.max)
+        if numpy.any(inside):
+            values[inside] = pulse.at(flat_times[inside])
+
+        if scalar_input:
+            return values[0]
+        return values.reshape(times.shape)
+
+    def _envelope_at(self, time: Any = None) -> Any:
+        """Compatibility alias for the public envelope evaluator."""
+        return self.envelope_at(time)
+
+    def _envelope_derivative_at(self, time: Any = None) -> Any:
+        """Return the derivative of the finite pulse envelope.
+
+        Time-defined Gaussian pulses are differentiated analytically.  All
+        other finite sampled pulses use a derivative on their native time
+        grid, interpolated with the same zero-padded support convention as
+        :meth:`envelope_at`.
+        """
+        if self.labsetup.saved_params[self.index].get("ptype") == "delta":
+            raise QuantarheiError(
+                "A delta pulse has no pointwise time-domain envelope; use its "
+                "area for impulsive calculations."
+            )
+
+        if self._center_changed:
+            self.labsetup.reset_pulse_shape()
+            self._center_changed = False
+
+        if not self.labsetup.has_timedomain:
+            self.labsetup.convert_to_time()
+        pulse = self.labsetup.pulse_t[self.index]
+
+        params = self.labsetup.saved_params[self.index]
+        if (
+            self.labsetup.pulse_definition_domain == "time"
+            and params.get("ptype") == "Gaussian"
+        ):
+            fwhm = params["FWHM"]
+            fwhm_type = params.get("FWHM_type", "intensity").lower()
+            if fwhm_type == "intensity":
+                exponent_factor = 2.0 * numpy.log(2.0)
+            else:
+                exponent_factor = 4.0 * numpy.log(2.0)
+            times = pulse.axis.data if time is None else numpy.asarray(time)
+            return (
+                -2.0
+                * exponent_factor
+                * (times - self.tc)
+                / fwhm**2
+                * self.envelope_at(time)
+            )
+
+        data = pulse.data
+        if pulse.axis.length < 2:
+            derivative_data = numpy.zeros_like(data)
+        else:
+            edge_order = 2 if pulse.axis.length > 2 else 1
+            derivative_data = numpy.gradient(
+                data,
+                pulse.axis.step,
+                edge_order=edge_order,
+            )
+        derivative = DFunction(pulse.axis, derivative_data)
+        if time is None:
+            return derivative.data
+
+        times = numpy.asarray(time)
+        scalar_input = times.ndim == 0
+        flat_times = numpy.atleast_1d(times).reshape(-1)
+        values = numpy.zeros(flat_times.shape, dtype=derivative.data.dtype)
+        inside = (flat_times >= derivative.axis.min) & (
+            flat_times <= derivative.axis.max
+        )
+        if numpy.any(inside):
+            values[inside] = derivative.at(flat_times[inside])
+        if scalar_input:
+            return values[0]
+        return values.reshape(times.shape)
+
+    def derivative_at(
+        self,
+        time: Any = None,
+        component: str = "positive",
+        rwa_frequency: Any = None,
+    ) -> Any:
+        r"""Return a time derivative of the pulse envelope or field.
+
+        ``component`` may be ``"envelope"``, ``"positive"`` (the default),
+        ``"negative"``, or ``"real"``.  For the analytic positive-frequency
+        field the carrier contribution is included exactly:
+
+        .. math::
+
+            \frac{dE^{(+)}}{dt} = [\dot A(t)-i(\omega-\Omega)A(t)]
+            e^{-i(\omega-\Omega)(t-t_c)+i\phi}.
+        """
+        component = component.lower()
+        aliases = {"p": "positive", "m": "negative"}
+        component = aliases.get(component, component)
+        if component not in ("envelope", "positive", "negative", "real"):
+            raise QuantarheiError(
+                "component must be 'envelope', 'positive', 'negative', or 'real'"
+            )
+
+        envelope_derivative = self._envelope_derivative_at(time)
+        if component == "envelope":
+            return envelope_derivative
 
         if time is None:
-            tt = self.labsetup.timeaxis.data
-            env = self.labsetup.pulse_t[self.index].data
-            om = self.om
-            phi = self.phi
-            delay_phi = self.delay_phi
-            # print(phi, delay_phi)
-            fld = (
-                env
-                * numpy.exp(-1j * sign * om * tt)
-                * numpy.exp(1j * sign * phi)
-                * numpy.exp(1j * sign * delay_phi)
-            )
-            return fld
+            times = self.labsetup.timeaxis.data
+        else:
+            times = numpy.asarray(time)
+        envelope = self.envelope_at(time)
+        omega = self.labsetup.omega[self.index]
+        if rwa_frequency is not None:
+            omega -= Manager().convert_energy_2_internal_u(rwa_frequency)
+        local_time = times - self.tc
+        positive = (envelope_derivative - 1j * omega * envelope) * numpy.exp(
+            -1j * omega * local_time + 1j * self.phi
+        )
+        if component == "positive":
+            return positive
+        if component == "negative":
+            return numpy.conj(positive)
+        return numpy.real(positive)
 
-        return self.labsetup.pulse_t[self.index].at(time)
+    def field_p_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
+        """Return the positive-frequency field at supplied times.
+
+        The configured phase is the carrier phase at the pulse center. The
+        rotating-frame frequency is applied non-mutatingly, so that
+
+        .. math::
+
+            E^{(+)}(t; \\Omega) = A(t-t_c)
+            \\exp[-i(\\omega-\\Omega)(t-t_c) + i\\phi].
+
+        Parameters
+        ----------
+        time : float or array-like, optional
+            Evaluation time. When omitted, the complete configured time axis
+            is used.
+        rwa_frequency : float, optional
+            Rotating-frame frequency in the active energy units.
+        """
+        if time is None:
+            times = self.labsetup.timeaxis.data
+        else:
+            times = numpy.asarray(time)
+
+        envelope = self.envelope_at(time)
+        omega = self.labsetup.omega[self.index]
+        if rwa_frequency is not None:
+            omega -= Manager().convert_energy_2_internal_u(rwa_frequency)
+
+        local_time = times - self.tc
+        return envelope * numpy.exp(-1j * omega * local_time + 1j * self.phi)
+
+    def field_m_at(self, time: Any = None, rwa_frequency: Any = None) -> Any:
+        """Return the negative-frequency field at supplied times."""
+        return numpy.conj(self.field_p_at(time, rwa_frequency=rwa_frequency))
+
+    def real_field_at(self, time: Any = None) -> Any:
+        """Return the physical real field under the analytic-signal convention."""
+        return numpy.real(self.field_p_at(time))
+
+    def get_field_derivative(
+        self, time: Any = None, sign: int = 1, rwa_frequency: Any = None
+    ) -> Any:
+        """Return a field derivative using the historical sign interface.
+
+        Deprecated in favour of :meth:`derivative_at`.
+        """
+        warnings.warn(
+            "LabField.get_field_derivative() is deprecated; use derivative_at()",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        components = {1: "positive", -1: "negative", 0: "real"}
+        if sign not in components:
+            raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
+        return self.derivative_at(
+            time,
+            component=components[sign],
+            rwa_frequency=rwa_frequency,
+        )
+
+    def get_field(self, time: Any = None, sign: int = 1) -> Any:
+        """Return a field component using the historical interface.
+
+        Without ``time``, ``sign`` selects the positive-frequency (``1``),
+        negative-frequency (``-1``), or real (``0``) field on the configured
+        axis. Supplying ``time`` retains the historical envelope-only behavior
+        and is deprecated; use :meth:`envelope_at` instead.
+        """
+        if time is not None:
+            warnings.warn(
+                "LabField.get_field(time) returns only the envelope and is "
+                "deprecated; use envelope_at()",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return self.envelope_at(time)
+
+        if sign == 1:
+            return self.field_p_at()
+        if sign == -1:
+            return self.field_m_at()
+        if sign == 0:
+            return self.real_field_at()
+        raise QuantarheiError("Only signs of -1, 0 and 1 are allowed.")
 
     def get_time_axis(self) -> Any:
         return self.labsetup.timeaxis
@@ -1518,43 +1956,32 @@ class LabField:
         """Returns the envelop values"""
         # tma = self.timeaxis
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
-            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
-            amp = self.labsetup.saved_params[self.index]["amplitude"]
-
-            # tc = self.pulse_centers[k_p]
-
-            # normalized Gaussian mupliplied by amplitude
-            lfc = 4.0 * numpy.log(2.0)
-            pi = numpy.pi
-            val = (
-                (2.0 / fwhm)
-                * numpy.sqrt(numpy.log(2.0) / pi)
-                * amp
-                * numpy.exp(-lfc * (tt / fwhm) ** 2)
+            params = self.labsetup.saved_params[self.index]
+            return _gaussian_values(
+                tt,
+                0.0,
+                params["FWHM"],
+                params["amplitude"],
+                amplitude_type=params.get("amplitude_type", "peak"),
+                fwhm_type=params.get("FWHM_type", "intensity"),
             )
-
-            return val
 
         raise QuantarheiError()
 
     def get_pulse_envelop_function(self) -> Any:
         """Return a function to be called later"""
         if self.labsetup.saved_params[self.index]["ptype"] == "Gaussian":
-            fwhm = self.labsetup.saved_params[self.index]["FWHM"]
-            amp = self.labsetup.saved_params[self.index]["amplitude"]
-            lfc = 4.0 * numpy.log(2.0)
-            pi = numpy.pi
+            params = self.labsetup.saved_params[self.index]
 
             def env(tt: Any) -> Any:
-
-                val = (
-                    (2.0 / fwhm)
-                    * numpy.sqrt(numpy.log(2.0) / pi)
-                    * amp
-                    * numpy.exp(-lfc * (tt / fwhm) ** 2)
+                return _gaussian_values(
+                    tt,
+                    0.0,
+                    params["FWHM"],
+                    params["amplitude"],
+                    amplitude_type=params.get("amplitude_type", "peak"),
+                    fwhm_type=params.get("FWHM_type", "intensity"),
                 )
-
-                return val
 
             return env
 

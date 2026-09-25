@@ -34,10 +34,11 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy
 
-from .. import TWOD_SIGNALS, part_ABS, part_IMAGINARY, part_REAL, signal_TOTL
+from .. import TWOD_SIGNALS, Manager, part_ABS, part_IMAGINARY, part_REAL, signal_TOTL
 from ..core.datasaveable import DataSaveable
 from ..core.dfunction import DFunction
 from ..core.frequency import FrequencyAxis
+from ..core.managers import energy_units
 from ..core.saveable import Saveable
 from ..core.valueaxis import ValueAxis
 from ..exceptions import QuantarheiError
@@ -62,6 +63,10 @@ class TwoDSpectrum(DataSaveable, Saveable):
 
         self.t2 = -1.0
 
+        # Computational RWA reference retained as provenance.  Completed
+        # frequency-domain spectra themselves use absolute-frequency axes.
+        self.rwa = 0.0
+
         self.params: Any = None
 
     def set_axis_1(self, axis: Any) -> None:
@@ -71,6 +76,14 @@ class TwoDSpectrum(DataSaveable, Saveable):
     def set_axis_3(self, axis: Any) -> None:
         """Sets the y-axis of te spectrum (omega_3 axis)"""
         self.yaxis = axis
+
+    def set_rwa(self, rwa: float) -> None:
+        """Set the rotating-frame reference in the active energy units."""
+        self.rwa = Manager().convert_energy_2_internal_u(rwa)
+
+    def get_rwa(self) -> float:
+        """Return the rotating-frame reference in the active energy units."""
+        return Manager().convert_energy_2_current_u(self.rwa)
 
     def set_data_type(self, dtype: str = signal_TOTL) -> None:  # "Tot"):
         """Set the data type for this 2D spectrum.
@@ -120,8 +133,8 @@ class TwoDSpectrum(DataSaveable, Saveable):
         if (self.xaxis is None) or (self.yaxis is None):
             raise QuantarheiError("Axes of the 2D spectrum are not set")
 
-        if (self.xaxis.length == data.shape[0]) and (
-            self.yaxis.length == data.shape[1]
+        if (self.yaxis.length == data.shape[0]) and (
+            self.xaxis.length == data.shape[1]
         ):
             self.data = data
 
@@ -145,25 +158,25 @@ class TwoDSpectrum(DataSaveable, Saveable):
         self.data += data
 
     def overlay_pulses(self, lab: Any) -> None:
-        """Use labsetup class to overlay pulse spectra over this 2D spectrum"""
+        """Apply an approximate pulse-bandwidth overlay to this spectrum.
+
+        Spectrum and pulse axes both represent absolute frequencies. The
+        calculation is carried out in internal units, independently of the
+        ambient energy-unit context.
+        """
         assert self.xaxis is not None
         assert self.yaxis is not None
         assert self.data is not None
-        # first two pulses are on omega_1 axis
-        ome1 = self.xaxis.data
-        spect1 = lab.get_pulse_spectrum(0, ome1)
-        spect2 = lab.get_pulse_spectrum(1, ome1)
+        with energy_units("int"):
+            # The first array dimension is omega_3 and the second is omega_1.
+            ome1 = self.xaxis.data
+            ome3 = self.yaxis.data
+            spect1 = lab.get_pulse_spectrum(0, ome1)
+            spect2 = lab.get_pulse_spectrum(1, ome1)
+            spect3 = lab.get_pulse_spectrum(2, ome3)
 
-        # third pulse
-        ome3 = self.yaxis.data
-        spect3 = lab.get_pulse_spectrum(2, ome3)
-
-        self.data = self.data * (
-            spect1 * spect2
-        )  # multiplying the second (x) axis by E^2
-        self.data = (
-            self.data * spect3[:, numpy.newaxis]
-        )  # multiplying the first (y) axis by E
+        self.data = self.data * (spect1 * spect2)
+        self.data = self.data * spect3[:, numpy.newaxis]
 
         # do we need to add also the detection pulse ?
 

@@ -7,6 +7,8 @@ import numpy.testing as npt
 from quantarhei import (
     Aggregate,
     CorrelationFunction,
+    DFunction,
+    FrequencyAxis,
     LabSetup,
     Molecule,
     ReducedDensityMatrixPropagator,
@@ -15,6 +17,7 @@ from quantarhei import (
     eigenbasis_of,
     energy_units,
 )
+from quantarhei.exceptions import QuantarheiError
 
 # import quantarhei as qr
 from quantarhei.utils.vectors import X, Y, Z
@@ -141,6 +144,400 @@ class TestLabSetup(unittest.TestCase):
             fld = fields[2].get_field()
             plt.plot(time.data, numpy.real(fld))
             plt.show()
+
+    def test_gaussian_uses_peak_amplitude_and_intensity_fwhm_by_default(self):
+        """Finite Gaussian pulses use optical pulse conventions by default."""
+        time = TimeAxis(-100.0, 20001, 0.01, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+
+        lab.set_pulse_shapes(time, (pulse,))
+        envelope = lab.pulse_t[0].data
+
+        center = time.nearest(0.0)
+        half_width = time.nearest(10.0)
+        self.assertAlmostEqual(envelope[center], 0.3)
+        self.assertAlmostEqual(abs(envelope[half_width]) ** 2, 0.3**2 / 2.0)
+
+    def test_gaussian_legacy_area_and_amplitude_fwhm_are_explicit(self):
+        """Explicit options reproduce the historical Gaussian definition."""
+        time = TimeAxis(-100.0, 20001, 0.01, atype="complete")
+        pulse = dict(
+            ptype="Gaussian",
+            FWHM=20.0,
+            amplitude=0.3,
+            amplitude_type="area",
+            FWHM_type="amplitude",
+        )
+        lab = LabSetup(nopulses=1)
+
+        lab.set_pulse_shapes(time, (pulse,))
+        envelope = lab.pulse_t[0].data
+        expected = (
+            (2.0 / pulse["FWHM"])
+            * numpy.sqrt(numpy.log(2.0) / numpy.pi)
+            * pulse["amplitude"]
+            * numpy.exp(-4.0 * numpy.log(2.0) * (time.data / pulse["FWHM"]) ** 2)
+        )
+
+        npt.assert_allclose(envelope, expected)
+        self.assertAlmostEqual(numpy.sum(envelope) * time.step, 0.3)
+
+    def test_delta_uses_area_and_accepts_deprecated_amplitude(self):
+        """Delta-pulse strength is its sampled integral."""
+        time = TimeAxis(-10.0, 201, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, ({"ptype": "delta", "area": 0.4},))
+
+        self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.4)
+
+        with self.assertWarns(DeprecationWarning):
+            lab.set_pulse_shapes(
+                time,
+                ({"ptype": "delta", "amplitude": 0.2},),
+            )
+        self.assertAlmostEqual(numpy.sum(lab.pulse_t[0].data) * time.step, 0.2)
+
+    def test_delta_pulse_rejects_pointwise_field_evaluation(self):
+        """A delta pulse is area-defined, not a sampled finite field."""
+        time = TimeAxis(-10.0, 201, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, ({"ptype": "delta", "area": 0.4},))
+        field = lab.get_labfield(0)
+
+        for evaluator in (
+            field.envelope_at,
+            field.field_p_at,
+            field.field_m_at,
+            field.real_field_at,
+            field.get_field,
+        ):
+            with self.assertRaisesRegex(QuantarheiError, "no pointwise"):
+                evaluator(0.0)
+
+        with self.assertRaisesRegex(QuantarheiError, "no pointwise"):
+            lab.get_pulse_envelop(0, 0.0)
+
+    def test_field_phase_is_defined_at_pulse_center(self):
+        """Translation preserves the configured carrier phase at the peak."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+
+        expected = 0.3 * numpy.exp(1j * 0.4)
+        npt.assert_allclose(field.field_p_at(12.0), expected)
+
+        field.set_center(-17.0)
+        npt.assert_allclose(field.field_p_at(-17.0), expected)
+
+    def test_envelope_at_accepts_scalar_and_array_times(self):
+        """Envelope evaluation preserves scalar and array input shape."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([[95.0, 100.0], [105.0, 110.0]])
+
+        scalar = field.envelope_at(100.0)
+        values = field.envelope_at(times)
+
+        self.assertTrue(numpy.isscalar(scalar))
+        self.assertEqual(values.shape, times.shape)
+        npt.assert_allclose(values.ravel(), self.lab.pulse_t[2].at(times.ravel()))
+        npt.assert_allclose(field.envelope_at(), self.lab.pulse_t[2].data)
+
+    def test_numeric_envelope_is_complex_and_zero_outside_support(self):
+        """Sampled complex envelopes have finite, zero-padded support."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        data = numpy.array([0.0, 1.0 + 2.0j, 2.0 - 1.0j, 1.0j, 0.0])
+        pulse = dict(ptype="numeric", function=DFunction(time, data))
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+
+        times = numpy.array([-3.0, -2.0, -0.5, 2.0, 3.0])
+        expected = numpy.array([0.0, 0.0, 1.5 + 0.5j, 0.0, 0.0])
+
+        npt.assert_allclose(field.envelope_at(times), expected)
+        self.assertEqual(field.envelope_at(times).dtype, data.dtype)
+        self.assertEqual(field.envelope_at(-3.0), 0.0j)
+        self.assertEqual(field.envelope_at(3.0), 0.0j)
+
+    def test_empty_chirp_is_compatible_and_nonempty_chirp_is_rejected(self):
+        """A chirp must not be silently ignored by a finite-pulse setup."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        lab = LabSetup(nopulses=1)
+        pulse = {"ptype": "Gaussian", "FWHM": 1.0, "amplitude": 1.0, "chirp": []}
+
+        lab.set_pulse_shapes(time, (pulse,))
+
+        with self.assertRaisesRegex(
+            QuantarheiError, "Chirped pulses are not implemented"
+        ):
+            lab.set_pulse_shapes(
+                time,
+                (
+                    {
+                        "ptype": "Gaussian",
+                        "FWHM": 1.0,
+                        "amplitude": 1.0,
+                        "chirp": [0.1],
+                    },
+                ),
+            )
+
+    def test_frequency_defined_pulse_keeps_its_source_axis_after_reset(self):
+        """A reset rebuilds a frequency-defined pulse in frequency space."""
+        frequency = FrequencyAxis(11500.0, 101, 10.0)
+        pulse = {"ptype": "Gaussian", "FWHM": 200.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([12000.0])
+        lab.set_pulse_shapes(frequency, (pulse,))
+        original_spectrum = lab.pulse_f[0].data.copy()
+
+        lab.convert_to_time()
+        self.assertTrue(lab.has_timedomain)
+        self.assertEqual(lab.pulse_definition_domain, "frequency")
+        self.assertIs(lab.pulse_definition_axis, frequency)
+
+        lab.set_pulse_arrival_times([20.0])
+
+        self.assertTrue(lab.has_freqdomain)
+        self.assertFalse(lab.has_timedomain)
+        self.assertIs(lab.pulse_f[0].axis, frequency)
+        npt.assert_allclose(lab.pulse_f[0].data, original_spectrum)
+
+        # Requesting an envelope creates only a derived time-domain cache.
+        envelope = lab.get_pulse_envelop(0, 0.0)
+        self.assertTrue(lab.has_timedomain)
+        self.assertTrue(numpy.isscalar(envelope))
+
+    def test_time_defined_pulse_lazily_provides_a_spectrum(self):
+        """Spectrum access Fourier-transforms a time-defined pulse on demand."""
+        time = TimeAxis(-20.0, 81, 0.5, atype="complete")
+        pulse = {"ptype": "Gaussian", "FWHM": 5.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (pulse,))
+
+        spectrum = lab.get_pulse_spectrum(0, numpy.array([0.0]))
+
+        self.assertEqual(lab.pulse_definition_domain, "time")
+        self.assertIs(lab.pulse_definition_axis, time)
+        self.assertTrue(lab.has_timedomain)
+        self.assertTrue(lab.has_freqdomain)
+        self.assertEqual(spectrum.shape, (1,))
+
+    def test_time_defined_pulse_spectrum_uses_absolute_frequency_queries(self):
+        """A time-domain envelope is shifted by its carrier for overlap."""
+        time = TimeAxis(-20.0, 81, 0.5, atype="complete")
+        pulse = {"ptype": "Gaussian", "FWHM": 5.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([100.0])
+        lab.set_pulse_shapes(time, (pulse,))
+
+        values = lab.get_pulse_spectrum(0, numpy.array([100.0, 130.0]))
+
+        self.assertGreater(abs(values[0]), 0.0)
+        self.assertEqual(values[1], 0.0)
+
+    def test_frequency_defined_pulse_spectrum_is_zero_outside_support(self):
+        """Spectral overlay treats unavailable pulse frequencies as zero."""
+        frequency = FrequencyAxis(10.0, 5, 1.0)
+        pulse = {"ptype": "Gaussian", "FWHM": 2.0, "amplitude": 1.0}
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([12.0])
+        lab.set_pulse_shapes(frequency, (pulse,))
+
+        values = lab.get_pulse_spectrum(0, numpy.array([9.0, 12.0, 15.0]))
+
+        npt.assert_allclose(values[[0, 2]], 0.0)
+        self.assertGreater(values[1], 0.0)
+
+    def test_get_field_at_time_wraps_envelope_at(self):
+        """The legacy time-evaluation call delegates to envelope_at()."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([95.0, 100.0, 105.0])
+
+        with self.assertWarns(DeprecationWarning):
+            legacy = field.get_field(times)
+
+        npt.assert_allclose(legacy, field.envelope_at(times))
+
+    def test_field_components_follow_the_analytic_signal_convention(self):
+        """Negative-frequency and real fields derive from the analytic field."""
+        field = self.lab.get_labfield(2)
+        times = numpy.array([95.0, 100.0, 105.0])
+
+        field_p = field.field_p_at(times)
+        field_m = field.field_m_at(times)
+        real_field = field.real_field_at(times)
+
+        npt.assert_allclose(field_m, numpy.conj(field_p))
+        npt.assert_allclose(real_field, (field_p + field_m) / 2.0)
+        self.assertTrue(numpy.isrealobj(real_field))
+
+    def test_gaussian_field_derivative_includes_envelope_and_carrier_terms(self):
+        """The public derivative API differentiates the analytic field."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+        times = numpy.array([10.0, 12.0, 14.0])
+
+        envelope = field.envelope_at(times)
+        envelope_derivative = (
+            -4.0 * numpy.log(2.0) * (times - 12.0) / pulse["FWHM"] ** 2 * envelope
+        )
+        expected = (envelope_derivative - 1j * 0.25 * envelope) * numpy.exp(
+            -1j * 0.25 * (times - 12.0) + 1j * 0.4
+        )
+
+        npt.assert_allclose(field.derivative_at(times), expected)
+        npt.assert_allclose(
+            field.derivative_at(times, component="envelope"), envelope_derivative
+        )
+        npt.assert_allclose(
+            field.derivative_at(times, component="negative"), numpy.conj(expected)
+        )
+        npt.assert_allclose(field.derivative_at(times, component="real"), expected.real)
+
+    def test_numeric_envelope_derivative_is_sampled_and_zero_padded(self):
+        """Numeric pulse derivatives are evaluated on the native time grid."""
+        time = TimeAxis(-2.0, 5, 1.0, atype="complete")
+        data = (1.0 + 2.0j) * time.data
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(
+            time, (dict(ptype="numeric", function=DFunction(time, data)),)
+        )
+        field = lab.get_labfield(0)
+
+        npt.assert_allclose(
+            field.derivative_at(numpy.array([-1.0, 0.0, 1.0]), component="envelope"),
+            1.0 + 2.0j,
+        )
+        self.assertEqual(field.derivative_at(3.0, component="envelope"), 0.0j)
+
+    def test_frequency_defined_pulse_derivative_uses_derived_time_grid(self):
+        """A frequency-defined pulse has a stable sampled time derivative."""
+        frequency = FrequencyAxis(-1.0, 201, 0.01)
+        pulse = dict(ptype="Gaussian", FWHM=0.2, amplitude=1.0)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_shapes(frequency, (pulse,))
+        field = lab.get_labfield(0)
+
+        envelope = field.envelope_at()
+        expected = numpy.gradient(envelope, lab.timeaxis.step, edge_order=2)
+        npt.assert_allclose(field.derivative_at(component="envelope"), expected)
+
+        times = lab.timeaxis.data[20:-20:20]
+        envelope_derivative = field.derivative_at(times, component="envelope")
+        expected_field = (
+            envelope_derivative - 1j * 0.25 * field.envelope_at(times)
+        ) * (numpy.exp(-1j * 0.25 * (times - field.tc) + 1j * field.phi))
+        npt.assert_allclose(field.derivative_at(times), expected_field)
+
+    def test_derivative_rwa_frequency_respects_the_active_energy_units(self):
+        """RWA values are interpreted locally in the current energy units."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_shapes(time, (dict(ptype="Gaussian", FWHM=20.0, amplitude=1.0),))
+        field = lab.get_labfield(0)
+        times = numpy.array([-2.0, 0.0, 2.0])
+
+        with energy_units("1/cm"):
+            lab.set_pulse_frequencies([12000.0])
+            in_wavenumbers = field.derivative_at(times, rwa_frequency=11800.0)
+        with energy_units("int"):
+            rwa_internal = convert(11800.0, "1/cm", "int")
+            in_internal_units = field.derivative_at(times, rwa_frequency=rwa_internal)
+
+        npt.assert_allclose(in_wavenumbers, in_internal_units)
+
+    def test_labsetup_field_derivative_sums_fields_and_legacy_wrapper(self):
+        """The LabSetup helper uses the public derivative implementation."""
+        times = numpy.array([95.0, 100.0, 105.0])
+        expected = sum(field.derivative_at(times) for field in self.lab.get_labfields())
+        npt.assert_allclose(self.lab.get_field_derivative(times), expected)
+
+        with self.assertWarns(DeprecationWarning):
+            legacy = self.lab.get_labfield(2).get_field_derivative(times)
+        npt.assert_allclose(legacy, self.lab.get_labfield(2).derivative_at(times))
+
+    def test_rwa_field_evaluation_is_local_and_non_mutating(self):
+        """RWA evaluation changes only the local carrier detuning."""
+        time = TimeAxis(-100.0, 2001, 0.1, atype="complete")
+        pulse = dict(ptype="Gaussian", FWHM=20.0, amplitude=0.3)
+        lab = LabSetup(nopulses=1)
+        lab.set_pulse_arrival_times([12.0])
+        lab.set_pulse_frequencies([0.25])
+        lab.set_pulse_phases([0.4])
+        lab.set_pulse_shapes(time, (pulse,))
+        field = lab.get_labfield(0)
+        times = numpy.array([10.0, 12.0, 14.0])
+        omega_before = lab.omega.copy()
+
+        actual = field.field_p_at(times, rwa_frequency=0.1)
+        envelope = lab.pulse_t[0].at(times)
+        expected = envelope * numpy.exp(-1j * (0.25 - 0.1) * (times - 12.0) + 1j * 0.4)
+
+        npt.assert_allclose(actual, expected)
+        npt.assert_allclose(lab.omega, omega_before)
+        npt.assert_allclose(
+            lab.get_field(0, rwa_frequency=0.1),
+            field.field_p_at(rwa_frequency=0.1),
+        )
+
+    def test_carrier_frequency_accessors_use_active_energy_units(self):
+        """LabSetup and LabField expose the same unit-safe carrier values."""
+        lab = LabSetup(nopulses=1)
+        with energy_units("1/cm"):
+            lab.set_pulse_frequencies([12000.0])
+            field = lab.get_labfield(0)
+
+            self.assertEqual(lab.get_pulse_frequency(0), 12000.0)
+            self.assertEqual(field.get_frequency(), 12000.0)
+            self.assertEqual(field.om, 12000.0)
+
+            field.set_frequency(12500.0)
+            self.assertEqual(lab.get_pulse_frequency(0), 12500.0)
+            self.assertEqual(field.om, 12500.0)
+
+            field.om = 13000.0
+            self.assertEqual(lab.get_pulse_frequency(0), 13000.0)
+
+        with energy_units("int"):
+            expected = convert(13000.0, "1/cm", "int")
+            self.assertAlmostEqual(lab.get_pulse_frequency(0), expected)
+            self.assertAlmostEqual(field.get_frequency(), expected)
+
+    def test_delay_phase_storage_does_not_affect_the_field(self):
+        """Legacy delay-phase storage is not part of field evaluation."""
+        field = self.lab.get_labfield(2)
+        original = field.field_p_at()
+
+        self.lab.delay_phases[2] += 10.0
+
+        npt.assert_allclose(field.field_p_at(), original)
+
+    def test_mutating_rwa_methods_are_deprecated(self):
+        """Legacy mutating RWA methods remain available during migration."""
+        lab = self.lab
+        omega_before = lab.omega.copy()
+
+        with self.assertWarns(DeprecationWarning):
+            lab.set_rwa(0.1)
+        npt.assert_allclose(lab.omega, omega_before - 0.1)
+
+        with self.assertWarns(DeprecationWarning):
+            lab.restore_rwa()
+        npt.assert_allclose(lab.omega, omega_before)
 
     def test_dm_propagation_with_fields(self):
         """(LabSetup) Time evolution with explicit electric field"""
@@ -490,7 +887,7 @@ class TestLabSetup(unittest.TestCase):
             t2 = t1 + setthis[ii]
             fld.set_center(t2)
 
-            lfc = 4.0 * numpy.log(2.0)
+            lfc = 2.0 * numpy.log(2.0)
             kappa = numpy.exp(
                 -lfc * (2.0 * (t1 - t2) * time.data - (t1**2 - t2**2)) / (fwhm**2)
                 - 1j * om * (t1 - t2)
