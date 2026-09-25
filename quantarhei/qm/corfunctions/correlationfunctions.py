@@ -265,7 +265,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         return numpy.asarray(msf)
 
     def _set_temperature_and_cutoff_time(
-        self, temperature: float, ctime: float
+        self, temperature: float, cutoff_time: float
     ) -> None:
         """Sets the temperature and cutoff time of for the component"""
         # Temperatures of all components have to be the same
@@ -278,10 +278,9 @@ class CorrelationFunction(DFunction, UnitsManaged):
                 "components have to be the same"
             )
 
-        # longest cortime has to be preserved
-        new_cutoff_time = 5.0 * ctime
-        if new_cutoff_time > self.cutoff_time:
-            self.cutoff_time = new_cutoff_time
+        # longest cutoff time has to be preserved
+        if cutoff_time > self.cutoff_time:
+            self.cutoff_time = cutoff_time
 
     def _make_overdamped_brownian(self, params: dict) -> None:  # , values=None):
         """Creates the overdamped Brownian oscillator component
@@ -376,7 +375,8 @@ class CorrelationFunction(DFunction, UnitsManaged):
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
-        ctime = params["gamma"]
+        # damping rate; params are in the units they were defined in
+        gamma = self.manager.iu_energy(params["gamma"], units=self.energy_units)
 
         # use the units in which params was defined
         lamb = params["reorg"]
@@ -399,13 +399,14 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.lamb += lamb
 
         # check temperature and update cutoff time
-        self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
+        self._set_temperature_and_cutoff_time(temperature, 5.0 / gamma)
 
     def _make_B777(self, params: dict, values: Any = None) -> None:
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
-        ctime = params["gamma"]
+        # damping rate; params are in the units they were defined in
+        gamma = self.manager.iu_energy(params["gamma"], units=self.energy_units)
 
         # use the units in which params was defined
         lamb = self.manager.iu_energy(params["reorg"], units=self.energy_units)
@@ -428,13 +429,14 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.lamb += lamb
 
         # check temperature and update cutoff time
-        self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
+        self._set_temperature_and_cutoff_time(temperature, 5.0 / gamma)
 
     def _make_CP29_spectral_density(self, params: dict, values: Any = None) -> None:
         from .spectraldensities import SpectralDensity
 
         temperature = params["T"]
-        ctime = params["gamma"]
+        # damping rate; params are in the units they were defined in
+        gamma = self.manager.iu_energy(params["gamma"], units=self.energy_units)
         # omega = params["freq"]
 
         # use the units in which params was defined
@@ -458,7 +460,7 @@ class CorrelationFunction(DFunction, UnitsManaged):
         self.lamb += lamb
 
         # check temperature and update cutoff time
-        self._set_temperature_and_cutoff_time(temperature, 5.0 * ctime)
+        self._set_temperature_and_cutoff_time(temperature, 5.0 / gamma)
 
     def _make_m_defined(self, params: dict) -> None:
         """Create a correlation function from a normalized relaxation M(t).

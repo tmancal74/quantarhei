@@ -310,6 +310,36 @@ class TestCorrelationFunction(unittest.TestCase):
         self.assertTrue(numpy.all(numpy.isfinite(cf.data)))
         self.assertTrue(cf.reorganization_energy_consistent(rtol=2.0e-3))
 
+    def test_cutoff_time(self):
+        """(CorrelationFunction) Cutoff time is five correlation times"""
+        t = TimeAxis(0.0, 2000, 1.0)
+        m = Manager()
+        with energy_units("1/cm"):
+            gamma = m.convert_energy_2_internal_u(20.0)
+            overdamped = dict(reorg=30.0, cortime=100.0, T=300.0)
+            underdamped = dict(freq=500.0, reorg=30.0, gamma=20.0, T=300.0)
+            expected = {
+                "OverdampedBrownian": (overdamped, 500.0),
+                "OverdampedBrownian-HighTemperature": (overdamped, 500.0),
+                "UnderdampedBrownian": (underdamped, 5.0 / gamma),
+                "Underdamped": (underdamped, 5.0 / gamma),
+                "B777": (dict(underdamped, alternative_form=False), 5.0 / gamma),
+            }
+            for ftype, (params, cutoff) in expected.items():
+                with self.subTest(ftype=ftype):
+                    cf = CorrelationFunction(t, dict(params, ftype=ftype))
+                    self.assertAlmostEqual(cf.cutoff_time, cutoff)
+
+            params = {
+                "ftype": "M-defined",
+                "reorg": 30.0,
+                "T": 300.0,
+                "M": numpy.exp(-t.data / 100.0),
+                "cutoff-time": 300.0,
+            }
+            cf = CorrelationFunction(t, params)
+            self.assertEqual(cf.cutoff_time, 300.0)
+
     def test_of_correlation_function_as_Saveable(self):
         """(CorrelationFunction) Testing of saving"""
         t = TimeAxis(0.0, 1000, 1.0)
