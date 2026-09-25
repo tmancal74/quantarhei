@@ -9,7 +9,7 @@ from ... import COMPLEX, REAL
 from ...core.managers import BasisManaged
 from ...core.matrixdata import MatrixData
 from ...core.saveable import Saveable
-from ...exceptions import QuantarheiError
+from ...exceptions import BasisError, QuantarheiError
 from ...utils.types import BasisManagedComplexArray
 from .statevector import StateVector
 
@@ -195,6 +195,57 @@ class SelfAdjointOperator(Operator):
     def get_diagonalization_matrix(self) -> numpy.ndarray:
         dd, SS = numpy.linalg.eigh(self._data)
         return SS
+
+    def get_site_basis_eigensystem(self) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Eigenvalues and site-basis eigenvectors, independent of the current basis.
+
+        Basis transformations are applied lazily: inside an ``eigenbasis_of``
+        context, ``_data`` stays in the site basis until ``data`` is first
+        read, after which it holds the transformed representation.
+        Diagonalizing ``_data`` directly therefore depends on whether the
+        operator has already been read (issue #333). Here the eigenvectors are
+        found in the basis the operator is currently stored in and are mapped
+        back to the site basis using the basis transformations recorded by
+        the manager.
+
+        Returns
+        -------
+        dd : numpy.ndarray
+            Eigenvalues in ascending order.
+        SS : numpy.ndarray
+            Matrix whose columns are the eigenvectors expressed in the site
+            basis, i.e. ``inv(SS) @ A_site @ SS`` is diagonal.
+
+        Raises
+        ------
+        BasisError
+            If the basis the operator is stored in is not on the basis stack.
+
+        """
+        dd, SS = numpy.linalg.eigh(self._data)
+
+        ob = self.get_current_basis()
+        if ob == 0:
+            return dd, SS
+
+        manager = self.manager
+        if ob not in manager.basis_stack:
+            raise BasisError("Basis of the operator is not on stack.")
+
+        # Fix the arbitrary sign of each eigenvector so that its largest
+        # component is positive. When the operator is already stored in its
+        # own eigenbasis, SS is then the identity and the result is exactly
+        # the transformation of the current context.
+        idx = numpy.argmax(numpy.abs(SS), axis=0)
+        SS = SS * numpy.sign(SS[idx, numpy.arange(SS.shape[1])])
+
+        # Compose the transformations site -> ... -> ob. The operator data in
+        # basis k are inv(Z_k) @ data_{k-1} @ Z_k (see Operator.transform).
+        TT = numpy.eye(self.dim)
+        for kk in range(1, manager.basis_stack.index(ob) + 1):
+            TT = numpy.dot(TT, manager.basis_transformations[kk])
+
+        return dd, numpy.dot(TT, SS)
 
     def __str__(self) -> str:
         out = "\nquantarhei.SelfAdjointOperator object"

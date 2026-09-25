@@ -201,3 +201,44 @@ class TestMatrixDataEq(unittest.TestCase):
         """allclose() with a non-Operator returns NotImplemented."""
         op = Operator(data=numpy.eye(2))
         self.assertIs(op.allclose(42), NotImplemented)
+
+
+class TestSiteBasisEigensystem(unittest.TestCase):
+    """get_site_basis_eigensystem() must not depend on the lazy basis state (#333)."""
+
+    def setUp(self):
+        from quantarhei import Hamiltonian
+
+        self.H_site = numpy.array([[0.0, 0.3, 0.1], [0.3, 1.0, 0.2], [0.1, 0.2, 1.7]])
+        self.H = Hamiltonian(data=self.H_site.copy())
+        self.A = Hamiltonian(
+            data=numpy.array([[1.0, 0.5, 0.0], [0.5, 0.0, 0.4], [0.0, 0.4, 2.0]])
+        )
+
+    def assertDiagonalizesSite(self, dd, SS):
+        # exact linear algebra on O(1) matrices: only rounding noise expected
+        numpy.testing.assert_allclose(
+            SS.T @ self.H_site @ SS, numpy.diag(dd), atol=1e-12
+        )
+        numpy.testing.assert_allclose(
+            dd, numpy.linalg.eigvalsh(self.H_site), atol=1e-12
+        )
+
+    def test_site_basis(self):
+        self.assertDiagonalizesSite(*self.H.get_site_basis_eigensystem())
+
+    def test_after_data_read_in_own_eigenbasis(self):
+        from quantarhei import eigenbasis_of
+
+        with eigenbasis_of(self.H):
+            self.H.data  # triggers the lazy transformation
+            self.assertDiagonalizesSite(*self.H.get_site_basis_eigensystem())
+
+    def test_after_data_read_in_nested_foreign_basis(self):
+        from quantarhei import eigenbasis_of
+
+        with eigenbasis_of(self.A):
+            self.H.data
+            with eigenbasis_of(self.H):
+                self.H.data
+                self.assertDiagonalizesSite(*self.H.get_site_basis_eigensystem())
