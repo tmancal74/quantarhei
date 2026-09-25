@@ -2,6 +2,32 @@
 
 All notable changes to Quantarhei are documented here.
 
+## [0.0.71]
+
+### For users
+- Units (`energy_units`, `frequency_units`, `length_units`) and basis
+  (`eigenbasis_of`) contexts are now thread-local, so threads running
+  concurrently no longer corrupt each other's units or basis.
+- **Behaviour change:** a thread started inside `energy_units(...)` (or another
+  units context) no longer sees the context's units; it starts with the global
+  units set by `set_current_units` or `Manager().set_current_units`
+  (internal units by default). Enter the context inside the thread instead.
+- **Behaviour change:** basis managed objects (operators, Hamiltonians, ...)
+  must not be shared between threads while any of them is inside an
+  `eigenbasis_of` context. Using an object that another thread holds in its
+  context basis now raises `BasisError` instead of silently returning data in
+  the wrong basis. Give each thread its own copy.
+- `Manager().set_current_units` now also sets the starting units of new threads,
+  like the module level `set_current_units`.
+- Operators created inside long-lived `eigenbasis_of` contexts are no longer
+  kept alive by the Manager, and the registry is released when the context
+  exits.
+
+### For developers
+- Basis ids are unique within the process instead of being equal to the depth
+  of the basis stack; do not rely on their values.
+- Pickling or copying the `Manager` returns the Manager of the current process.
+
 ## [0.0.70]
 
 ### For users
