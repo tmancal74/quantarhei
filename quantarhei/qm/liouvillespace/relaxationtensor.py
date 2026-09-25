@@ -291,7 +291,7 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
                     ) / 2.0
                     self._data[:, mm, nn, mm, nn] = self._data[:, nn, mm, nn, mm]
 
-    def __mult__(self, scalar: Any) -> RelaxationTensor:
+    def __mul__(self, scalar: Any) -> RelaxationTensor:
         """Multiplication of the Tensor by a scalar"""
         import numbers
 
@@ -301,11 +301,11 @@ class RelaxationTensor(SuperOperator, Secular, Saveable):
         if self.as_operators:
             raise ImplementationError("Multiplication in operator form not implemented")
 
-        self._data = self._data * scalar
-        return self
+        out = copy.copy(self)
+        out._data = self._data * scalar
+        return out
 
-    def __rmult__(self, scalar: Any) -> RelaxationTensor:
-        return self.__mult__(scalar)
+    __rmul__ = __mul__
 
     def __add__(self, other: RelaxationTensor) -> RelaxationTensor:
         out = copy.copy(self)

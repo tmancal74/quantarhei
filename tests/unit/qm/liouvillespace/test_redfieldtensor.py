@@ -1,3 +1,5 @@
+import numpy
+
 import quantarhei as qr
 
 
@@ -43,3 +45,15 @@ def test_redfieldtensor_secular_flag():
     ham, sbi = _make_ham_sbi()
     RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi, secular=True)
     assert RRT.is_secular
+
+
+def test_redfieldtensor_scalar_multiplication():
+    ham, sbi = _make_ham_sbi()
+    RRT = qr.qm.RedfieldRelaxationTensor(ham, sbi)
+    original = RRT.data.copy()
+
+    for scaled in (2.0 * RRT, RRT * 2.0, 2 * RRT):
+        assert isinstance(scaled, qr.qm.RedfieldRelaxationTensor)
+        numpy.testing.assert_array_equal(scaled.data, 2.0 * original)
+
+    numpy.testing.assert_array_equal(RRT.data, original)
