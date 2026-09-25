@@ -281,12 +281,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     # MPLBACKEND=Agg is set globally above so no display is needed.
-    # demos that require external files, a parallel region, or are too slow
-    # are excluded until those issues are resolved:
-    #   demo_013.1-HEOM.py  — too slow (>60 s)
-    #   demo_035, 036       — slow (disorder loop)
-    #   demo_300            — requires a declared parallel_region
-    #   demo_853*, 854*     — require external YAML config files
+    # demos (and their wizard ex_* counterparts) that are too slow are
+    # excluded; they run when started by hand (timings on a laptop):
+    #   013.1-HEOM          — ~120 s
+    #   853_RC              — ~85 s; 853_RC_view plots its output
+    #   853o_RC             — ~260 s; 854_2DSpectrum_DimerDisorder
+    #                         averages its output
     steps:
     - uses: actions/checkout@v4
     - uses: astral-sh/setup-uv@v5
@@ -316,6 +316,8 @@ jobs:
         uv run python demo_020_EvolutionSuperOperator_1.py
         uv run python demo_030_2DSpectrum1.py
         uv run python demo_031_PumpProbeSpectrum1.py
+        uv run python demo_035_2D_Vibronic.py
+        uv run python demo_036_2DSpectrumDisorder.py
         uv run python demo_040_2DSpectrumAceto.py
         uv run python demo_050_PDB_FMO1.py
         uv run python demo_100_TimeAndFrequencyAxis.py
@@ -324,6 +326,20 @@ jobs:
         uv run python demo_200_Secular.py
         uv run python demo_800_DiagProblem.py
         uv run python demo_850_vibrons.py
+    - name: Run wizard examples (as fetched by qrhei fetch)
+      # run from a copy, as users do, so that data files are read from the
+      # cwd and outputs do not land in the source tree
+      run: |
+        exdir="$RUNNER_TEMP/wizard_examples"
+        cp -R quantarhei/wizard/examples "$exdir"
+        cd "$exdir"
+        for ex in ex_*.py; do
+          case "$ex" in
+            ex_013.1-HEOM.py|ex_853*|ex_854*) continue ;;
+          esac
+          echo "Running $ex"
+          uv run --project "$GITHUB_WORKSPACE" python "$ex"
+        done
 
   notebooks:
     runs-on: ubuntu-latest
