@@ -31,6 +31,36 @@ class TestManager(unittest.TestCase):
         if m is not n:
             raise Exception()
 
+    def test_pickling_returns_the_singleton(self):
+        """Pickled Manager is restored as the Manager of the process
+
+        The Manager holds thread-local context state and locks, which cannot
+        be pickled; it is pickled as a reference to the singleton instead.
+        """
+        import copy
+        import pickle
+
+        import dill
+
+        m = Manager()
+        for mod in (pickle, dill):
+            with self.subTest(module=mod.__name__):
+                self.assertIs(mod.loads(mod.dumps(m)), m)
+        self.assertIs(copy.copy(m), m)
+        self.assertIs(copy.deepcopy(m), m)
+
+    def test_pickling_keeps_thread_local_state(self):
+        """Unpickling inside a context does not reset the contexts"""
+        import dill
+
+        m = Manager()
+        before = m.get_current_units("energy")
+        with energy_units("1/cm"):
+            m2 = dill.loads(dill.dumps(m))
+            self.assertEqual(m2.get_current_units("energy"), "1/cm")
+            self.assertEqual(m2._in_eu_count, 1)
+        self.assertEqual(m.get_current_units("energy"), before)
+
 
 class TestNmConversion(unittest.TestCase):
     def setUp(self):

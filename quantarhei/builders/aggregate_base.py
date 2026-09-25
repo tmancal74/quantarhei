@@ -1996,7 +1996,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         """
         manager = Manager()
-        manager.set_current_units("energy", "int")
+        manager._set_thread_units("energy", "int")
 
         # maximum multiplicity of excitons handled by this aggregate
         self.mult = mult
@@ -2534,7 +2534,7 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         self._built = True
 
-        manager.unset_current_units("energy")
+        manager._unset_thread_units("energy")
 
     def rebuild(
         self,
