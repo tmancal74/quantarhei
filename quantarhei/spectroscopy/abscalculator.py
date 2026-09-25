@@ -673,72 +673,67 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
                 rg += (SS[kk, n] ** 2) * (SS[kk, n] ** 2) * reorg
         return rg
 
-    def _excitonic_rotatory_strength(
-        self, SS: numpy.ndarray, AG: Any, energy: numpy.ndarray, n: int
-    ) -> float:
-        # Initialize rotatory strength
-        Rot_n = 0
-
-        for ii in range(AG.Ntot):
-            for jj in range(ii + 1, AG.Ntot):
-                Rot_n += SS[ii, n] * SS[jj, n] * AG.RR[ii, jj]
-        #                print(ii,jj,SS[ii,n],SS[jj,n],AG.RR[ii,jj])
-        #
-        #
-        #        # electronic states corresponding to single excited states
-        #        elst = numpy.where(AG.which_band == 1)[0]
-        #        for el1 in elst:
-        #            # get monomer number
-        #            mon_indx = numpy.nonzero(AG.elsigs[el1])[0][0]
-        #            mon1 = AG.monomers[mon_indx]
-        #            Ri = mon1.position
-        #            for el2 in elst:
-        #                if el2>el1:
-        #                    mon_indx = numpy.nonzero(AG.elsigs[el2])[0][0]
-        #                    mon2 = AG.monomers[mon_indx]
-        #                    Rj = mon2.position
-        #
-        #                    for ii in AG.vibindices[el1]:
-        #                        di = AG.vibdipoles[0,ii]
-        #                        for jj in AG.vibindices[el2]:
-        #                            dj = AG.vibdipoles[0,jj]
-
-        # Scale by excitation energy:
-        Rot_n *= energy[n]
-        #        print(Rot_n,energy,n)
-        return Rot_n
-
     def _excitonic_rotatory_strength_fullv(
         self, SS: numpy.ndarray, AG: Any, energy: numpy.ndarray, n: int
-    ) -> Any:
-        # Initialize rotatory strength
-        Rot_n = 0
-        #        Rot_nm = 0
-        #
-        #        DD_vel = self.system.DD[0].copy()
-        #        for ii in range(1:DD_vel.shape[0]):
-        #            DD_vel[ii] *= -self.system.HH[ii,ii]
-        #
-        #        print("Rot1:",numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n])
-        #        print("Rot2:",numpy.dot(SS[:,n],numpy.dot(AG.RRv,SS[:,n])))
+    ) -> float:
+        r"""Rotatory strength of the exciton state ``n``
 
+        The rotatory strength R_n = Im(<0|mu|n> . <n|m|0>) of the exciton
+        |n> = sum_a c_a |a> (c_a = ``SS[a, n]``) is built from the site-basis
+        matrices ``AG.RR``, ``AG.RRv`` and ``AG.RRm`` (see
+        ``AggregateBase.build``). Transition energies are
+        E_n = ``energy[n] - energy[0]`` in internal units.
+
+        Length form (no monomer has explicit velocity dipoles):
+
+        .. math::
+
+            R_n = E_n \sum_{ab} c_a c_b R_a \cdot (d_a \times d_b)
+                + \frac{1}{E_n} \sum_{ab} c_a c_b \mathrm{Re}(v_a \cdot m_b^*)
+
+        The first term uses <0|v|n> = -i E_n <0|mu|n>, which is exact for the
+        coupled exciton Hamiltonian; it equals
+        (E_n / 2) sum_{ab} c_a c_b (R_a - R_b) . (d_a x d_b), i.e. the
+        standard point-dipole exciton result, and is independent of the
+        choice of origin. (Using site energies E_a instead of E_n here, as
+        before, made R_n origin dependent.)
+
+        Velocity form (all monomers have explicit velocity dipoles v):
+
+        .. math::
+
+            R_n = \frac{1}{E_n} \sum_{ab} c_a c_b
+                \mathrm{Re}\left[v_b \cdot (R_a \times v_a^*)
+                + v_a \cdot m_b^*\right]
+
+        which is origin independent for arbitrary v. With v_a = -i E_a d_a
+        it reduces to the length form up to E_a E_b / E_n^2 ~ 1.
+
+        The common prefactor (1 / 2c and the conversion to CD units) is
+        omitted, as in the rest of this calculator; ``R_n / E_n`` equals the
+        rotatory factor of ``CircDichSpectrumCalculator``.
+
+        Raises
+        ------
+        QuantarheiError
+            If only some monomers have velocity dipoles; the two forms cannot
+            be mixed consistently. Give velocity dipoles to all monomers (for
+            instance with ``Molecule.set_velocity_dipole_from_dipole()``) or
+            to none of them.
+
+        """
+        if AG._has_mixed_velocity_dipoles:
+            raise QuantarheiError(
+                "Rotatory strength: velocity dipoles are set for some but not"
+                " all molecules of the aggregate. Set them for all molecules"
+                " (e.g. Molecule.set_velocity_dipole_from_dipole()) or for none."
+            )
+        En = energy[n] - energy[0]
+        cn = SS[:, n]
+        Rot_m = numpy.dot(cn, numpy.dot(AG.RRm, cn)) / En
         if AG._has_velocity_dipoles:
-            Rot_n = numpy.dot(SS[:, n], numpy.dot(AG.RRm, SS[:, n])) / energy[n]
-        else:
-            # Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
-            Rot_n = numpy.dot(SS[:, n], numpy.dot(AG.RRv, SS[:, n]))
-        # Rot_n = energy[n]*numpy.dot(SS[:,n],numpy.dot(AG.RR+AG.RRm,SS[:,n]))
-
-        # Rot_n = numpy.dot(SS[:,n],numpy.dot(AG.RRm,SS[:,n]))/energy[n]
-        # for ii in range(AG.Ntot):
-        #     for jj in range(AG.Ntot):
-        #         Rot_n += SS[ii,n]*SS[jj,n]*(AG.RRv[ii,jj]+AG.RRm[ii,jj])
-        #
-        #        for ii in range(AG.Ntot):
-        #            for jj in range(AG.Ntot):
-        #                Rot_nm += SS[ii,n]*SS[jj,n]*AG.RRm[ii,jj]
-
-        return Rot_n  # ,Rot_nm
+            return float(numpy.dot(cn, numpy.dot(AG.RRv, cn)) / En + Rot_m)
+        return float(En * numpy.dot(cn, numpy.dot(AG.RR, cn)) + Rot_m)
 
     def _subtract_site_reorg(
         self, AG: Any, Hin: Any, subtract_bath: bool = True
@@ -1044,7 +1039,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
         tr["re"] = self._excitonic_reorg_energy(SS, self.system, 1)
         # get rotatory strength
         tr["rr"] = self._excitonic_rotatory_strength_fullv(SS, self.system, energy, 1)
-        # tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,1)
         #       print(1,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
         dip = DD.data[0, 1]
         tr["ld"] = 3 * (numpy.dot(dip, self.ld_axis)) ** 2 - tr["dd"]  # *3/2
@@ -1122,7 +1116,6 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             )
             dip = DD.data[0, ii]
             tr["ld"] = 3 * (numpy.dot(dip, self.ld_axis)) ** 2 - tr["dd"]  # *3/2
-            # tr["rr"] = self._excitonic_rotatory_strength(SS,self.system,energy,ii)
             #            print(ii,convert(HH.data[ii,ii]-HH.data[0,0]-tr["re"],"int","1/cm"),convert(HH.data[ii,ii]-HH.data[0,0]-2*tr["re"],"int","1/cm"),convert(tr["re"],"int","1/cm"))
             #            print(ii,convert(tr["rr"],"int","1/cm")*numpy.pi*1e-4)
             # conversion factor is convert rotatory strength to inverse centimeters and multiply *numpy.pi*1e-4
