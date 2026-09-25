@@ -2,14 +2,16 @@ name: Publish Python package to PyPI
 
 # Publishing is triggered by publishing a GitHub Release (see "Releasing" in
 # CONTRIBUTING.md), so release notes exist before the package reaches PyPI.
+# Pre-releases are not uploaded; use the manual TestPyPI workflow to trial a
+# build. A transient failure can be retried with "Re-run failed jobs".
 on:
   release:
     types: [published]
 
 jobs:
-  build:
-    name: Build distribution
-    if: startsWith(github.event.release.tag_name, 'v')
+  check-version:
+    name: Check release tag against pyproject.toml
+    if: startsWith(github.event.release.tag_name, 'v') && !github.event.release.prerelease
     runs-on: ubuntu-latest
 
     steps:
@@ -23,11 +25,22 @@ jobs:
           TAG="${RELEASE_TAG#v}"
           PKG=$(grep '^version' pyproject.toml | head -1 | sed 's/.*= *"\(.*\)"/\1/')
           if [ "$TAG" != "$PKG" ]; then
-            echo "ERROR: git tag v$TAG does not match pyproject.toml version $PKG"
-            echo "Update pyproject.toml to $TAG before tagging."
+            echo "::error::Release tag $RELEASE_TAG does not match pyproject.toml version $PKG. Nothing was uploaded to PyPI."
+            echo "The GitHub Release and tag $RELEASE_TAG were already created. To recover:"
+            echo "  gh release delete $RELEASE_TAG --cleanup-tag --yes"
+            echo "then merge a pyproject.toml bump to $TAG into master and publish the release again."
             exit 1
           fi
           echo "Version check passed: $TAG == $PKG"
+
+  build:
+    name: Build and check distribution
+    needs: check-version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,10 +50,28 @@ jobs:
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
-          python -m pip install build
+          python -m pip install build twine
 
       - name: Build sdist and wheel
         run: python -m build
+
+      - name: Check distribution metadata
+        run: python -m twine check --strict dist/*
+
+      - name: Smoke-install the wheel
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python -m venv "$RUNNER_TEMP/smoke"
+          "$RUNNER_TEMP/smoke/bin/python" -m pip install dist/*.whl
+          # Import from outside the checkout so the installed wheel is tested.
+          cd "$RUNNER_TEMP"
+          INSTALLED=$("$RUNNER_TEMP/smoke/bin/python" -c "import quantarhei; print(quantarhei.__version__)")
+          if [ "$INSTALLED" != "${RELEASE_TAG#v}" ]; then
+            echo "::error::Installed wheel reports version $INSTALLED, expected ${RELEASE_TAG#v}"
+            exit 1
+          fi
+          echo "Smoke install passed: quantarhei $INSTALLED"
 
       - name: Upload built distributions
         uses: actions/upload-artifact@v4
