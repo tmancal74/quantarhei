@@ -203,6 +203,54 @@ Full reference: [NumPy docstring guide](https://numpydoc.readthedocs.io/en/lates
 3. Ensure all tests pass: `uv run pytest tests/unit`
 4. Open a pull request against `master` with a clear description
 
+Label pull requests with `bug`, `enhancement`, or `tests` where it applies.
+These labels decide which section of the release notes a PR appears in (see
+`.github/release.yml`). Unlabeled PRs go under "Other Changes".
+
+## Releasing
+
+Versions follow an odd/even scheme: `master` carries an odd development
+version (for example `0.0.71`), and releases use the next even version
+(`0.0.72`). To release `0.0.72`:
+
+1. In a pull request, set `version = "0.0.72"` in `pyproject.toml`, run
+   `uv lock`, and add a `## [0.0.72]` section to `CHANGELOG.md`. Merge it into
+   `master`.
+2. Check that `master` has the release version:
+   `git show origin/master:pyproject.toml | grep '^version'`.
+3. Publish a GitHub Release with tag `v0.0.72` on `master`, using generated
+   notes:
+
+   ```bash
+   gh release create v0.0.72 --target master --title v0.0.72 --generate-notes
+   ```
+
+   In the web UI, use **Releases > Draft a new release**, create the tag
+   `v0.0.72` on `master`, click **Generate release notes**, and review. You can
+   save it as a draft first; nothing runs until you click **Publish release**.
+4. Publishing starts `.github/workflows/publish-to-pypi.yml`. It checks the tag
+   against `pyproject.toml`, builds the sdist and wheel, runs `twine check`,
+   installs the wheel and compares `quantarhei.__version__` with the tag, then
+   uploads to PyPI with trusted publishing. Confirm the new version on
+   <https://pypi.org/project/quantarhei/>.
+5. Bump `master` to the next development version (`0.0.73`) and run
+   `uv lock`.
+
+`CHANGELOG.md` is the authoritative, hand-written summary of each version. The
+generated release notes list the merged PRs and serve as the GitHub Release
+body.
+
+Pushing a tag on its own does not publish anything. Pre-releases (the
+**Set as a pre-release** box) are never uploaded to PyPI; to trial a build, run
+the "Publish Python package to TestPyPI" workflow by hand from the **Actions**
+tab.
+
+The GitHub Release and its tag exist before the workflow runs. If a check
+fails, nothing is uploaded to PyPI; the failed run prints the recovery steps.
+Delete the release and tag (`gh release delete v0.0.72 --cleanup-tag --yes`),
+fix `master`, and publish again. If only the upload failed for a transient
+reason, use **Re-run failed jobs** on the workflow run.
+
 ## Reporting bugs
 
 Please use the [bug report template](https://github.com/tmancal74/quantarhei/issues/new?template=bug_report.md) and include a minimal reproducible example.
