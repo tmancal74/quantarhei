@@ -342,23 +342,6 @@ class TDRedfieldRelaxationTensor(RedfieldRelaxationTensor, TimeDependent):
                         S1, numpy.dot(self._data[tt, a, b, :, :], SS)
                     )
 
-    def secularize(self) -> None:  # type: ignore[override]
-        """Secularizes the relaxation tensor"""
-        if self.as_operators:
-            raise QuantarheiError("Cannot be secularized in an opeator form")
-
-        else:
-            N = self.data.shape[1]
-            for ii in range(N):
-                for jj in range(N):
-                    for kk in range(N):
-                        for ll in range(N):
-                            if not (
-                                ((ii == jj) and (kk == ll))
-                                or ((ii == kk) and (jj == ll))
-                            ):
-                                self.data[:, ii, jj, kk, ll] = 0
-
 
 def _integrate(f: numpy.ndarray, dt: float) -> numpy.ndarray:
     """Cummulative simpson rule for integration (even number of points also handled)"""
