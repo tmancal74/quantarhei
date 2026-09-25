@@ -90,6 +90,7 @@ line-length = 88
 target-version = "py310"
 exclude = [
     "examples/",
+    "quantarhei/implementations/cython/setup.py",
     "tutorials/",
     "docs/",
     "tests/behave/",
