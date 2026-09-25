@@ -11,8 +11,7 @@ import os
 import numpy
 
 import quantarhei as qr
-
-from ...exceptions import QuantarheiError
+from quantarhei.exceptions import QuantarheiError
 
 INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml")
 # math_allowed_in=["E1", "E2", "width_dis"])

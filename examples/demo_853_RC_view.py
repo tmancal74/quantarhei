@@ -2,7 +2,7 @@ import os
 
 import quantarhei as qr
 
-input_file = "ex_853_RC.yaml"
+input_file = "demo_853_RC.yaml"
 INP = qr.Input(input_file, show_input=False)
 
 sing = (INP.disorder and (INP.N_realizations == 1))
@@ -10,7 +10,8 @@ sing = (INP.disorder and (INP.N_realizations == 1))
 if INP.single_realization or sing:
 
     print("Single realization 2D map")
-    name1 = "cont_p_re"
+    # demo_853_RC.py saves the united container with the node suffix "_0"
+    name1 = "cont_p_re_0"
 
     append_to_dirname = INP.append_to_dirname
 

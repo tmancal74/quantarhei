@@ -9,7 +9,8 @@ sing = INP.disorder and (INP.N_realizations == 1)
 
 if INP.single_realization or sing:
     print("Single realization 2D map")
-    name1 = "cont_p_re"
+    # ex_853_RC.py saves the united container with the node suffix "_0"
+    name1 = "cont_p_re_0"
 
     append_to_dirname = INP.append_to_dirname
 

@@ -20,9 +20,8 @@ import quantarhei as qr
 import quantarhei.functions as func
 from quantarhei import printlog as print
 from quantarhei.core.units import kB_int
+from quantarhei.exceptions import QuantarheiError
 from quantarhei.utils.vectors import X
-
-from ...exceptions import QuantarheiError
 
 print("\n***** Rc Simulation Script *****")
 
@@ -288,7 +287,7 @@ def run(
     # Laboratory setup
     #
     lab = qr.LabSetup()
-    lab.set_polarizations(pulse_polarizations=[X, X, X], detection_polarization=X)
+    lab.set_pulse_polarizations(pulse_polarizations=[X, X, X], detection_polarization=X)
 
     t2_N_steps = INP.t2_N_steps
     t2_time_step = INP.t2_time_step

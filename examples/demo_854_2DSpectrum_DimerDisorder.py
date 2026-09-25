@@ -13,7 +13,7 @@ import numpy
 
 import quantarhei as qr
 
-INP = qr.Input("ex_854_2DSpectrum_DimerDisorder.yaml")
+INP = qr.Input("demo_854_2DSpectrum_DimerDisorder.yaml")
                #math_allowed_in=["E1", "E2", "width_dis"])
 
 if INP.input_file_from_results:
