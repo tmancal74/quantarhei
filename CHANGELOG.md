@@ -2,6 +2,21 @@
 
 All notable changes to Quantarhei are documented here.
 
+## [0.0.71]
+
+### For users
+- `AggregateExcitonAnalysis.report_on_expansion` takes its arguments in the
+  order `(state=0, N=5, file=None)` again. Versions 0.0.64 to 0.0.70 shipped
+  `(file=None, state=0, N=5)`, so a positional call such as
+  `agg.report_on_expansion(2)` treated the state index as the output file.
+  Code that passed `file` positionally as the first argument must now pass it
+  as `file=...`.
+- `TwoDResponseCalculator.bootstrap()` without a `lab` argument no longer
+  fails; the default is a `LabSetup` with all pulses and detection polarized
+  along X.
+- Wizard examples (`qrhei fetch`) and demos updated to the current API
+  (`LabSetup.set_pulse_polarizations`, `calculate_all_system(sys, eUt, lab)`).
+
 ## [0.0.70]
 
 ### For users
