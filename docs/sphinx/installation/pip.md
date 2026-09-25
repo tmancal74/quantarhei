@@ -29,9 +29,9 @@ $ uv pip install quantarhei
 
 Verify the installation:
 
-```bash
+```{parsed-literal}
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.71
+{{ version }}
 ```
 
 [pypi]: https://pypi.org/project/quantarhei/

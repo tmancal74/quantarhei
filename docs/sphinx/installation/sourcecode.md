@@ -55,9 +55,9 @@ $ pytest tests/unit
 
 Verify the package:
 
-```bash
+```{parsed-literal}
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.71
+{{ version }}
 ```
 
 [releases page]: https://github.com/tmancal74/quantarhei/releases
