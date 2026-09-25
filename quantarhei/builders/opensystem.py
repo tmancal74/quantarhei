@@ -681,7 +681,11 @@ class OpenSystem:
         #
         # Future
         #
-        theories["modified_Redfield"] = ["modifield_Redfield", "mR"]
+        theories["modified_Redfield"] = [
+            "modified_Redfield",
+            "modifield_Redfield",
+            "mR",
+        ]
         theories["noneq_modified_Redfield"] = ["noneq_modified_Redfield", "nemR"]
         theories["generalized_Foerster"] = [
             "generalized_Foerster",
