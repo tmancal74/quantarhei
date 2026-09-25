@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from .. import signal_TOTL
+import numpy
+
+from .. import signal_NONR, signal_REPH, signal_TOTL
 from ..core.managers import Manager, energy_units
 from ..core.time import TimeAxis
 from ..exceptions import QuantarheiError
@@ -12,6 +14,43 @@ from ..utils import derived_type
 from .labsetup import LabSetup
 from .twodcalculator import TwoDResponseCalculator
 from .twodcontainer import TwoDResponseContainer, TwoDSpectrumContainer
+from .twodresponse import TwoDResponse
+from .twodspect import TwoDSpectrum
+
+
+def _apply_response_window(data: numpy.ndarray) -> numpy.ndarray:
+    """Apply the endpoint half-weight used before Fourier transformation."""
+    ret = data.copy()
+    ret[:, 0] *= 0.5
+    ret[0, :] *= 0.5
+    return ret
+
+
+def _fourier_transform_response(data: numpy.ndarray, signal: str) -> numpy.ndarray:
+    """Transform one raw response contribution using Quantarhei conventions."""
+    data = _apply_response_window(data)
+    if signal == signal_REPH:
+        transformed = numpy.fft.fft(data, axis=1)
+    elif signal == signal_NONR:
+        transformed = numpy.fft.ifft(data, axis=1) * data.shape[1]
+    else:
+        raise QuantarheiError("Unknown 2D signal type: " + signal)
+    return numpy.fft.fftshift(numpy.fft.ifft(transformed, axis=0))
+
+
+def _pad_response_data(
+    data: numpy.ndarray, pad: int, window: numpy.ndarray | None = None
+) -> numpy.ndarray:
+    """Apply optional terminal windowing and zero padding to raw response data."""
+    if window is not None:
+        size = int(len(window) / 2)
+        data = data.copy()
+        data[len(data) - size :, :] *= window[size:, None]
+        data[:, len(data) - size :] *= window[None, size:]
+    if pad > 0:
+        data = numpy.hstack((data, numpy.zeros((data.shape[0], pad))))
+        data = numpy.vstack((data, numpy.zeros((pad, data.shape[1]))))
+    return data
 
 
 class TwoDSpectrumCalculator:
@@ -87,6 +126,83 @@ class TwoDSpectrumCalculator:
     def suggest_response_axes(self) -> tuple[TimeAxis, TimeAxis, TimeAxis]:
         """Alias for :meth:`get_response_axes`."""
         return self.get_response_axes()
+
+    @staticmethod
+    def _frequency_axis(axis: TimeAxis, pad: int, rwa: float) -> Any:
+        """Build an absolute-frequency axis for a raw response time axis."""
+        padded = TimeAxis(axis.start, axis.length + pad, axis.step)
+        padded.atype = "complete"
+        frequency = padded.get_FrequencyAxis()
+        frequency.data += rwa
+        frequency.start += rwa
+        return frequency
+
+    @classmethod
+    def convert_response(
+        cls, response: TwoDResponse, stype: Any = signal_TOTL, pad: int = 0
+    ) -> TwoDSpectrum:
+        """Convert one raw fixed-``t2`` response slice to a 2D spectrum.
+
+        The response retains rephasing and non-rephasing data separately until
+        this point because their Fourier conventions differ.
+        """
+        if response.domain == "frequency":
+            return response.get_TwoDSpectrum(dtype=stype)
+
+        t1axis = response.t1axis
+        t3axis = response.t3axis
+        if t1axis is None or t3axis is None:
+            raise QuantarheiError("Time axes of the 2D response are not set")
+
+        requested = (signal_REPH, signal_NONR) if stype == signal_TOTL else (stype,)
+        data_out: numpy.ndarray | None = None
+        window = None
+        if pad > 0:
+            from scipy.signal import windows as sig
+
+            window = sig.tukey(40, 1, sym=False)
+
+        for signal in requested:
+            if signal not in (signal_REPH, signal_NONR):
+                raise QuantarheiError("Unknown 2D signal type: " + str(signal))
+            response.set_data_flag(signal)
+            raw_data = response.d__data
+            if raw_data is None:
+                continue
+            padded_data = _pad_response_data(raw_data, pad, window)
+            transformed = _fourier_transform_response(padded_data, signal)
+            transformed *= padded_data.shape[0] * t1axis.step * t3axis.step
+            if data_out is None:
+                data_out = transformed
+            else:
+                data_out += transformed
+
+        if data_out is None:
+            raise QuantarheiError("Response has no data for the requested signal")
+
+        spectrum = TwoDSpectrum()
+        spectrum.set_axis_1(cls._frequency_axis(t1axis, pad, response.rwa))
+        spectrum.set_axis_3(cls._frequency_axis(t3axis, pad, response.rwa))
+        spectrum.rwa = response.rwa
+        spectrum.set_t2(response.t2)
+        spectrum.set_data(data_out, dtype=stype)
+        return spectrum
+
+    @classmethod
+    def convert_response_container(
+        cls, responses: TwoDResponseContainer, stype: Any = signal_TOTL
+    ) -> TwoDSpectrumContainer:
+        """Convert all raw response slices in a container to spectra."""
+        if responses.itype not in ("ValueAxis", "TimeAxis", "FrequencyAxis"):
+            raise QuantarheiError("Response container must be indexed by an axis")
+        assert responses.axis is not None
+        spectra = TwoDSpectrumContainer(responses.axis.deepcopy())
+        pad = getattr(responses, "pad", 0)
+        for value in responses.axis.data:
+            response = responses.get_response(value)
+            spectrum = cls.convert_response(response, stype=stype, pad=pad)
+            spectra.set_spectrum(spectrum, tag=value)
+        return spectra
 
     def bootstrap(
         self,
@@ -194,7 +310,7 @@ class TwoDSpectrumCalculator:
         if responses is None:
             responses = self._calculate_responses()
 
-        spectra = responses.get_TwoDSpectrumContainer(stype=stype)
+        spectra = self.convert_response_container(responses, stype=stype)
         if not self.lab.has_delta_pulses():
             for spectrum in spectra.spectra.values():
                 spectrum.overlay_pulses(self.lab)

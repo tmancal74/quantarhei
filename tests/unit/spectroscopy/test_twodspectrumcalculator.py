@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+import numpy
 import numpy.testing as npt
 import pytest
 
@@ -50,18 +51,78 @@ def test_delta_pulses_suggest_unchanged_response_axes():
         assert suggested is not experimental
 
 
+def test_response_container_retains_raw_time_slices_until_conversion():
+    t1, _, t3 = _axes()
+    t2 = qr.TimeAxis(0.0, 1, 10.0)
+    raw_rephasing = numpy.arange(t1.length * t3.length, dtype=complex).reshape(
+        t3.length, t1.length
+    )
+    raw_nonrephasing = 1j * raw_rephasing
+    response = qr.TwoDResponse()
+    response.t1axis = t1
+    response.t3axis = t3
+    response.set_t2(t2.data[0])
+    response._add_data(raw_rephasing, resolution="signals", dtype=qr.signal_REPH)
+    response._add_data(raw_nonrephasing, resolution="signals", dtype=qr.signal_NONR)
+    responses = qr.TwoDResponseContainer(t2axis=t2)
+    responses.set_spectrum(response)
+
+    stored = responses.get_response(t2.data[0])
+    stored.set_data_flag(qr.signal_REPH)
+    npt.assert_allclose(stored.d__data, raw_rephasing)
+    assert isinstance(stored.t1axis, qr.TimeAxis)
+    assert isinstance(stored.t3axis, qr.TimeAxis)
+
+    spectra = qr.TwoDSpectrumCalculator.convert_response_container(responses)
+    spectrum = spectra.get_spectrum(t2.data[0])
+    expected_rephasing = spectrum_module._fourier_transform_response(
+        raw_rephasing, qr.signal_REPH
+    )
+    expected_nonrephasing = spectrum_module._fourier_transform_response(
+        raw_nonrephasing, qr.signal_NONR
+    )
+    expected = (expected_rephasing + expected_nonrephasing) * (
+        t3.length * t1.step * t3.step
+    )
+    npt.assert_allclose(spectrum.data, expected)
+    assert isinstance(spectrum.xaxis, qr.FrequencyAxis)
+    assert isinstance(spectrum.yaxis, qr.FrequencyAxis)
+
+
+def test_frequency_domain_mock_response_is_not_transformed_twice():
+    t1, _, t3 = _axes()
+    t2 = qr.TimeAxis(0.0, 1, 10.0)
+    response = qr.TwoDResponse()
+    response.domain = "frequency"
+    response.set_axis_1(qr.FrequencyAxis(0.0, t1.length, 1.0))
+    response.set_axis_3(qr.FrequencyAxis(0.0, t3.length, 1.0))
+    response.set_t2(t2.data[0])
+    data = numpy.ones((t3.length, t1.length), dtype=complex)
+    response._add_data(data, resolution="signals", dtype=qr.signal_REPH)
+    responses = qr.TwoDResponseContainer(t2axis=t2)
+    responses.set_spectrum(response)
+
+    spectrum = qr.TwoDSpectrumCalculator.convert_response_container(
+        responses, stype=qr.signal_REPH
+    ).get_spectrum(t2.data[0])
+
+    npt.assert_allclose(spectrum.data, data)
+
+
 def test_delta_calculation_wraps_existing_impulsive_conversion():
     t1, t2, t3 = _axes()
     calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, _delta_lab())
     responses = qr.TwoDResponseContainer(t2axis=t2)
     expected = qr.TwoDSpectrumContainer(t2axis=t2)
-    responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
+    calculator.convert_response_container = Mock(return_value=expected)
 
     calculator.bootstrap(responses)
     result = calculator.calculate(stype=qr.signal_REPH)
 
     assert result is expected
-    responses.get_TwoDSpectrumContainer.assert_called_once_with(stype=qr.signal_REPH)
+    calculator.convert_response_container.assert_called_once_with(
+        responses, stype=qr.signal_REPH
+    )
 
 
 def test_calculate_requires_bootstrap():
@@ -101,13 +162,15 @@ def test_finite_pulse_overlay_is_applied_after_impulsive_conversion():
     expected = qr.TwoDSpectrumContainer(t2axis=t2)
     spectrum = Mock()
     expected.spectra = {t2.data[0]: spectrum}
-    responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
+    calculator.convert_response_container = Mock(return_value=expected)
 
     calculator.bootstrap(responses)
     result = calculator.calculate(stype=qr.signal_REPH)
 
     assert result is expected
-    responses.get_TwoDSpectrumContainer.assert_called_once_with(stype=qr.signal_REPH)
+    calculator.convert_response_container.assert_called_once_with(
+        responses, stype=qr.signal_REPH
+    )
     spectrum.overlay_pulses.assert_called_once_with(lab)
 
 
@@ -133,7 +196,7 @@ def test_system_bootstrap_calculates_responses_with_owned_lab_and_axes(monkeypat
     system = System()
     responses = qr.TwoDResponseContainer(t2axis=t2)
     expected = qr.TwoDSpectrumContainer(t2axis=t2)
-    responses.get_TwoDSpectrumContainer = Mock(return_value=expected)
+    calculator.convert_response_container = Mock(return_value=expected)
 
     created = []
 
@@ -182,7 +245,7 @@ def test_system_bootstrap_records_explicit_rwa_in_active_units(monkeypatch):
     lab = _delta_lab()
     calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
     responses = qr.TwoDResponseContainer(t2axis=t2)
-    responses.get_TwoDSpectrumContainer = Mock(
+    calculator.convert_response_container = Mock(
         return_value=qr.TwoDSpectrumContainer(t2axis=t2)
     )
 
