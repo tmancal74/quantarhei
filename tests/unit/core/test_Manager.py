@@ -32,6 +32,38 @@ class TestManager(unittest.TestCase):
             raise Exception()
 
 
+class TestImplementationRegistry(unittest.TestCase):
+    def test_every_implementation_point_resolves(self):
+        """Every implementation point must name a registered implementation"""
+        m = Manager()
+        for point in m.get_implementation_points():
+            self.assertEqual(
+                m.get_current_implementation(point),
+                "quantarhei.implementations.python",
+            )
+            self.assertIn("0", m.get_all_implementations_of(point))
+
+    def test_every_registry_key_is_registered(self):
+        """Default, optimal and current choices refer to known implementations"""
+        m = Manager()
+        for choices in (
+            m.default_implementations,
+            m.optimal_implementations,
+            m.current_implementations,
+        ):
+            for imp_id, choice in choices.items():
+                self.assertIn(choice, m.all_implementations[imp_id])
+
+    def test_load_function_reports_missing_module(self):
+        """A missing module raises ImplementationError, not UnboundLocalError"""
+        from quantarhei.core.implementations import load_function
+        from quantarhei.exceptions import ImplementationError
+
+        with self.assertRaises(ImplementationError) as ctx:
+            load_function("quantarhei.implementations.missing", "anything")
+        self.assertIsInstance(ctx.exception.__cause__, ImportError)
+
+
 class TestNmConversion(unittest.TestCase):
     def setUp(self):
         set_current_units()

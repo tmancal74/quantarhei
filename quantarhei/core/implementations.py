@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from collections.abc import Callable
 from functools import wraps
 from importlib import import_module
@@ -75,8 +76,8 @@ def load_function(lib: str, fce: str) -> Callable[..., Any]:
     """Load the module and get the desired function"""
     try:
         a = import_module(lib)
-    except ImportError:
-        print("Cannot load module", lib)
+    except ImportError as e:
+        raise ImplementationError(f"Cannot load module {lib}") from e
 
     if hasattr(a, fce):
         fc = getattr(a, fce)
@@ -109,7 +110,7 @@ def get_function(
         imp_name = imp_prefix + "." + package
         fc = load_function(imp_name, taskname)
 
-    except Exception:
+    except Exception as e:
         try:
             # fall back on pure Python implementation
             if default_local:
@@ -118,12 +119,20 @@ def get_function(
                 imp_name = default_imp_prefix + "." + package
                 fc = load_function(imp_name, taskname)
 
-            # FIXME: issue a warning
-            print("WARNING: import failed, falling back on pure Python")
-        except Exception:
+            warnings.warn(
+                f"Implementation of {taskname} failed to load ({e!r}),"
+                " falling back on pure Python",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        except Exception as fallback_error:
             # do not provide implementation, call the decorated function itself
-            # FIXME: issue a warning (this is an unwanted result)
-            print("WARNING: calling decorated function itself")
+            warnings.warn(
+                f"No implementation of {taskname} could be loaded"
+                f" ({fallback_error!r}), calling the decorated function itself",
+                RuntimeWarning,
+                stacklevel=2,
+            )
             fc = func
 
     return fc
