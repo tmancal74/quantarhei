@@ -1230,9 +1230,9 @@ class AbsSpectrumCalculator(LinSpectrumCalculator):
             if self.system is not None:
                 if from_dynamics:
                     # alt = True is for testing only
-                    spect = self._calculate_abs_from_dynamics(raw=raw, alt=alt)
+                    spect = self._calculate_abs_from_dynamics(raw=raw, alt=alt)["abs"]
 
-                if isinstance(self.system, Molecule):
+                elif isinstance(self.system, Molecule):
                     # self._calculate_Molecule(rwa)
                     spect = self._calculate_monomer(raw=raw)
                 elif isinstance(self.system, Aggregate):
