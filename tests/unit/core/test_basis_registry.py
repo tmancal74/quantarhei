@@ -79,11 +79,12 @@ class TestBasisRegistry(unittest.TestCase):
     def test_operator_registered_once_per_basis(self):
         """Nested contexts do not create duplicate registrations"""
         with eigenbasis_of(self.H):
+            cb = self.manager.get_current_basis()
             A = BasisManagedObject(numpy.array([[0.0, 0.3], [0.3, 2.0]]), "A")
             for _ in range(10):
                 with eigenbasis_of(A):
                     _ = A.data
-            self.assertEqual(_live_registered(self.manager), {1: 1})
+            self.assertEqual(_live_registered(self.manager), {cb: 1})
         self.assertEqual(self.manager.basis_registered, {})
 
     def test_registry_released_when_exit_transformation_fails(self):
