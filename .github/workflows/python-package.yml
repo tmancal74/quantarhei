@@ -71,9 +71,7 @@ jobs:
             - 'quantarhei/wizard/**'
           deps:
             - 'pyproject.toml'
-            - 'requirements*.txt'
-            - 'setup.py'
-            - 'setup.cfg'
+            - 'uv.lock'
 
   unit:
     runs-on: ubuntu-latest
