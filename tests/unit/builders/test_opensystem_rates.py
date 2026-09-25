@@ -81,5 +81,20 @@ class TestOpenSystemRateMatrix(unittest.TestCase):
         self.assertEqual(foerster.data.shape[0], self.agg.sbi.TimeAxis.length)
 
 
+class TestOpenSystemRelaxationTheoryAliases(unittest.TestCase):
+    """Tests for relaxation theory names accepted by get_RelaxationTensor."""
+
+    def test_modified_redfield_aliases(self):
+        """Testing that modified Redfield is reachable under its full name."""
+        agg = _aggregate()
+        time = agg.sbi.TimeAxis
+        reference, _ = agg.get_RelaxationTensor(time, relaxation_theory="mR")
+        for name in ("modified_Redfield", "modifield_Redfield"):
+            tensor, _ = agg.get_RelaxationTensor(time, relaxation_theory=name)
+            self.assertIsInstance(tensor, qr.qm.ModRedfieldRelaxationTensor)
+            self.assertEqual(agg._relaxation_theory, "modified_Redfield")
+            numpy.testing.assert_allclose(tensor.data, reference.data)
+
+
 if __name__ == "__main__":
     unittest.main()
