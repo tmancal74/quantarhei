@@ -41,6 +41,8 @@ myst_enable_extensions = [
 
 myst_fence_as_directive = ["mermaid"]
 
+myst_substitutions = {"version": version}
+
 nb_execution_mode = "off"
 nb_output_stderr = "remove"
 

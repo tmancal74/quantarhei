@@ -28,9 +28,9 @@ Use `pip` inside your conda environment as shown above.
 
 ## 3. Testing the Installation
 
-```bash
+```{parsed-literal}
 $ python -c "import quantarhei as qr; print(qr.Manager().version)"
-0.0.71
+{{ version }}
 ```
 
 [anaconda]: https://www.anaconda.com
