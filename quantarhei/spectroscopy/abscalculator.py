@@ -224,7 +224,7 @@ class LinSpectrumCalculator(EnergyUnitsManaged):
             if axis == "x":
                 self.ld_axis = numpy.array([1.0, 0.0, 0.0], dtype="f8")
             elif axis == "y":
-                self.axis = numpy.array([0.0, 1.0, 0.0], dtype="f8")
+                self.ld_axis = numpy.array([0.0, 1.0, 0.0], dtype="f8")
             elif axis == "z":
                 self.ld_axis = numpy.array([0.0, 0.0, 1.0], dtype="f8")
             else:

@@ -335,6 +335,16 @@ class TestAbs(unittest.TestCase):
             plt.plot(x1, y1, "--r")
             plt.show()
 
+    def test_bootstrap_sets_ld_axis(self):
+        """Testing that every named axis sets the linear dichroism axis"""
+        time = TimeAxis(0.0, 1000, 1.0)
+        expected = dict(x=[1.0, 0.0, 0.0], y=[0.0, 1.0, 0.0], z=[0.0, 0.0, 1.0])
+        for axis, vector in expected.items():
+            with energy_units("1/cm"):
+                abs_calc = AbsSpectrumCalculator(time, system=self.mol1)
+                abs_calc.bootstrap(rwa=10000, axis=axis)
+            numpy.testing.assert_array_equal(abs_calc.ld_axis, vector)
+
 
 if __name__ == "__main__":
     unittest.main()
