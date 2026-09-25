@@ -60,6 +60,9 @@ from typing import Any
 
 from ..exceptions import BasisError, ConfigurationError, QuantarheiError, UnitsError
 
+REDFIELD_RATES = "redfieldrates.ssRedfieldRateMatrix"
+REDFIELD_TENSOR = "redfieldtensor.ssRedfieldTensor"
+
 
 class SecurityWarning(UserWarning):
     """Warning about security-sensitive operations."""
@@ -276,37 +279,30 @@ class Manager(metaclass=Singleton):
         #
 
         self.implementation_points: dict[str, str] = {
-            "secular-standard-Redfield-rates": "redfield.ssRedfieldRateMatrix"
+            "secular-standard-Redfield-rates": REDFIELD_RATES
         }
 
         #
         #  All available implementations
         #
         self.all_implementations: dict[str, dict[str, str]] = {
-            "redfieldrates.ssRedfieldRateMatrix": {
+            imp_id: {
                 "0": "quantarhei.implementations.python",
                 "1": "quantarhei.implementations.cython",
             }
-        }
-
-        self.all_implementations["redfieldtensor.ssRedfieldTensor"] = {
-            "0": "quantarhei.implementations.python",
-            "1": "quantarhei.implementations.cython",
+            for imp_id in (REDFIELD_RATES, REDFIELD_TENSOR)
         }
 
         self.default_implementations: dict[str, str] = {
-            "redfieldrates.ssRedfieldRateMatrix": "0",
-            "redfieldtensor.ssRedfieldRateTensor": "0",
+            REDFIELD_RATES: "0",
+            REDFIELD_TENSOR: "0",
         }
 
-        self.optimal_implementations: dict[str, str] = {
-            "redfieldrates.ssRedfieldRateMatrix": "1"
-        }
+        self.optimal_implementations: dict[str, str] = {REDFIELD_RATES: "1"}
 
-        self.current_implementations: dict[str, str] = {
-            "redfieldrates.ssRedfieldRateMatrix": "0",
-            "redfieldtensor.ssRedfieldRateTensor": "0",
-        }
+        self.current_implementations: dict[str, str] = dict(
+            self.default_implementations
+        )
 
         if not exists:
             # and save them
