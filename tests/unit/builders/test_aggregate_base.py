@@ -297,58 +297,65 @@ class TestCoupling(unittest.TestCase):
         self.assertAlmostEqual(c12, c21)
 
 
-def _chiral_dimer(velocity: bool = False) -> Aggregate:
-    """Dimer with perpendicular dipoles displaced along z (chiral geometry)."""
-    m1 = Molecule(elenergies=[0.0, 1.0])
-    m2 = Molecule(elenergies=[0.0, 1.1])
-    m1.position = [0.0, 0.0, -2.5]
-    m2.position = [0.0, 0.0, 2.5]
-    m1.set_dipole(0, 1, [1.0, 0.0, 0.0])
-    m2.set_dipole(0, 1, [0.0, 1.0, 0.0])
-    if velocity:
-        m1.set_velocity_dipole(0, 1, [-2.0j, 0.0, 0.0])
-        m2.set_velocity_dipole(0, 1, [0.0, -2.0j, 0.0])
-    agg = Aggregate(molecules=[m1, m2])
+def _chiral_trimer(velocity: tuple = (), positions: tuple = (0, 1, 2)) -> Aggregate:
+    """Trimer with non-coplanar dipoles; only listed monomers get positions."""
+    dips = ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.3, 0.2, 1.0])
+    poss = ([0.0, 0.0, -2.5], [0.0, 0.0, 2.5], [4.0, 1.0, 0.0])
+    mols = []
+    for k, (e, d) in enumerate(zip([1.0, 1.1, 1.05], dips)):
+        m = Molecule(elenergies=[0.0, e])
+        m.set_dipole(0, 1, d)
+        if k in positions:
+            m.position = poss[k]
+        if k in velocity:
+            m.set_velocity_dipole_from_dipole()
+        mols.append(m)
+    agg = Aggregate(molecules=mols)
     agg.build()
     return agg
 
 
 class TestRotatoryStrengthMatrices(unittest.TestCase):
-    """Regression: a QuantarheiError raised by the missing velocity
-    dipole used to be swallowed, leaving RR and RRv identically zero."""
+    """Site-basis matrices RR, RRv, RRm used for CD (issue #268).
 
-    def test_length_form_rotatory_strength(self) -> None:
-        agg = _chiral_dimer()
-        # RR[a, b] = R_a . (d_a x d_b); exact for these vectors
-        expected = numpy.zeros((3, 3))
-        expected[1, 2] = numpy.dot([0.0, 0.0, -2.5], numpy.cross([1, 0, 0], [0, 1, 0]))
-        expected[2, 1] = numpy.dot([0.0, 0.0, 2.5], numpy.cross([0, 1, 0], [1, 0, 0]))
-        numpy.testing.assert_allclose(agg.RR, expected, rtol=1e-12, atol=1e-12)
+    A QuantarheiError raised by the missing velocity dipole used to be
+    swallowed, leaving RR and RRv identically zero.
+    """
+
+    def test_length_form_matrix(self) -> None:
+        agg = _chiral_trimer()
+        # RR[a, b] = R_a . (d_a x d_b), a, b = 1..3 (0 is the ground state)
+        self.assertAlmostEqual(agg.RR[1, 2], -2.5, places=12)
+        self.assertAlmostEqual(agg.RR[2, 1], -2.5, places=12)
+        self.assertTrue(numpy.any(agg.RR != 0.0))
+        numpy.testing.assert_array_equal(agg.RR[0, :], 0.0)
+        numpy.testing.assert_array_equal(numpy.diag(agg.RR), 0.0)
         self.assertFalse(agg._has_velocity_dipoles)
+        self.assertFalse(agg._has_mixed_velocity_dipoles)
 
-    def test_velocity_form_falls_back_to_length_form(self) -> None:
-        agg = _chiral_dimer()
-        # Without velocity dipoles, v_a = -i E_a d_a, so RRv[a, b] = E_a RR[a, b]
+    def test_velocity_matrix_with_site_energy_fallback(self) -> None:
+        # with v_a = -i E_a d_a: Re(v_b . (R_a x v_a^*)) = E_a E_b RR[a, b]
+        agg = _chiral_trimer()
         Ea = numpy.diag(agg.HH) - agg.HH[0, 0]
         numpy.testing.assert_allclose(
-            agg.RRv, Ea[:, None] * agg.RR, rtol=1e-12, atol=1e-12
+            agg.RRv, numpy.outer(Ea, Ea) * agg.RR, rtol=1e-12, atol=1e-12
         )
-        self.assertTrue(numpy.any(agg.RRv != 0.0))
         # no magnetic dipoles set
         numpy.testing.assert_array_equal(agg.RRm, 0.0)
 
-    def test_velocity_form_uses_explicit_velocity_dipoles(self) -> None:
-        agg = _chiral_dimer(velocity=True)
+    def test_velocity_flags(self) -> None:
+        agg = _chiral_trimer(velocity=(0, 1, 2))
         self.assertTrue(agg._has_velocity_dipoles)
-        # RRv[a, b] = Re(i R_a . (v_a x d_b)) with v = -2i d  ->  2 RR[a, b]
-        numpy.testing.assert_allclose(agg.RRv, 2.0 * agg.RR, rtol=1e-12, atol=1e-12)
+        self.assertFalse(agg._has_mixed_velocity_dipoles)
+        agg = _chiral_trimer(velocity=(1,))
+        self.assertFalse(agg._has_velocity_dipoles)
+        self.assertTrue(agg._has_mixed_velocity_dipoles)
 
-    def test_monomers_without_position_do_not_contribute(self) -> None:
-        m1 = Molecule(elenergies=[0.0, 1.0])
-        m2 = Molecule(elenergies=[0.0, 1.1])
-        m1.set_dipole(0, 1, [1.0, 0.0, 0.0])
-        m2.set_dipole(0, 1, [0.0, 1.0, 0.0])
-        agg = Aggregate(molecules=[m1, m2])
-        agg.build()
-        numpy.testing.assert_array_equal(agg.RR, 0.0)
-        numpy.testing.assert_array_equal(agg.RRv, 0.0)
+    def test_monomer_without_position_is_skipped_symmetrically(self) -> None:
+        agg = _chiral_trimer(positions=(0, 1))
+        # state 3 (monomer 2) has no position: its row and column vanish
+        for M in (agg.RR, agg.RRv):
+            numpy.testing.assert_array_equal(M[3, :], 0.0)
+            numpy.testing.assert_array_equal(M[:, 3], 0.0)
+        full = _chiral_trimer()
+        numpy.testing.assert_allclose(agg.RR[1:3, 1:3], full.RR[1:3, 1:3])

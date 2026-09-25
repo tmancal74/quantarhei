@@ -87,7 +87,10 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         self.coupling_initiated = False  #
         self.resonance_coupling: Any = None
+        # True if all monomers have explicit transition velocity dipoles
         self._has_velocity_dipoles = False
+        # True if only some of the monomers have them (unsupported for CD)
+        self._has_mixed_velocity_dipoles = False
 
         if molecules is not None:
             for m in molecules:
@@ -1085,6 +1088,31 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
 
         return elvdip * fcfac
 
+    def _rotatory_velocity_dipole(
+        self, state0: Any, state: Any, mon: int, dip: Any
+    ) -> numpy.ndarray:
+        """Velocity transition dipole <state0|v|state> used for CD
+
+        Returns the explicit velocity dipole if monomer ``mon`` has one.
+        Otherwise it is derived from the length-form dipole ``dip`` with the
+        commutator relation v = i[H, r] (hbar = 1) of the *isolated*
+        monomer, <0|v|a> = -i (E_a - E_0) <0|r|a>, with the site (vibronic)
+        transition energy E_a in internal units (the same fallback as in
+        ``Molecule.set_magnetic_dipoleR``).
+
+        This site-energy fallback is exact only for uncoupled monomers; it
+        is used here for the intrinsic magnetic term (RRm) and for the
+        velocity-form matrix RRv. The length-form rotatory strength does not
+        use it (see ``LinSpectrumCalculator._excitonic_rotatory_strength_fullv``).
+
+        """
+        if self.monomers[mon]._has_transition_velocity:
+            return numpy.asarray(
+                self.transition_velocity_dipole(state0, state), dtype=numpy.complex128
+            )
+        Ea = state._energy() - state0._energy()
+        return -1j * Ea * numpy.asarray(dip, dtype=numpy.complex128)
+
     def transition_magnetic(self, state1: Any, state2: Any) -> numpy.ndarray | float:
         """Transition magnetic dipole moment between two states
 
@@ -2046,7 +2074,14 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
         DD = numpy.zeros((Ntot, Ntot, 3), dtype=numpy.float64)
         # Magnetic dipole moment matrix (in coordinate system centered on the molecule)
         MM = numpy.zeros((Ntot, Ntot, 3), dtype=numpy.complex128)
-        # Rotatory strength matrix
+        # Rotatory strength matrices in the site basis; for single-exciton
+        # states a, b localized on monomers with positions R_a, length
+        # dipoles d, velocity dipoles v and magnetic dipoles m (all 0 -> a):
+        #   RR[a, b]  = R_a . (d_a x d_b)              (length form)
+        #   RRv[a, b] = Re(v_b . (R_a x v_a^*))         (velocity form)
+        #   RRm[a, b] = Re(v_a . m_b^*)                 (intrinsic magnetic)
+        # For exciton coefficients c, c^T RR c and c^T RRv c are translation
+        # invariant because the swapped pair (b, a) cancels the shift.
         RR = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         RRv = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
         RRm = numpy.zeros((Ntot, Ntot), dtype=numpy.float64)
@@ -2099,6 +2134,13 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
             band_external=band_external,
         ):
             self.all_states.append((a, s1))
+
+        # Rotatory strengths are evaluated in the velocity form when all
+        # monomers carry explicit velocity dipoles, in the length form when
+        # none does; a mixture is flagged and rejected by the CD calculation.
+        vel_flags = [bool(m._has_transition_velocity) for m in self.monomers]
+        self._has_velocity_dipoles = len(vel_flags) > 0 and all(vel_flags)
+        self._has_mixed_velocity_dipoles = any(vel_flags) and not all(vel_flags)
 
         # Set up Hamiltonian and Transition dipole moment matrices
         for a, s1 in self.all_states:
@@ -2172,38 +2214,30 @@ class AggregateBase(UnitsManaged, Saveable, OpenSystem):
                 # FIXME: Here we assume only excitation from the lowest state (lowest vibrational state)
                 mon1 = s1.get_monomer()
                 mon2 = s2.get_monomer()
-                # Rotatory strengths need the position of the monomer carrying
-                # the excitation in s1; molecules without a position do not
-                # contribute (RR, RRv, RRm stay zero).
-                if (
-                    mon1 != -1
-                    and mon2 != -1
-                    and self.monomers[mon1].position is not None
-                ):
+                # Rotatory-strength matrices (see _rotatory_velocity_dipole
+                # and LinSpectrumCalculator._excitonic_rotatory_strength_fullv
+                # for the physics and the exciton-basis formulas).
+                if mon1 != -1 and mon2 != -1:
                     da = self.transition_dipole(s0, s1)
                     db = self.transition_dipole(s0, s2)
                     mb = self.transition_magnetic(s0, s2)
-                    Ra = numpy.array(self.monomers[mon1].position, "f8")
-                    # alternative definition of rotatory strength
-                    # Rb = numpy.array(self.monomers[mon2].position,"f8")
-                    # RR[a,b] = numpy.dot( (Ra - Rb), numpy.cross(da, db))
-
-                    Ea = s1._energy() - s0._energy()
-                    # for energy in current units use s1.energy()
-                    if self.monomers[mon1]._has_transition_velocity:
-                        dav = self.transition_velocity_dipole(s0, s1)
-                        self._has_velocity_dipoles = True
-                    else:
-                        # No velocity dipole was set on the monomer:
-                        # approximate it from the length-form dipole via
-                        # the commutator relation v = i[H, r] (hbar = 1),
-                        # i.e. <0|v|a> = -i (E_a - E_0) <0|r|a>, energy in
-                        # internal units (same convention as the fallback
-                        # in Molecule.set_magnetic_dipoleR()).
-                        dav = -1j * Ea * da
-                    RRv[a, b] = numpy.real(1j * numpy.dot(Ra, numpy.cross(dav, db)))
-                    RR[a, b] = numpy.dot(Ra, numpy.cross(da, db))
-                    RRm[a, b] = numpy.real(numpy.dot(dav, mb))
+                    va = self._rotatory_velocity_dipole(s0, s1, mon1, da)
+                    vb = self._rotatory_velocity_dipole(s0, s2, mon2, db)
+                    # intrinsic magnetic term Re(v_a . m_b^*); it does not
+                    # involve positions and is origin independent
+                    RRm[a, b] = numpy.real(numpy.dot(va, numpy.conj(mb)))
+                    # The extrinsic (coupled-oscillator) terms need both
+                    # positions. A pair with a missing position is skipped
+                    # symmetrically (both [a, b] and [b, a]), which keeps
+                    # c^T RR c and c^T RRv c translation invariant.
+                    pos1 = self.monomers[mon1].position
+                    pos2 = self.monomers[mon2].position
+                    if pos1 is not None and pos2 is not None:
+                        Ra = numpy.array(pos1, "f8")
+                        RR[a, b] = numpy.dot(Ra, numpy.cross(da, db))
+                        RRv[a, b] = numpy.real(
+                            numpy.dot(vb, numpy.cross(Ra, numpy.conj(va)))
+                        )
 
                 if a != b:
                     HH[a, b] = self.coupling_vec(s1, s2)
