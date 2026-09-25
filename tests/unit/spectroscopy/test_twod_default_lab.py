@@ -1,5 +1,6 @@
 """TwoDResponseCalculator.bootstrap without an explicit LabSetup (issue #335)."""
 
+import numpy
 import numpy.testing as npt
 
 import quantarhei as qr
@@ -46,3 +47,21 @@ def test_default_lab_matches_explicit_xxxx_lab():
         assert abs(data).max() > 0.0
         # same code path and inputs; only floating-point noise is allowed
         npt.assert_allclose(data, explicit.get_spectrum(t2).data, rtol=1e-12, atol=0)
+
+
+def test_default_lab_is_xxxx_polarization():
+    """Default lab has all pulses and detection along X (XXXX).
+
+    Checked on the lab itself, independently of spectra, so that a wrong
+    default polarization cannot hide behind an identical reference lab.
+    """
+    calc = _calculator()
+    with qr.energy_units("1/cm"):
+        calc.bootstrap(rwa=12100.0)
+    lab = calc.lab
+    assert isinstance(lab, qr.LabSetup)
+    # rows: pulses 1-3 and detection
+    npt.assert_array_equal(lab.e, numpy.tile(X, (4, 1)))
+    # isotropic average for XXXX: F4e = (1, 1, 1), and each row of
+    # M4 = [[4,-1,-1],[-1,4,-1],[-1,-1,4]]/30 sums to 2/30, so F4eM4 = 1/15
+    npt.assert_allclose(lab.F4eM4, numpy.full(3, 1.0 / 15.0), rtol=1e-14, atol=0)
