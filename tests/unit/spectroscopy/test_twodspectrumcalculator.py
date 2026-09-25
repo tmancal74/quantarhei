@@ -133,12 +133,42 @@ def test_calculate_requires_bootstrap():
         calculator.calculate()
 
 
-def test_finite_pulses_are_explicitly_deferred():
-    t1, t2, t3 = _axes()
-    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, _finite_lab())
+def test_finite_pulses_extend_response_axes_for_explicit_convolution():
+    t1 = qr.TimeAxis(0.0, 100, 5.0)
+    t2 = qr.TimeAxis(0.0, 2, 100.0)
+    t3 = qr.TimeAxis(0.0, 100, 5.0)
+    lab = qr.LabSetup(nopulses=3)
+    pulse_axis = qr.TimeAxis(-200.0, 81, 5.0, atype="complete")
+    pulse = {"ptype": "Gaussian", "FWHM": 30.0, "amplitude": 1.0}
+    lab.set_pulse_shapes(pulse_axis, (pulse, pulse, pulse))
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
 
-    with pytest.raises(NotImplementedError, match="finite pulses"):
-        calculator.get_response_axes()
+    response_t1, response_t2, response_t3 = calculator.get_response_axes()
+
+    # An intensity FWHM of 30 fs gives 4 sigma = 72.1 fs for the
+    # field envelope.  The pair-delay margin is 144.1 fs, rounded to 145 fs.
+    assert response_t1.start == 0.0
+    assert response_t1.step == 5.0
+    assert response_t1.max == 640.0
+    assert response_t3.is_equal_to(response_t1)
+    assert response_t2.start == 0.0
+    assert response_t2.step == 5.0
+    assert response_t2.max == 245.0
+
+
+def test_finite_pulse_axis_margin_respects_gaussian_fwhm_convention():
+    t1, t2, t3 = _axes()
+    lab = _finite_lab()
+    for parameters in lab.saved_params:
+        parameters["FWHM"] = 30.0
+        parameters["FWHM_type"] = "amplitude"
+    calculator = qr.TwoDSpectrumCalculator(t1, t2, t3, lab)
+
+    response_t1, _, _ = calculator.get_response_axes()
+
+    # The amplitude-FWHM convention has a 101.9 fs pair margin, rounded to
+    # the 1 fs t1 grid.
+    assert response_t1.max == 109.0
 
 
 def test_finite_pulse_overlay_suggests_unchanged_response_axes():

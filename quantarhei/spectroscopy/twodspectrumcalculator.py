@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy
@@ -77,6 +78,11 @@ class TwoDSpectrumCalculator:
         which is not implemented yet. If ``False``, calculate the impulsive
         spectrum on the supplied axes and apply the approximate spectral-pulse
         overlay to the resulting spectra.
+    pulse_support_sigma : float, optional
+        Effective half-width of a Gaussian pulse, expressed as a number of
+        field-envelope standard deviations.  It is used only when suggesting
+        response axes for explicit finite-pulse convolution.  The default of
+        ``4.0`` retains field amplitudes down to ``exp(-8)`` of their peak.
     """
 
     t1axis = derived_type("t1axis", TimeAxis)
@@ -91,12 +97,16 @@ class TwoDSpectrumCalculator:
         t3axis: TimeAxis,
         lab: LabSetup,
         explicit_convolution: bool = True,
+        pulse_support_sigma: float = 4.0,
     ) -> None:
+        if pulse_support_sigma <= 0.0:
+            raise ValueError("pulse_support_sigma must be positive")
         self.t1axis = t1axis
         self.t2axis = t2axis
         self.t3axis = t3axis
         self.lab = lab
         self.explicit_convolution = explicit_convolution
+        self.pulse_support_sigma = pulse_support_sigma
         self.response_container: TwoDResponseContainer | None = None
         self.response_calculator: TwoDResponseCalculator | None = None
         self.system: Any = None
@@ -109,19 +119,85 @@ class TwoDSpectrumCalculator:
 
         Delta pulses, and finite pulses used with the approximate overlay,
         use the experimental axes unchanged. Copies are returned so a response
-        calculator cannot modify the axes owned by this calculator. Explicit
-        finite-pulse convolution will extend these axes in a later
-        implementation.
+        calculator cannot modify the axes owned by this calculator.
+
+        For explicit finite-pulse convolution, the internal response axes are
+        extended beyond the largest requested delay by the maximum difference
+        between two effective pulse times.  A time-defined Gaussian is cut at
+        ``pulse_support_sigma`` standard deviations of its *field envelope*;
+        sampled non-Gaussian pulses use their configured temporal support.
+        The extra range is rounded upward to the appropriate grid spacing.
+        The waiting-time axis uses the finest supplied time step, because it
+        will be integrated during the finite-pulse calculation.
         """
-        if not self.lab.has_delta_pulses() and self.explicit_convolution:
-            raise NotImplementedError(
-                "Response-axis suggestions for finite pulses are not implemented"
+        if self.lab.has_delta_pulses() or not self.explicit_convolution:
+            return (
+                self.t1axis.deepcopy(),
+                self.t2axis.deepcopy(),
+                self.t3axis.deepcopy(),
             )
-        return (
-            self.t1axis.deepcopy(),
-            self.t2axis.deepcopy(),
-            self.t3axis.deepcopy(),
+
+        margin = self._finite_pulse_delay_margin()
+        t1axis = self._extend_axis(self.t1axis, margin, self.t1axis.step)
+        t3axis = self._extend_axis(self.t3axis, margin, self.t3axis.step)
+        quadrature_step = min(self.t1axis.step, self.t2axis.step, self.t3axis.step)
+        t2axis = self._extend_axis(self.t2axis, margin, quadrature_step)
+        return t1axis, t2axis, t3axis
+
+    @staticmethod
+    def _extend_axis(axis: TimeAxis, margin: float, step: float) -> TimeAxis:
+        """Extend a causal response axis at its upper end on a chosen grid."""
+        upper = axis.max + margin
+        length = math.ceil((upper - axis.start) / step - 1.0e-12) + 1
+        return TimeAxis(
+            axis.start,
+            length,
+            step,
+            atype=axis.atype,
+            frequency_start=axis.frequency_start,
         )
+
+    def _finite_pulse_delay_margin(self) -> float:
+        """Return a conservative, grid-independent finite-pulse delay margin."""
+        params = self.lab.saved_params
+        if params is None:
+            raise QuantarheiError(
+                "Finite-pulse response axes require configured pulses"
+            )
+
+        half_supports: list[float] = []
+        for index, pulse in enumerate(params):
+            if (
+                self.lab.pulse_definition_domain == "time"
+                and pulse.get("ptype") == "Gaussian"
+            ):
+                fwhm = float(pulse["FWHM"])
+                fwhm_type = pulse.get("FWHM_type", "intensity").lower()
+                if fwhm_type == "intensity":
+                    exponent_factor = 2.0 * numpy.log(2.0)
+                elif fwhm_type in ("amplitude", "field"):
+                    exponent_factor = 4.0 * numpy.log(2.0)
+                else:
+                    raise QuantarheiError("Unknown Gaussian FWHM_type")
+                sigma = fwhm / math.sqrt(2.0 * exponent_factor)
+                half_supports.append(self.pulse_support_sigma * sigma)
+            else:
+                half_supports.append(self._sampled_pulse_half_support(index))
+
+        # Any relative delay involves two pulse times.  The sum of the two
+        # largest supports is conservative for unequal pulse widths.
+        half_supports.sort(reverse=True)
+        return half_supports[0] + half_supports[1]
+
+    def _sampled_pulse_half_support(self, index: int) -> float:
+        """Return support of a non-analytic pulse around its configured center."""
+        if not self.lab.has_timedomain:
+            self.lab.convert_to_time()
+        pulse = self.lab.pulse_t[index]
+        if pulse is None:
+            raise QuantarheiError("Finite pulse has no time-domain representation")
+        center = self.lab.pulse_centers[index]
+        return max(abs(pulse.axis.min - center), abs(pulse.axis.max - center))
 
     def suggest_response_axes(self) -> tuple[TimeAxis, TimeAxis, TimeAxis]:
         """Alias for :meth:`get_response_axes`."""
