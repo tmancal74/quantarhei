@@ -5,7 +5,9 @@ from typing import Any
 import numpy as np
 import scipy.constants as const
 
-from ..core.units import eps0_int
+from ..core.units import conversion_facs_energy, eps0_int
+
+HARTREE_TO_INVCM = conversion_facs_energy["Ha"] / conversion_facs_energy["1/cm"]
 
 
 def dipole_dipole_interaction(
@@ -65,8 +67,7 @@ def dipole_dipole(
     dr2 = np.dot(dipole2, r12) / R
 
     Edip_dip_Ha = (d12 - 3 * dr1 * dr2) / (R**3)  # interaction energy in hartree
-    nma: Any = 1.0
-    Edip_dip_cm1 = Edip_dip_Ha * nma.HaToInvcm
+    Edip_dip_cm1 = Edip_dip_Ha * HARTREE_TO_INVCM
 
     if args:
         for a in args:
