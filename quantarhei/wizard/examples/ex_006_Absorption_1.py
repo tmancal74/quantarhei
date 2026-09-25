@@ -8,7 +8,7 @@ how to change the code to convert it into a demo.
 _show_plots_ = False
 _use_tempdir_ = True
 
-from ...exceptions import QuantarheiError
+from quantarhei.exceptions import QuantarheiError
 
 if _use_tempdir_:
     import tempfile

@@ -184,9 +184,6 @@ if _movie_:
         tcont.make_movie("twod.mp4", window=plot_window, label_func=label_func)
 
 
-qr.stop()
-
-
 ###############################################################################
 #
 # PUMP PROBE SPECRA as projections for 2D spectra
