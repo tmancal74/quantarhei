@@ -75,10 +75,9 @@ class RedfieldFoersterRelaxationTensor(
         Nt = ta.length
         Na = ham.dim
 
-        if ham._has_remainder_coupling:
-            JR = ham.JR
-        else:
-            JR = numpy.zeros((ham.dim, ham.dim), dtype=numpy.float64)
+        # remainder coupling in the site basis, independent of the lazy
+        # basis state of ham (JR is transformed together with ham._data)
+        JR = ham.get_site_basis_remainder_coupling()
 
         calcRT = True
         calcFT = True
@@ -102,7 +101,9 @@ class RedfieldFoersterRelaxationTensor(
         # Calculate Foerster for the remainder coupling
         #
         if calcFT:
-            hD, SS = numpy.linalg.eigh(ham.data)
+            # site-basis eigenvectors: ham.JR and the site correlation
+            # functions below are defined in the site basis
+            hD, SS = ham.get_site_basis_eigensystem()
 
             #
             # identify lineshape functions of excitonic states
@@ -150,7 +151,7 @@ class RedfieldFoersterRelaxationTensor(
             #
             # Hamiltonian matrix
             #
-            hj = numpy.dot(numpy.linalg.inv(SS), numpy.dot(ham.JR, SS))
+            hj = numpy.dot(numpy.linalg.inv(SS), numpy.dot(JR, SS))
             for i in range(ham.dim):
                 hj[i, i] = 0.0
             hh = numpy.diag(hD) + hj

@@ -92,7 +92,8 @@ class RedfieldRateMatrix:
             raise QuantarheiError("No system bath intraction components present")
 
         # Eigen problem
-        hD, SS = numpy.linalg.eigh(self.ham._data)
+        # site-basis eigenvectors, independent of the lazy basis state of ham
+        hD, SS = self.ham.get_site_basis_eigensystem()
         S1 = numpy.linalg.inv(SS)
 
         # component operators

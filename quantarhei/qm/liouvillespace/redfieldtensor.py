@@ -31,17 +31,22 @@ class RedfieldRelaxationTensor(RelaxationTensor):
 
     Unlike Foerster or Lindblad tensors (which operate entirely in the site
     basis), the Redfield tensor is computed in the eigenbasis of the
-    Hamiltonian. The constructor diagonalizes the Hamiltonian internally and
-    stores the result in that eigenbasis.
+    Hamiltonian, whose site-basis eigenvectors are obtained from
+    ``ham.get_site_basis_eigensystem()``. The result is stored in that
+    eigenbasis, but labelled with the basis that is current at construction.
 
     If you obtain this tensor via ``OpenSystem.get_RelaxationTensor()``, it is
-    automatically back-transformed to the site basis before being returned —
+    automatically expressed in the current basis before being returned —
     no extra steps are needed.
 
-    If you construct it directly, you must back-transform explicitly::
+    If you construct it inside ``eigenbasis_of(ham)``, it is already in the
+    basis of that context, whether or not ``ham.data`` has been read before.
+
+    If you construct it directly outside of any basis context, you must
+    back-transform explicitly::
 
         RRT = RedfieldRelaxationTensor(ham, sbi, secular=True)
-        _, SS = numpy.linalg.eigh(ham._data)
+        _, SS = ham.get_site_basis_eigensystem()
         S1 = numpy.linalg.inv(SS)
         RRT.transform(S1, inv=SS)
 

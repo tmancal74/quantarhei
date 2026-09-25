@@ -92,7 +92,9 @@ class ModifiedRedfieldRateMatrix:
         tt = self.sbi.TimeAxis.data
 
         # Eigen problem
-        hD, SS = numpy.linalg.eigh(self.ham._data)  # hD=eigenvalues, SS=eigenvectors
+        # hD=eigenvalues, SS=site-basis eigenvectors, independent of the
+        # lazy basis state of ham
+        hD, SS = self.ham.get_site_basis_eigensystem()
 
         Nt = self.sbi.CC.timeAxis.length
         dt = self.sbi.CC.timeAxis.step
@@ -219,7 +221,7 @@ class ModifiedRedfieldRateMatrix:
         Nt = self.sbi.CC.timeAxis.length
 
         # Eigen problem
-        hD, SS = numpy.linalg.eigh(self.ham._data)
+        hD, SS = self.ham.get_site_basis_eigensystem()
 
         #
         # THIS WILL BE DONE ON THE OPEN SYSTEM

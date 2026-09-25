@@ -108,7 +108,7 @@ class TDModRedfieldRelaxationTensor(RelaxationTensor, TimeDependent):
         with energy_units("int"):
             for ii in range(Na):
                 ll[ii + 1] = cfce.get_reorganization_energy(ii, ii)
-            ee, ss = numpy.linalg.eigh(HH._data)
+            ee, ss = HH.get_site_basis_eigensystem()
 
             # t1 = time.time()
             RR, Iterm = ssmodr(

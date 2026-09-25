@@ -729,11 +729,14 @@ class OpenSystem:
                     secular=secular_relaxation,
                 )
 
-            # The tensor is built in the eigenbasis of ham. Transform it
-            # back to site basis so it matches ham (which stays in site basis).
-            _, SS = numpy.linalg.eigh(ham._data)
-            S1 = numpy.linalg.inv(SS)
-            relaxT.transform(S1, inv=SS)
+            # The tensor is built in the eigenbasis of ham defined by the
+            # site-basis eigenvectors SS (the same ones the tensor used), but
+            # it is labelled with the current basis. Express it in the
+            # current basis: the site basis outside any context, or nothing
+            # to do inside eigenbasis_of(ham), where SS is the context's own
+            # transformation.
+            _, SS = ham.get_site_basis_eigensystem()
+            _express_in_current_basis(relaxT, SS)
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -759,9 +762,11 @@ class OpenSystem:
                 if secular_relaxation:
                     relaxT.secularize()
 
-            _, SS = numpy.linalg.eigh(ham._data)
-            S1 = numpy.linalg.inv(SS)
-            relaxT.transform(S1, inv=SS)
+            # Unlike the standard Redfield tensors, the modified Redfield
+            # tensors fill their data inside their own eigenbasis_of(ham)
+            # context and are transformed back to the (site) basis on its
+            # exit, so they are already in the current basis. No further
+            # transformation must be applied here.
 
             self.RelaxationTensor = relaxT
             self.RelaxationHamiltonian = ham
@@ -1424,3 +1429,24 @@ def integral_g_f(g: numpy.ndarray, f: numpy.ndarray, dt: float) -> complex:
     integrand = g * f
     result = 0.5 * (integrand[0] + integrand[-1]) + numpy.sum(integrand[1:-1])
     return result * dt
+
+
+def _express_in_current_basis(relaxT: Any, SS: numpy.ndarray) -> None:
+    """Transform a tensor computed in the eigenbasis given by ``SS``
+    (columns are site-basis eigenvectors) into the current basis.
+
+    Outside any basis context this is the back-transformation to the site
+    basis, ``relaxT.transform(inv(SS), inv=SS)``. Inside a context whose
+    transformation is ``SS`` itself (``eigenbasis_of`` of the Hamiltonian)
+    the tensor is already in the current basis and is left untouched.
+    """
+    manager = Manager()
+    T_cb = manager.get_site_to_basis_transformation(
+        manager.get_current_basis(), SS.shape[0]
+    )
+    if numpy.array_equal(SS, T_cb):
+        return
+    # data_cb = inv(M) @ data_eig @ M with M = inv(SS) @ T_cb
+    MM = numpy.dot(numpy.linalg.inv(SS), T_cb)
+    M1 = numpy.dot(numpy.linalg.inv(T_cb), SS)
+    relaxT.transform(MM, inv=M1)
